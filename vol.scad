@@ -15,12 +15,14 @@ nut_rad = 11.1 / 2;
 
 knob_rad = 6.05 / 2;
 
+guard_height = 2.8 * 1;
+
 /* [Fitting] */
 nut_top_clearance = 0.4; // [0:0.01:5]
 nut_side_clearance = 0.4; // [0:0.01:5]
 
 knob_top_clearance = 0.4; // [0:0.01:5]
-knob_side_clearance = 0.15; // [0:0.01:5]
+knob_side_clearance = 0.15; // [0:0.001:5]
 
 /* [Shape] */
 base_eccentricity = 0.5; // [0:0.01:0.99]
@@ -75,13 +77,13 @@ module knob_cross_section() {
 render()
   difference() {
     union() {
+      color(c="darkgray", alpha=1)
+        rotate_extrude(angle=rotation_angle)
+          base_cross_section();
+
       color(c="lightgray", alpha=1)
         rotate_extrude(angle=rotation_angle)
           top_cross_section();
-
-      color(c="gray", alpha=1)
-        rotate_extrude(angle=rotation_angle)
-          base_cross_section();
     }
 
     color(c="red", alpha=1)
