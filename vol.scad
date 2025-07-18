@@ -6,8 +6,8 @@ allow negative y - a circle arc, resizing to rad
 /* [Fixed] */
 default_rad = 23 / 2;
 
-knob_top = 7.8 * 1;
-knob_rad = 6.05 / 2;
+shaft_top = 7.8 * 1;
+shaft_rad = 6.05 / 2;
 
 nut_height = 2.12 * 1;
 nut_rad = 11.1 / 2;
@@ -19,8 +19,8 @@ guard_rad = 24.75 / 2;
 nut_top_clearance = 0.35; // [0:0.01:5]
 nut_side_clearance = 0.30; // [0:0.01:5]
 
-knob_top_clearance = 0.35; // [0:0.01:5]
-knob_side_clearance = 0.130; // [0:0.001:5]
+shaft_top_clearance = 0.35; // [0:0.01:5]
+shaft_side_clearance = 0.130; // [0:0.001:5]
 
 guard_side_clearance = 0.875; // [0:0.001:5]
 
@@ -82,24 +82,37 @@ module nut_cross_section() {
   square([nut_rad + nut_side_clearance, nut_height + nut_top_clearance], center=false);
 }
 
-module knob_cross_section() {
-  square([knob_rad + knob_side_clearance, knob_top + knob_top_clearance], center=false);
+module shaft_cross_section() {
+  square([shaft_rad + shaft_side_clearance, shaft_top + shaft_top_clearance], center=false);
+}
+
+module indicator() {
+  color(c="red", alpha=1)
+    rotate_extrude(angle=indicator_angle)
+      resize(newsize=[guard_rad - guard_side_clearance + indicator_dr, 0])
+        all_cross_section();
+}
+
+module knob() {
+  color(c="lightgray", alpha=1)
+    rotate_extrude(angle=rotation_angle - indicator_angle, start=indicator_angle)
+      all_cross_section();
 }
 
 render()
   difference() {
-    union() {
-      if (piece != "knob") {
-        color(c="red", alpha=1)
-          rotate_extrude(angle=indicator_angle)
-            resize(newsize=[guard_rad - guard_side_clearance + indicator_dr, 0])
-              all_cross_section();
-      }
 
-      if (piece != "indicator") {
-        color(c="lightgray", alpha=1)
-          rotate_extrude(angle=rotation_angle - indicator_angle, start=indicator_angle)
-            all_cross_section();
+    if (piece == "knob") {
+      difference() {
+        knob();
+        indicator();
+      }
+    } else if (piece == "indicator") {
+      indicator();
+    } else if (piece == "both") {
+      union() {
+        knob();
+        indicator();
       }
     }
 
@@ -109,5 +122,5 @@ render()
 
     color(c="tomato", alpha=1)
       rotate_extrude(angle=rotation_angle)
-        knob_cross_section();
+        shaft_cross_section();
   }
