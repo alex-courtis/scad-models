@@ -35,8 +35,15 @@ top_y = 2; // [0:0.01:10]
 
 top_r = 9; // [0:0.01:15]
 
-/* [Dev] */
-rotation_angle = 180; // [0:1:360]
+indicator_angle = 5; // [0:0.01:15]
+indicator_dr = 0.1; // [-5:0.01:5]
+
+/* [Piece] */
+piece = "both"; // ["both", "knob", "indicator"]
+
+half = true;
+
+rotation_angle = half ? 180 : 360;
 
 $fn = 200; // [100:1:600]
 
@@ -66,6 +73,11 @@ module top_cross_section() {
   elipse_quadrant_cross_section(r=top_r, e=top_eccentricity, y=top_y + base_y);
 }
 
+module all_cross_section() {
+  base_cross_section();
+  top_cross_section();
+}
+
 module nut_cross_section() {
   square([nut_rad + nut_side_clearance, nut_height + nut_top_clearance], center=false);
 }
@@ -77,20 +89,25 @@ module knob_cross_section() {
 render()
   difference() {
     union() {
-      color(c="darkgray", alpha=1)
-        rotate_extrude(angle=rotation_angle)
-          base_cross_section();
+      if (piece != "knob") {
+        color(c="red", alpha=1)
+          rotate_extrude(angle=indicator_angle)
+            resize(newsize=[guard_rad - guard_side_clearance + indicator_dr, 0])
+              all_cross_section();
+      }
 
-      color(c="lightgray", alpha=1)
-        rotate_extrude(angle=rotation_angle)
-          top_cross_section();
+      if (piece != "indicator") {
+        color(c="lightgray", alpha=1)
+          rotate_extrude(angle=rotation_angle - indicator_angle, start=indicator_angle)
+            all_cross_section();
+      }
     }
 
-    color(c="red", alpha=1)
+    color(c="coral", alpha=1)
       rotate_extrude(angle=rotation_angle)
         nut_cross_section();
 
-    color(c="orange", alpha=1)
+    color(c="tomato", alpha=1)
       rotate_extrude(angle=rotation_angle)
         knob_cross_section();
   }

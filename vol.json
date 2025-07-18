@@ -10,7 +10,6 @@
             "knob_top_clearance": "0.40000000000000002",
             "nut_side_clearance": "0.40000000000000002",
             "nut_top_clearance": "0.40000000000000002",
-            "rotation_angle": "360",
             "top_eccentricity": "0",
             "top_r": "5.7199999999999998",
             "top_y": "1.8500000000000001"
@@ -24,7 +23,6 @@
             "knob_top_clearance": "0.35000000000000003",
             "nut_side_clearance": "0.35000000000000003",
             "nut_top_clearance": "0.35000000000000003",
-            "rotation_angle": "360",
             "top_eccentricity": "0",
             "top_r": "5.7199999999999998",
             "top_y": "1.8500000000000001"
@@ -38,7 +36,6 @@
             "knob_top_clearance": "0.29999999999999999",
             "nut_side_clearance": "0.29999999999999999",
             "nut_top_clearance": "0.29999999999999999",
-            "rotation_angle": "360",
             "top_eccentricity": "0",
             "top_r": "5.7199999999999998",
             "top_y": "1.8500000000000001"
@@ -52,7 +49,6 @@
             "knob_top_clearance": "0.35000000000000003",
             "nut_side_clearance": "0.29999999999999999",
             "nut_top_clearance": "0.35000000000000003",
-            "rotation_angle": "360",
             "top_eccentricity": "0.84999999999999998",
             "top_r": "5.1900000000000004",
             "top_y": "5.9299999999999997"
@@ -66,7 +62,6 @@
             "knob_top_clearance": "0.35000000000000003",
             "nut_side_clearance": "0.29999999999999999",
             "nut_top_clearance": "0.35000000000000003",
-            "rotation_angle": "360",
             "top_eccentricity": "0.84999999999999998",
             "top_r": "5.1900000000000004",
             "top_y": "5.9299999999999997"
@@ -80,7 +75,6 @@
             "knob_top_clearance": "0.35000000000000003",
             "nut_side_clearance": "0.29999999999999999",
             "nut_top_clearance": "0.35000000000000003",
-            "rotation_angle": "360",
             "top_eccentricity": "0.84999999999999998",
             "top_r": "5.1900000000000004",
             "top_y": "5.9299999999999997"
@@ -94,7 +88,6 @@
             "knob_top_clearance": "0.35000000000000003",
             "nut_side_clearance": "0.29999999999999999",
             "nut_top_clearance": "0.35000000000000003",
-            "rotation_angle": "360",
             "top_eccentricity": "0.84999999999999998",
             "top_r": "5.1900000000000004",
             "top_y": "5.9299999999999997"
@@ -108,7 +101,6 @@
             "knob_top_clearance": "0.35000000000000003",
             "nut_side_clearance": "0.29999999999999999",
             "nut_top_clearance": "0.35000000000000003",
-            "rotation_angle": "360",
             "top_eccentricity": "0.84999999999999998",
             "top_r": "5.1900000000000004",
             "top_y": "5.9299999999999997"
