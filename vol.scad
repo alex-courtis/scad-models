@@ -1,28 +1,28 @@
 /*
-knob side 0.15 is good
-nut has too much top and side clearance at 0.5/0.5
-~1 clearance around rad 11.5
 TODO
 allow negative y - a circle arc, resizing to rad
 */
 
 /* [Fixed] */
-rad = 23 / 2;
+default_rad = 23 / 2;
+
 knob_top = 7.8 * 1;
+knob_rad = 6.05 / 2;
 
 nut_height = 2.12 * 1;
 nut_rad = 11.1 / 2;
 
-knob_rad = 6.05 / 2;
-
 guard_height = 2.8 * 1;
+guard_rad = 24.75 / 2;
 
 /* [Fitting] */
-nut_top_clearance = 0.4; // [0:0.01:5]
-nut_side_clearance = 0.4; // [0:0.01:5]
+nut_top_clearance = 0.35; // [0:0.01:5]
+nut_side_clearance = 0.30; // [0:0.01:5]
 
-knob_top_clearance = 0.4; // [0:0.01:5]
-knob_side_clearance = 0.15; // [0:0.001:5]
+knob_top_clearance = 0.30; // [0:0.01:5]
+knob_side_clearance = 0.130; // [0:0.001:5]
+
+guard_side_clearance = 0.875; // [0:0.001:5]
 
 /* [Shape] */
 base_eccentricity = 0.5; // [0:0.01:0.99]
@@ -59,7 +59,7 @@ module elipse_quadrant_cross_section(r, e, y) {
 }
 
 module base_cross_section() {
-  elipse_quadrant_cross_section(r=rad, e=base_eccentricity, y=base_y);
+  elipse_quadrant_cross_section(r=guard_rad - guard_side_clearance, e=base_eccentricity, y=base_y);
 }
 
 module top_cross_section() {
