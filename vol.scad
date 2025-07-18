@@ -19,7 +19,7 @@ guard_rad = 24.75 / 2;
 nut_top_clearance = 0.35; // [0:0.01:5]
 nut_side_clearance = 0.30; // [0:0.01:5]
 
-knob_top_clearance = 0.30; // [0:0.01:5]
+knob_top_clearance = 0.35; // [0:0.01:5]
 knob_side_clearance = 0.130; // [0:0.001:5]
 
 guard_side_clearance = 0.875; // [0:0.001:5]
