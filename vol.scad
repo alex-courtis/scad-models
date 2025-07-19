@@ -1,19 +1,14 @@
-/*
-TODO
-allow negative y - a circle arc, resizing to rad
-*/
-
 /* [Fixed] */
-default_rad = 23 / 2;
+default_r = 23 / 2;
 
 shaft_top = 7.8 * 1;
-shaft_rad = 6.05 / 2;
+shaft_r = 6.05 / 2;
 
 nut_height = 2.12 * 1;
-nut_rad = 11.1 / 2;
+nut_r = 11.1 / 2;
 
 guard_height = 2.8 * 1;
-guard_rad = 24.75 / 2;
+guard_r = 24.75 / 2;
 
 /* [Fitting] */
 nut_top_clearance = 0.35; // [0:0.01:5]
@@ -22,7 +17,7 @@ nut_side_clearance = 0.30; // [0:0.01:5]
 shaft_top_clearance = 0.35; // [0:0.01:5]
 shaft_side_clearance = 0.130; // [0:0.001:5]
 
-guard_side_clearance = 0.875; // [0:0.001:5]
+guard_side_clearance = 0.025; // [0:0.001:5]
 
 /* [Shape] */
 base_eccentricity = 0.5; // [0:0.01:0.99]
@@ -33,10 +28,13 @@ top_eccentricity = 0.2; // [0:0.01:0.99]
 
 top_y = 2; // [0:0.01:10]
 
-top_r = 9; // [0:0.01:15]
+top_r = 9; // [0:0.01:25]
 
-indicator_angle = 5; // [0:0.01:15]
-indicator_dr = 0.1; // [-5:0.01:5]
+indicator_top_dr = 0.1; // [-5:0.01:5]
+indicator_base_dr = 0.1; // [-5:0.01:5]
+indicator_top_dh = 0.1; // [-5:0.01:5]
+indicator_base_dh = 0.1; // [-5:0.01:5]
+indicator_width = 1; // [0:0.01:5]
 
 /* [Piece] */
 piece = "both"; // ["both", "knob", "indicator"]
@@ -47,11 +45,48 @@ rotation_angle = half ? 180 : 360;
 
 $fn = 200; // [100:1:600]
 
+// sanity check values
+echo();
+knob_r = guard_r - guard_side_clearance;
+echo(knob_r=knob_r, guard_r=guard_r, knob_r / guard_r);
+echo(top_r=top_r, top_r / knob_r);
+
+echo();
+nut_hole_r = nut_r + nut_side_clearance;
+echo(nut_hole_r=nut_hole_r, nut_hole_r / nut_r);
+nut_hole_height = nut_height + nut_top_clearance;
+echo(nut_hole_height=nut_hole_height, nut_hole_height / nut_height);
+
+echo();
+shaft_hole_r = shaft_r + shaft_side_clearance;
+echo(shaft_hole_r=shaft_hole_r, shaft_hole_r / shaft_r);
+shaft_hole_height = shaft_top + shaft_top_clearance;
+echo(shaft_hole_height=shaft_hole_height, shaft_hole_height / shaft_top);
+
+echo();
+base_height_calc = knob_r * (1 - base_eccentricity) + base_y;
+echo(base_height_calc=base_height_calc);
+indicator_base_h_mult = (base_height_calc + indicator_base_dh) / base_height_calc;
+echo(indicator_height=base_height_calc * indicator_base_h_mult);
+echo(indicator_base_h_mult=indicator_base_h_mult);
+indicator_base_r_mult = (knob_r + indicator_base_dr) / knob_r;
+echo(indicator_base_r_mult=indicator_base_r_mult);
+
+echo();
+top_height_calc = top_r * (1 - top_eccentricity) + base_y + top_y;
+echo(top_height_calc=top_height_calc);
+indicator_top_h_mult = (top_height_calc + indicator_top_dh) / top_height_calc;
+echo(indicator_height=top_height_calc * indicator_top_h_mult);
+echo(indicator_top_h_mult=indicator_top_h_mult);
+indicator_top_r_mult = (knob_r + indicator_top_dr) / knob_r;
+echo(indicator_top_r_mult=indicator_top_r_mult);
+
+echo();
+
 module elipse_quadrant_cross_section(r, e, y) {
   intersection() {
     translate(v=[0, y]) {
 
-      // elipse
       scale(v=[r, r * (1 - e)])
         circle();
 
@@ -66,37 +101,39 @@ module elipse_quadrant_cross_section(r, e, y) {
 }
 
 module base_cross_section() {
-  elipse_quadrant_cross_section(r=guard_rad - guard_side_clearance, e=base_eccentricity, y=base_y);
+  elipse_quadrant_cross_section(r=knob_r, e=base_eccentricity, y=base_y);
 }
 
 module top_cross_section() {
   elipse_quadrant_cross_section(r=top_r, e=top_eccentricity, y=top_y + base_y);
 }
 
-module all_cross_section() {
-  base_cross_section();
-  top_cross_section();
-}
-
 module nut_cross_section() {
-  square([nut_rad + nut_side_clearance, nut_height + nut_top_clearance], center=false);
+  square([nut_hole_r, nut_hole_height], center=false);
 }
 
 module shaft_cross_section() {
-  square([shaft_rad + shaft_side_clearance, shaft_top + shaft_top_clearance], center=false);
+  square([shaft_hole_r, shaft_hole_height], center=false);
 }
 
-module indicator() {
+module indicator(scale) {
   color(c="red", alpha=1)
-    rotate_extrude(angle=indicator_angle)
-      resize(newsize=[guard_rad - guard_side_clearance + indicator_dr, 0])
-        all_cross_section();
+    rotate(a=90, v=[1, 0, 0])
+      linear_extrude(height=indicator_width, center=true)
+        union() {
+          scale([scale ? indicator_base_r_mult : 1, scale ? indicator_base_h_mult : 1])
+            base_cross_section();
+          scale([scale ? indicator_top_r_mult : 1, scale ? indicator_top_h_mult : 1])
+            top_cross_section();
+        }
 }
 
 module knob() {
   color(c="lightgray", alpha=1)
-    rotate_extrude(angle=rotation_angle - indicator_angle, start=indicator_angle)
-      all_cross_section();
+    rotate_extrude(angle=rotation_angle, start=0) {
+      base_cross_section();
+      top_cross_section();
+    }
 }
 
 render()
@@ -105,14 +142,17 @@ render()
     if (piece == "knob") {
       difference() {
         knob();
-        indicator();
+        indicator(scale=false);
       }
     } else if (piece == "indicator") {
-      indicator();
+      indicator(scale=true);
     } else if (piece == "both") {
       union() {
-        knob();
-        indicator();
+        difference() {
+          knob();
+          indicator(scale=false);
+        }
+        indicator(scale=true);
       }
     }
 
