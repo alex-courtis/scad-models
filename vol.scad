@@ -10,6 +10,9 @@ nut_r = 11.1 / 2;
 guard_height = 2.8 * 1;
 guard_r = 24.75 / 2;
 
+slot_width = 1.0 * 1;
+slot_height = 4.0 * 1;
+
 /* [Fitting] */
 nut_top_clearance = 0.35; // [0:0.01:5]
 nut_side_clearance = 0.30; // [0:0.01:5]
@@ -18,6 +21,10 @@ shaft_top_clearance = 0.35; // [0:0.01:5]
 shaft_side_clearance = 0.130; // [-0.5:0.001:0.5]
 
 guard_side_clearance = 0.025; // [0:0.001:5]
+
+slot_width_clearance = 0.25; // [0:0.001:1]
+slot_height_clearance = 1; // [0:0.01:4]
+slot_angle = 0; // [0:1:360]
 
 /* [Shape] */
 base_eccentricity = 0.5; // [0:0.01:0.99]
@@ -136,31 +143,46 @@ module knob() {
     }
 }
 
-render()
+module slot() {
+  color(c="green", alpha=1)
+    rotate(a=slot_angle, v=[0, 0, 1])
+      translate(v=[0, 0, shaft_hole_height - slot_height / 2])
+        cube([slot_width - slot_width_clearance, shaft_hole_r * 2, slot_height - slot_height_clearance], center=true);
+}
+
+module holes() {
+  color(c="coral", alpha=1)
+    rotate_extrude(angle=rotation_angle)
+      nut_cross_section();
+
+  color(c="tomato", alpha=1)
+    rotate_extrude(angle=rotation_angle)
+      shaft_cross_section();
+}
+
+module piece_knob() {
   difference() {
-
-    if (piece == "knob") {
-      difference() {
-        knob();
-        indicator(scale=false);
-      }
-    } else if (piece == "indicator") {
-      indicator(scale=true);
-    } else if (piece == "both") {
-      union() {
-        difference() {
-          knob();
-          indicator(scale=false);
-        }
-        indicator(scale=true);
-      }
-    }
-
-    color(c="coral", alpha=1)
-      rotate_extrude(angle=rotation_angle)
-        nut_cross_section();
-
-    color(c="tomato", alpha=1)
-      rotate_extrude(angle=rotation_angle)
-        shaft_cross_section();
+    knob();
+    indicator(scale=false);
+    holes();
   }
+  slot();
+}
+
+module piece_indicator() {
+  difference() {
+    indicator(scale=true);
+    holes();
+  }
+}
+
+render() {
+  if (piece == "knob") {
+    piece_knob();
+  } else if (piece == "indicator") {
+    piece_indicator();
+  } else if (piece == "both") {
+    piece_indicator();
+    piece_knob();
+  }
+}
