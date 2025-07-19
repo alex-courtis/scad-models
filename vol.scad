@@ -78,7 +78,7 @@ echo(top_height_calc=top_height_calc);
 indicator_top_h_mult = (top_height_calc + indicator_top_dh) / top_height_calc;
 echo(indicator_height=top_height_calc * indicator_top_h_mult);
 echo(indicator_top_h_mult=indicator_top_h_mult);
-indicator_top_r_mult = (knob_r + indicator_top_dr) / knob_r;
+indicator_top_r_mult = (top_r + indicator_top_dr) / top_r;
 echo(indicator_top_r_mult=indicator_top_r_mult);
 
 echo();
