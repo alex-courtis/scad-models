@@ -124,7 +124,7 @@ module shaft_cross_section() {
 }
 
 module indicator(scale) {
-  color(c="red", alpha=1)
+  color(c="blue", alpha=1)
     rotate(a=90, v=[1, 0, 0])
       linear_extrude(height=indicator_width, center=true)
         union() {
@@ -146,7 +146,7 @@ module knob() {
 module slot() {
   color(c="green", alpha=1)
     rotate(a=slot_angle, v=[0, 0, 1])
-      translate(v=[0, 0, shaft_hole_height - slot_height / 2])
+      translate(v=[0, 0, shaft_hole_height - slot_height / 2 + slot_height_clearance / 2])
         cube([slot_width - slot_width_clearance, shaft_hole_r * 2, slot_height - slot_height_clearance], center=true);
 }
 
