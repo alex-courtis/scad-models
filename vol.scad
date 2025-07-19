@@ -15,7 +15,7 @@ nut_top_clearance = 0.35; // [0:0.01:5]
 nut_side_clearance = 0.30; // [0:0.01:5]
 
 shaft_top_clearance = 0.35; // [0:0.01:5]
-shaft_side_clearance = 0.130; // [0:0.001:5]
+shaft_side_clearance = 0.130; // [-0.5:0.001:0.5]
 
 guard_side_clearance = 0.025; // [0:0.001:5]
 
