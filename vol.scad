@@ -29,7 +29,7 @@ slot_angle = 0; // [0:1:360]
 /* [Shape] */
 base_eccentricity = 0.5; // [0:0.01:1]
 
-base_y = 1; // [0:0.01:10]
+base_y = 1; // [-10:0.01:10]
 
 top_eccentricity = 0.2; // [0:0.01:1]
 
@@ -76,7 +76,7 @@ echo(shaft_hole_height=shaft_hole_height, shaft_hole_height / shaft_top);
 echo();
 base_height_calc = knob_r * (1 - base_eccentricity) + base_y;
 echo(base_height_calc=base_height_calc);
-indicator_base_h_mult = (base_height_calc + indicator_base_dh) / base_height_calc;
+indicator_base_h_mult = base_height_calc == 0 ? 1 : (base_height_calc + indicator_base_dh) / base_height_calc;
 echo(indicator_height=base_height_calc * indicator_base_h_mult);
 echo(indicator_base_h_mult=indicator_base_h_mult);
 indicator_base_r_mult = (knob_r + indicator_base_dr) / knob_r;
