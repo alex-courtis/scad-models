@@ -43,6 +43,9 @@ indicator_top_dh = 0.1; // [-5:0.01:5]
 indicator_base_dh = 0.1; // [-5:0.01:5]
 indicator_width = 1; // [0:0.01:5]
 
+knurling_dr = 0.1; // [-5:0.01:5]
+knurls = 5; // [0:1:16]
+
 /* [Piece] */
 piece = "both"; // ["both", "knob", "indicator"]
 
@@ -50,7 +53,7 @@ half = true;
 
 rotation_angle = half ? 180 : 360;
 
-$fn = 200; // [100:1:600]
+$fn = 600; // [100:1:600]
 
 // sanity check values
 echo();
@@ -126,55 +129,68 @@ module shaft_cross_section() {
 }
 
 module indicator(scale) {
-  color(c="blue", alpha=1)
-    rotate(a=90, v=[1, 0, 0])
-      linear_extrude(height=indicator_width, center=true)
-        union() {
-          scale([scale ? indicator_base_r_mult : 1, scale ? indicator_base_h_mult : 1])
-            base_cross_section();
-          scale([scale ? indicator_top_r_mult : 1, scale ? indicator_top_h_mult : 1])
-            top_cross_section();
-        }
+  rotate(a=90, v=[1, 0, 0])
+    linear_extrude(height=indicator_width, center=true)
+      union() {
+        scale([scale ? indicator_base_r_mult : 1, scale ? indicator_base_h_mult : 1])
+          base_cross_section();
+        scale([scale ? indicator_top_r_mult : 1, scale ? indicator_top_h_mult : 1])
+          top_cross_section();
+      }
+}
+
+module knurling(scale) {
+  for (k = [1:1:knurls]) {
+    rotate(a=k * 360 / (knurls + 1), v=[0, 0, 1])
+      translate(v=[0, 0, base_y])
+        rotate(a=90, v=[1, 0, 0])
+          linear_extrude(height=indicator_width, center=true)
+            square([top_r + (scale ? knurling_dr : 0), top_y]);
+  }
 }
 
 module knob() {
-  color(c="lightgray", alpha=1)
-    rotate_extrude(angle=rotation_angle, start=0) {
-      base_cross_section();
-      top_cross_section();
-    }
+  rotate_extrude(angle=rotation_angle, start=0) {
+    base_cross_section();
+    top_cross_section();
+  }
 }
 
 module slot() {
-  color(c="green", alpha=1)
-    rotate(a=slot_angle, v=[0, 0, 1])
-      translate(v=[0, 0, shaft_hole_height - slot_height / 2 + slot_height_clearance / 2])
-        cube([slot_width - slot_width_clearance, shaft_hole_r * 2, slot_height - slot_height_clearance], center=true);
+  rotate(a=slot_angle, v=[0, 0, 1])
+    translate(v=[0, 0, shaft_hole_height - slot_height / 2 + slot_height_clearance / 2])
+      cube([slot_width - slot_width_clearance, shaft_hole_r * 2, slot_height - slot_height_clearance], center=true);
 }
 
 module holes() {
-  color(c="coral", alpha=1)
-    rotate_extrude(angle=rotation_angle)
-      nut_cross_section();
+  rotate_extrude(angle=rotation_angle)
+    nut_cross_section();
 
-  color(c="tomato", alpha=1)
-    rotate_extrude(angle=rotation_angle)
-      shaft_cross_section();
+  rotate_extrude(angle=rotation_angle)
+    shaft_cross_section();
 }
 
 module piece_knob() {
-  difference() {
-    knob();
-    indicator(scale=false);
-    holes();
+  color(c="lightgray") {
+    difference() {
+      knob();
+      indicator(scale=false);
+      knurling(scale=false);
+      holes();
+    }
+    slot();
   }
-  slot();
 }
 
 module piece_indicator() {
-  difference() {
-    indicator(scale=true);
-    holes();
+  color(c="red") {
+    difference() {
+      union() {
+        indicator(scale=true);
+        knurling(scale=true);
+      }
+      holes();
+    }
   }
 }
 
