@@ -18,12 +18,12 @@ nut_top_clearance = 0.35; // [0:0.01:5]
 nut_side_clearance = 0.30; // [0:0.01:5]
 
 shaft_top_clearance = 0.35; // [0:0.01:5]
-shaft_side_clearance = 0.130; // [-0.5:0.001:0.5]
+shaft_side_clearance = 0.040; // [-0.5:0.001:0.5]
 
 guard_side_clearance = 0.025; // [0:0.001:5]
 
-slot_width_clearance = 0.25; // [0:0.001:1]
-slot_height_clearance = 1; // [0:0.01:4]
+slot_width_clearance = 0.100; // [0:0.001:1]
+slot_height_clearance = 1.50; // [0:0.01:4]
 slot_angle = 0; // [0:1:360]
 
 /* [Shape] */
