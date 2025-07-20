@@ -10,7 +10,7 @@ nut_r = 11.1 / 2;
 guard_height = 2.8 * 1;
 guard_r = 24.75 / 2;
 
-slot_width = 1.0 * 1;
+slot_width = 0.9 * 1;
 slot_height = 4.0 * 1;
 
 /* [Fitting] */
@@ -27,11 +27,11 @@ slot_height_clearance = 1; // [0:0.01:4]
 slot_angle = 0; // [0:1:360]
 
 /* [Shape] */
-base_eccentricity = 0.5; // [0:0.01:0.99]
+base_eccentricity = 0.5; // [0:0.01:1]
 
 base_y = 1; // [0:0.01:10]
 
-top_eccentricity = 0.2; // [0:0.01:0.99]
+top_eccentricity = 0.2; // [0:0.01:1]
 
 top_y = 2; // [0:0.01:10]
 
@@ -94,8 +94,10 @@ module elipse_quadrant_cross_section(r, e, y) {
   intersection() {
     translate(v=[0, y]) {
 
-      scale(v=[r, r * (1 - e)])
-        circle();
+      if (e < 1) {
+        scale(v=[r, r * (1 - e)])
+          circle();
+      }
 
       // maybe square base
       translate(v=[0, -y])
