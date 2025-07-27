@@ -100,14 +100,10 @@ module cutouts(i = 0, x = cutout_padding_l) {
   s = w * cutout_spacing;
   echo(i=i, w=w, x=x, s=s);
 
-  translate(v=[x + s, 0, cutout_thickness])
-    cube(
-      [
-        cutout_widths[i],
-        magnet_h + clip_thickness * 2,
-        cutout_depth - cutout_thickness,
-      ]
-    );
+  translate(v=[x + s, magnet_h + clip_thickness * 2, cutout_thickness])
+    rotate(a=90, v=[1, 0, 0])
+      linear_extrude(height=magnet_h + clip_thickness * 2)
+        square([cutout_widths[i], cutout_depth - cutout_thickness]);
 
   if (i + 1 < len(cutout_widths) && cutout_widths[i + 1] > 0) {
     cutouts(i + 1, x + w + s * 2);
