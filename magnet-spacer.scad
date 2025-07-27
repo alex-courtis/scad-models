@@ -1,9 +1,9 @@
 /* [Fixed] */
 
-// height of the holder
+// parallel to board
 magnet_h = 23.5 * 1;
 
-// depth to the board
+// parallel to board
 magnet_d = 13.0 * 1;
 
 /* [Fitting] */
@@ -48,65 +48,51 @@ function calc_length(i = 0) =
 
 length = calc_length();
 
-module clips() {
-  difference() {
-
-    // outer shell
-    color(c="blue")
-      linear_extrude(height=magnet_d)
-        square(
-          size=[
-            length,
-            magnet_h + 2 * clip_thickness,
-          ], center=false
-        );
-
-    // inner channel
-    color(c="green")
-      translate(
-        v=[
-          0,
-          clip_thickness,
-          0,
-        ]
-      )
-        linear_extrude(height=magnet_d - lip_d)
-          square(
-            size=[
-              length,
-              magnet_h,
-            ], center=false
-          );
-
-    // lip
-    color(c="yellow")
-      translate(
-        v=[
-          0,
-          clip_thickness + lip_h,
-          magnet_d - lip_d,
-        ]
-      )
-        linear_extrude(height=lip_d)
-          square(
-            size=[
-              length,
-              magnet_h - lip_h * 2,
-            ], center=false
-          );
-  }
-}
-
 module body() {
 
-  color(c="orange")
-    linear_extrude(height=cutout_depth)
-      square(
-        size=[
-          length,
-          magnet_h + 2 * clip_thickness,
-        ], center=false
-      );
+  translate(v=[length, 0, -magnet_d])
+    rotate(a=270, v=[0, 1, 0])
+      linear_extrude(height=length) {
+        difference() {
+
+          // outer shell
+          square(
+            [
+              magnet_d + cutout_depth,
+              magnet_h + clip_thickness * 2,
+            ], center=false
+          );
+
+          // magnet channel
+          translate(v=[0, clip_thickness])
+            square(
+              [
+                magnet_d,
+                magnet_h,
+              ], center=false
+            );
+        }
+
+        // bottom lip
+        translate(v=[0, clip_thickness])
+          polygon(
+            [
+              [0, 0],
+              [0, lip_h],
+              [lip_d, 0],
+            ]
+          );
+
+        // top lip
+        translate(v=[0, magnet_h + clip_thickness])
+          polygon(
+            [
+              [0, 0],
+              [0, -lip_h],
+              [lip_d, 0],
+            ]
+          );
+      }
 }
 
 module cutouts(i = 0, x = cutout_padding_l) {
@@ -114,7 +100,7 @@ module cutouts(i = 0, x = cutout_padding_l) {
   s = w * cutout_spacing;
   echo(i=i, w=w, x=x, s=s);
 
-  translate(v=[x + s, 0, 0])
+  translate(v=[x + s, 0, cutout_thickness])
     cube(
       [
         cutout_widths[i],
@@ -130,13 +116,10 @@ module cutouts(i = 0, x = cutout_padding_l) {
 
 render() {
   difference() {
-    union() {
-      translate(v=[0, 0, cutout_depth])
-        clips();
-
+    color(c="green")
       body();
-    }
 
-    cutouts();
+    color(c="red")
+      cutouts();
   }
 }
