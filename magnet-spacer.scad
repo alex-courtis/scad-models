@@ -1,17 +1,17 @@
 /* [Fixed] */
 
 // height of the holder
-magnet_h = 25;
+magnet_h = 23.5 * 1;
 
 // depth to the board
-magnet_d = 13.5;
+magnet_d = 13.0 * 1;
 
 /* [Fitting] */
 
-lip_h = 1.6; // [0:0.1:2]
-lip_d = 1.6; // [0:0.1:2]
+lip_h = 1.6; // [0:0.1:5]
+lip_d = 1.6; // [0:0.1:5]
 
-clip_thickness = 1.6; // [0:0.1:2]
+clip_thickness = 4.0; // [0:0.1:5]
 
 /* [Size] */
 
@@ -26,10 +26,10 @@ cutout_depth = 5; // [0:1:20]
 // left and right multiple of each cutout width
 cutout_spacing = 1; // [0.1:0.1:5]
 
-// before cutouts
+// left of cutouts
 cutout_padding_l = 4; // [0:0.1:20]
 
-// before cutouts
+// right of cutouts
 cutout_padding_r = 4; // [0:0.1:20]
 
 // width from left to right
