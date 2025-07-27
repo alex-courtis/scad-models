@@ -2,16 +2,16 @@
     "fileFormatVersion": "1",
     "parameterSets": {
         "spanners-flat": {
-            "clip_thickness": "4",
+            "clip_thickness": "6",
             "cutout_depth": "8",
-            "cutout_padding_l": "0",
+            "cutout_padding_l": "3",
             "cutout_padding_r": "0",
             "cutout_spacing": "1.2000000000000002",
-            "cutout_thickness": "0",
-            "cutout_widths_1": "[2, 2, 6, 6]",
+            "cutout_thickness": "1",
+            "cutout_widths_1": "[2.5, 2.5, 6, 6]",
             "cutout_widths_2": "[0, 0, 0, 0]",
-            "lip_d": "1.2000000000000002",
-            "lip_h": "1.2000000000000002"
+            "lip_d": "2.4000000000000004",
+            "lip_h": "0.80000000000000004"
         }
     }
 }

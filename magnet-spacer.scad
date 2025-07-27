@@ -1,30 +1,30 @@
 /* [Fixed] */
 
 // parallel to board
-magnet_h = 23.5 * 1;
+magnet_h = 23.8 * 1;
 
 // parallel to board
-magnet_d = 13.0 * 1;
+magnet_d = 12.8 * 1;
 
 /* [Fitting] */
 
-lip_h = 1.6; // [0:0.1:5]
-lip_d = 1.6; // [0:0.1:5]
+lip_h = 2.4; // [0:0.1:5]
+lip_d = 0.8; // [0:0.1:5]
 
-clip_thickness = 4.0; // [0:0.1:5]
+clip_thickness = 6.0; // [0:0.1:10]
 
 /* [Size] */
 
 // over the magnet
-cutout_thickness = 0.8; // [0:0.1:2]
+cutout_thickness = 1.0; // [0:0.1:2]
 
 // out from magnet including cutout thickness
-cutout_depth = 5; // [0:1:20]
+cutout_depth = 8; // [0:1:20]
 
 /* [Cutouts] */
 
 // left and right multiple of each cutout width
-cutout_spacing = 1; // [0.1:0.1:5]
+cutout_spacing = 1.2; // [0.1:0.1:5]
 
 // left of cutouts
 cutout_padding_l = 4; // [0:0.1:20]
