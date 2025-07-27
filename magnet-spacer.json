@@ -1,0 +1,17 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "spanners-flat": {
+            "cutout_depth": "5",
+            "cutout_padding_l": "1",
+            "cutout_padding_r": "1",
+            "cutout_spacing": "0.5",
+            "cutout_widths_1": "[2, 2, 2, 2]",
+            "cutout_widths_2": "[2, 2, 2, 2]",
+            "lip_d": "0.80000000000000004",
+            "lip_h": "1.2000000000000002",
+            "magnet_d": "13.1",
+            "magnet_h": "23.5"
+        }
+    }
+}
