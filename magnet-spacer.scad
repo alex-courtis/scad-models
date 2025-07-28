@@ -8,17 +8,17 @@ magnet_d = 12.8 * 1;
 
 /* [Fitting] */
 
-lip_h = 2.4; // [0:0.1:5]
-lip_d = 0.8; // [0:0.1:5]
+lip_h = 1.0; // [0:0.1:5]
+lip_d = 1.5; // [0:0.1:5]
 
-clip_thickness = 6.0; // [0:0.1:10]
+clip_thickness = 2.4; // [0:0.1:10]
 
 /* [Size] */
 
-// over the magnet
-cutout_thickness = 1.0; // [0:0.1:2]
+// over/under the magnet
+cutout_thickness = -0.8; // [-2:0.01:2]
 
-// out from magnet including cutout thickness
+// out from magnet
 cutout_depth = 8; // [0:1:20]
 
 /* [Cutouts] */
@@ -100,9 +100,12 @@ module cutouts(i = 0, x = cutout_padding_l) {
   s = w * cutout_spacing;
   echo(i=i, w=w, x=x, s=s);
 
-  translate(v=[x + s, magnet_h + clip_thickness * 2, cutout_thickness])
+  // add a small amount for nicer scad and orcaslicer rendering; rounding error?
+  h = magnet_h + clip_thickness * 2 + 1;
+
+  translate(v=[x + s, h, cutout_thickness])
     rotate(a=90, v=[1, 0, 0])
-      linear_extrude(height=magnet_h + clip_thickness * 2)
+      linear_extrude(height=h)
         square([cutout_widths[i], cutout_depth - cutout_thickness]);
 
   if (i + 1 < len(cutout_widths) && cutout_widths[i + 1] > 0) {
