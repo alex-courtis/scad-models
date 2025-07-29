@@ -12,6 +12,20 @@
             "cutout_widths_2": "[0, 0, 0, 0]",
             "lip_d": "1.6000000000000001",
             "lip_h": "1.6000000000000001"
+        },
+        "spanners-large": {
+            "clip_thickness": "3",
+            "cutout_depth": "5",
+            "cutout_padding_l": "8",
+            "cutout_padding_r": "10",
+            "cutout_spacing": "0.70000000000000007",
+            "cutout_thickness": "-0.80000000000000004",
+            "cutout_widths_1": "[11, 11.5, 13.5, 13.5]",
+            "cutout_widths_2": "[14.2, 14.2, 0, 0]",
+            "cutout_widths_3": "[0, 0, 0, 0]",
+            "cutout_widths_4": "[0, 0, 0, 0]",
+            "lip_d": "1.6000000000000001",
+            "lip_h": "1.6000000000000001"
         }
     }
 }
