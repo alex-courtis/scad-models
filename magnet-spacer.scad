@@ -19,7 +19,7 @@ clip_thickness = 3.0; // [0:0.1:10]
 cutout_thickness = -0.8; // [-2:0.01:2]
 
 // out from magnet
-cutout_depth = 8; // [0:1:20]
+cutout_depth = 8; // [0:0.1:20]
 
 /* [Cutouts] */
 
