@@ -40,6 +40,35 @@
             "cutout_widths_4": "[0, 0, 0, 0]",
             "lip_d": "1.6000000000000001",
             "lip_h": "1.6000000000000001"
+        },
+        "allen-small": {
+            "clip_thickness": "3",
+            "cutout_depth": "7",
+            "cutout_multiplier": "1.1499999999999999",
+            "cutout_padding_l": "2",
+            "cutout_padding_r": "2",
+            "cutout_spacing": "0.5",
+            "cutout_thickness": "-0.80000000000000004",
+            "cutout_widths_1": "[1.8, 1.8, 2.4, 2.4]",
+            "cutout_widths_2": "[2.9, 2.9, 3.5, 3.5]",
+            "cutout_widths_3": "[4.6, 4.6, 5.7, 5.7]",
+            "cutout_widths_4": "[6.9, 6.9, 9.1, 9.9]",
+            "cutout_widths_5": "[11.2, 4, 0, 0]",
+            "lip_d": "1.6000000000000001",
+            "lip_h": "1.6000000000000001"
+        },
+        "allen-large": {
+            "clip_thickness": "2",
+            "cutout_depth": "6",
+            "cutout_multiplier": "1.03",
+            "cutout_padding_l": "2.9000000000000004",
+            "cutout_padding_r": "5.7000000000000002",
+            "cutout_spacing": "0.5",
+            "cutout_thickness": "-0.80000000000000004",
+            "cutout_widths_1": "[5.7, 5.7, 6.9, 6.9]",
+            "cutout_widths_2": "[9.1, 9.9,11.2, 4]",
+            "lip_d": "1.6000000000000001",
+            "lip_h": "1.6000000000000001"
         }
     }
 }

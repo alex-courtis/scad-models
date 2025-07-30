@@ -37,9 +37,15 @@ cutout_widths_1 = [3, 8, 2, 4]; // [0:0.1:20]
 cutout_widths_2 = [0, 0, 0, 0]; // [0:0.1:20]
 cutout_widths_3 = [0, 0, 0, 0]; // [0:0.1:20]
 cutout_widths_4 = [0, 0, 0, 0]; // [0:0.1:20]
+cutout_widths_5 = [0, 0, 0, 0]; // [0:0.1:20]
+
+// convenience multiplier to apply to actual measurements
+cutout_multiplier = 1.0; // [1:0.01:5]
 
 // customiser can't go higher than vector length 4
-cutout_widths = concat(cutout_widths_1, cutout_widths_2, cutout_widths_3, cutout_widths_4);
+cutout_widths = (concat(cutout_widths_1, cutout_widths_2, cutout_widths_3, cutout_widths_4, cutout_widths_5)) * cutout_multiplier;
+
+echo(cutout_widths=cutout_widths);
 
 function calc_length(i = 0) =
   i < len(cutout_widths) && cutout_widths[i] > 0 ?
