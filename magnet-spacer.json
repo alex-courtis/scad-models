@@ -69,6 +69,22 @@
             "cutout_widths_2": "[9.1, 9.9,11.2, 4]",
             "lip_d": "1.6000000000000001",
             "lip_h": "1.6000000000000001"
+        },
+        "pliers": {
+            "clip_thickness": "2",
+            "cutout_depth": "8",
+            "cutout_multiplier": "1.04",
+            "cutout_padding_l": "0",
+            "cutout_padding_r": "0",
+            "cutout_spacing": "1.3500000000000001",
+            "cutout_thickness": "-0.80000000000000004",
+            "cutout_widths_1": "[16, 16, 16, 16]",
+            "cutout_widths_2": "[0, 0, 0, 0]",
+            "cutout_widths_3": "[0, 0, 0, 0]",
+            "cutout_widths_4": "[0, 0, 0, 0]",
+            "cutout_widths_5": "[0, 0, 0, 0]",
+            "lip_d": "1.6000000000000001",
+            "lip_h": "1.6000000000000001"
         }
     }
 }

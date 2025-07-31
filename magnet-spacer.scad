@@ -8,10 +8,10 @@ magnet_d = 12.8 * 1;
 
 /* [Fitting] */
 
-lip_h = 1.6; // [0:0.1:5]
-lip_d = 1.6; // [0:0.1:5]
+lip_h = 1.6; // [0:0.01:5]
+lip_d = 1.6; // [0:0.01:5]
 
-clip_thickness = 3.0; // [0:0.1:10]
+clip_thickness = 2.0; // [0:0.01:10]
 
 /* [Size] */
 
@@ -24,13 +24,13 @@ cutout_depth = 8; // [0:0.1:20]
 /* [Cutouts] */
 
 // left and right multiple of each cutout width
-cutout_spacing = 1.2; // [0.1:0.1:5]
+cutout_spacing = 1.2; // [0.1:0.05:5]
 
 // left of cutouts
-cutout_padding_l = 4; // [0:0.1:20]
+cutout_padding_l = 4; // [0:0.05:20]
 
 // right of cutouts
-cutout_padding_r = 4; // [0:0.1:20]
+cutout_padding_r = 4; // [0:0.05:20]
 
 // width from left to right
 cutout_widths_1 = [3, 8, 2, 4]; // [0:0.1:20]
