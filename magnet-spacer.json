@@ -28,7 +28,7 @@
             "lip_h": "1.6000000000000001"
         },
         "protech-tips": {
-            "clip_thickness": "2.4000000000000004",
+            "clip_thickness": "2.3999999999999999",
             "cutout_depth": "6",
             "cutout_padding_l": "3",
             "cutout_padding_r": "3",
@@ -80,6 +80,23 @@
             "cutout_thickness": "-0.80000000000000004",
             "cutout_widths_1": "[16, 16, 16, 16]",
             "cutout_widths_2": "[0, 0, 0, 0]",
+            "cutout_widths_3": "[0, 0, 0, 0]",
+            "cutout_widths_4": "[0, 0, 0, 0]",
+            "cutout_widths_5": "[0, 0, 0, 0]",
+            "lip_d": "1.6000000000000001",
+            "lip_h": "1.6000000000000001"
+        },
+        "spanners-allen": {
+            "clip_thickness": "2",
+            "cutout_depth": "6",
+            "cutout_multiplier": "1.03",
+            "cutout_padding_l": "2.9000000000000004",
+            "cutout_padding_r": "5.7000000000000002",
+            "cutout_spacing": "0.5",
+            "cutout_taper": "1.1000000000000001",
+            "cutout_thickness": "-1.73",
+            "cutout_widths_1": "[5.7, 5.7, 6.9, 6.9]",
+            "cutout_widths_2": "[9.1, 9.9, 11.2, 4]",
             "cutout_widths_3": "[0, 0, 0, 0]",
             "cutout_widths_4": "[0, 0, 0, 0]",
             "cutout_widths_5": "[0, 0, 0, 0]",

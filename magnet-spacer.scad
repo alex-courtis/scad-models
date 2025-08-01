@@ -32,7 +32,7 @@ cutout_padding_l = 4; // [0:0.05:20]
 // right of cutouts
 cutout_padding_r = 4; // [0:0.05:20]
 
-// width from left to right
+// bottom width from left to right
 cutout_widths_1 = [3, 8, 2, 4]; // [0:0.1:20]
 cutout_widths_2 = [0, 0, 0, 0]; // [0:0.1:20]
 cutout_widths_3 = [0, 0, 0, 0]; // [0:0.1:20]
@@ -41,6 +41,9 @@ cutout_widths_5 = [0, 0, 0, 0]; // [0:0.1:20]
 
 // convenience multiplier to apply to actual measurements
 cutout_multiplier = 1.0; // [1:0.01:5]
+
+// multiply for top width
+cutout_taper = 1.0; // [1:0.01:5]
 
 // customiser can't go higher than vector length 4
 cutout_widths = (concat(cutout_widths_1, cutout_widths_2, cutout_widths_3, cutout_widths_4, cutout_widths_5)) * cutout_multiplier;
@@ -104,15 +107,27 @@ module body() {
 module cutouts(i = 0, x = cutout_padding_l) {
   w = cutout_widths[i];
   s = w * cutout_spacing;
-  echo(i=i, w=w, x=x, s=s);
 
-  // add a small amount for nicer scad and orcaslicer rendering; rounding error?
-  h = magnet_h + clip_thickness * 2 + 1;
+  extrude = magnet_h + clip_thickness * 2;
 
-  translate(v=[x + s, h, magnet_d + cutout_thickness])
+  // left and right
+  taper_dx = (cutout_widths[i] * cutout_taper - cutout_widths[i]) / 2;
+
+  // add a small amount for nicer scad and orcaslicer float rounding
+  // it does reduce top taper however it's close enough
+  taper_dy = 0.0001;
+
+  translate(v=[x + s, extrude, magnet_d + cutout_thickness])
     rotate(a=90, v=[1, 0, 0])
-      linear_extrude(height=h)
-        square([cutout_widths[i], cutout_depth - cutout_thickness]);
+      linear_extrude(height=extrude)
+        polygon(
+          [
+            [0, 0],
+            [-taper_dx, cutout_depth - cutout_thickness + taper_dy],
+            [cutout_widths[i] + taper_dx, cutout_depth - cutout_thickness + taper_dy],
+            [cutout_widths[i], 0],
+          ]
+        );
 
   if (i + 1 < len(cutout_widths) && cutout_widths[i + 1] > 0) {
     cutouts(i + 1, x + w + s * 2);
