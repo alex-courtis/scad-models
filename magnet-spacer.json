@@ -89,10 +89,11 @@
         "spanners-allen": {
             "clip_thickness": "2",
             "cutout_depth": "6",
-            "cutout_multiplier": "1.03",
-            "cutout_padding_l": "1",
-            "cutout_padding_r": "1",
-            "cutout_spacing": "1.2500000000000002",
+            "cutout_multiplier": "1.04",
+            "cutout_padding_l": "3",
+            "cutout_padding_r": "3",
+            "cutout_spacing": "6",
+            "cutout_spacing_fixed": "true",
             "cutout_taper": "1.1000000000000001",
             "cutout_thickness": "-0.80000000000000004",
             "cutout_widths_1": "[2.28, 1.5, 1.5, 2.28]",
@@ -102,7 +103,7 @@
             "cutout_widths_5": "[2.9, 2.7, 1.5, 1.5]",
             "cutout_widths_6": "[3.5, 3.5, 2.84, 2.84]",
             "cutout_widths_7": "[4.6, 4.6, 2.96, 2.86]",
-            "lip_d": "1.6000000000000001",
+            "lip_d": "2",
             "lip_h": "1.6000000000000001"
         }
     }

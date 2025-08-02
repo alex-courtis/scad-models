@@ -23,8 +23,11 @@ cutout_depth = 8; // [0:0.1:20]
 
 /* [Cutouts] */
 
+// set to use cutout_spacing as an absolute width value instead of multiple
+cutout_spacing_fixed = false;
+
 // left and right multiple of each cutout width
-cutout_spacing = 1.2; // [0.1:0.05:5]
+cutout_spacing = 1.2; // [0.1:0.05:20]
 
 // left of cutouts
 cutout_padding_l = 4; // [0:0.05:20]
@@ -42,7 +45,7 @@ cutout_widths_6 = [0, 0, 0, 0]; // [0:0.01:20]
 cutout_widths_7 = [0, 0, 0, 0]; // [0:0.01:20]
 cutout_widths_8 = [0, 0, 0, 0]; // [0:0.01:20]
 
-// convenience multiplier to apply to actual measurements
+// convenience cutout width multiplier to allow actual measurement to be input
 cutout_multiplier = 1.0; // [1:0.01:5]
 
 // multiply for top width
@@ -64,14 +67,18 @@ cutout_widths = (
 
 echo(cutout_widths=cutout_widths);
 
-function calc_length(i = 0) =
+function calc_length_variable(i = 0) =
   i < len(cutout_widths) && cutout_widths[i] > 0 ?
-    cutout_widths[i] * (1 + cutout_spacing * 2) + calc_length(i + 1)
+    cutout_widths[i] * (1 + cutout_spacing * 2) + calc_length_variable(i + 1)
   : cutout_padding_l + cutout_padding_r;
 
-length = calc_length();
+function calc_length_fixed(i = 0) =
+  i < len(cutout_widths) && cutout_widths[i] > 0 ?
+    cutout_widths[i] + cutout_spacing + calc_length_fixed(i + 1)
+  : cutout_padding_l + cutout_padding_r;
 
 module body() {
+  length = cutout_spacing_fixed ? calc_length_fixed() : calc_length_variable();
 
   translate(v=[length, 0, 0])
     rotate(a=270, v=[0, 1, 0])
@@ -120,7 +127,7 @@ module body() {
 
 module cutouts(i = 0, x = cutout_padding_l) {
   w = cutout_widths[i];
-  s = w * cutout_spacing;
+  s = cutout_spacing_fixed ? cutout_spacing / 2 : w * cutout_spacing;
 
   extrude = magnet_h + clip_thickness * 2;
 
