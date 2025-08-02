@@ -75,6 +75,27 @@
             "cutout_widths_7": "[4.6, 4.6, 2.96, 2.86]",
             "lip_d": "2",
             "lip_h": "1.6000000000000001"
+        },
+        "misc": {
+            "clip_thickness": "2",
+            "cutout_depth": "4",
+            "cutout_multiplier": "1",
+            "cutout_padding_l": "3",
+            "cutout_padding_r": "3",
+            "cutout_spacing": "6",
+            "cutout_spacing_fixed": "true",
+            "cutout_taper": "1.1000000000000001",
+            "cutout_thickness": "-0.80000000000000004",
+            "cutout_widths_1": "[20, 12, 12, 18.7]",
+            "cutout_widths_2": "[9.4, 7.3, 0, 1.5]",
+            "cutout_widths_3": "[1.5, 2.35, 2.35, 2.4]",
+            "cutout_widths_4": "[1.5, 2.2, 1.5, 2.9]",
+            "cutout_widths_5": "[2.9, 2.7, 1.5, 1.5]",
+            "cutout_widths_6": "[3.5, 3.5, 2.84, 2.84]",
+            "cutout_widths_7": "[4.6, 4.6, 2.96, 2.86]",
+            "cutout_widths_8": "[0, 0, 0, 0]",
+            "lip_d": "2",
+            "lip_h": "1.6000000000000001"
         }
     }
 }

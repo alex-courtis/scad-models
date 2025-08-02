@@ -36,14 +36,14 @@ cutout_padding_l = 4; // [0:0.05:20]
 cutout_padding_r = 4; // [0:0.05:20]
 
 // bottom width from left to right
-cutout_widths_1 = [3, 8, 2, 4]; // [0:0.01:20]
-cutout_widths_2 = [0, 0, 0, 0]; // [0:0.01:20]
-cutout_widths_3 = [0, 0, 0, 0]; // [0:0.01:20]
-cutout_widths_4 = [0, 0, 0, 0]; // [0:0.01:20]
-cutout_widths_5 = [0, 0, 0, 0]; // [0:0.01:20]
-cutout_widths_6 = [0, 0, 0, 0]; // [0:0.01:20]
-cutout_widths_7 = [0, 0, 0, 0]; // [0:0.01:20]
-cutout_widths_8 = [0, 0, 0, 0]; // [0:0.01:20]
+cutout_widths_1 = [3, 8, 2, 4]; // [0:0.01:40]
+cutout_widths_2 = [0, 0, 0, 0]; // [0:0.01:40]
+cutout_widths_3 = [0, 0, 0, 0]; // [0:0.01:40]
+cutout_widths_4 = [0, 0, 0, 0]; // [0:0.01:40]
+cutout_widths_5 = [0, 0, 0, 0]; // [0:0.01:40]
+cutout_widths_6 = [0, 0, 0, 0]; // [0:0.01:40]
+cutout_widths_7 = [0, 0, 0, 0]; // [0:0.01:40]
+cutout_widths_8 = [0, 0, 0, 0]; // [0:0.01:40]
 
 // convenience cutout width multiplier to allow actual measurement to be input
 cutout_multiplier = 1.0; // [1:0.01:5]
