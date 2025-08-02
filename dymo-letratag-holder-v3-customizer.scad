@@ -41,19 +41,28 @@ dt1=0.01;
 dt2=dt1*2;
 prt_delta=0.4;
 
-b_x=55;
-b_y=17;	// orig: 17mm
-b_z=23;
+b_x=55; // [0:0.1:100]
+b_y=17;	// [0:0.1:100]
+b_z=23;	// [0:0.1:100]
 
-notch_x=10;
-notch_z=9;
+// notch_x=10;
 
-notch_dy=2;
-notch_dz=3;
-mat=1.2;
+notch_z=9;	// [0:0.1:100]
+
+notch_dy=2;	// [0:0.1:100]
+
+// notch_dz=3;
+
+mat=0.8;	// [0:0.01:100]
 
 // How many do we need?
-anzahl=10;
+anzahl=12;	// [1:1:100]
+
+magnet_r = 5;	// [0:0.1:100]
+
+magnet_z = 3;	// [0:0.1:100]
+
+magnet_wall_thickness = 0.8; // [0:0.1:5]
 
 module body() {
 	for(i = [0:anzahl-1]) {
@@ -111,4 +120,30 @@ module slope() {
 
 }
 
-body();
+
+render()
+	difference() {
+		union() {
+			body();
+
+			color(c="green")
+				translate(v=[
+						20, 0, -magnet_z + mat - magnet_wall_thickness,
+				])
+				cube([
+						b_x + mat * 2 - 20,
+						anzahl * (b_y + mat) + mat,
+						magnet_z - mat + magnet_wall_thickness,
+				]);
+		}
+
+		for(i = [0:anzahl-1]) {
+			color(c="red")
+				translate(v=[
+						b_x / 2 + magnet_r / 2,
+						b_y / 2 + mat + i * (b_y + mat),
+						mat - magnet_z + dt1,
+				])
+				cylinder(r = magnet_r, h = magnet_z + dt1);
+		}
+	}
