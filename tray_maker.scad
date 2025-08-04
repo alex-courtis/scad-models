@@ -126,16 +126,6 @@ echo(x_size_tray);
 y_size_tray = (rows * _y_bin_length) + ( (rows + 1) * _wall_width);
 echo(y_size_tray);
 
-rows = len(_tray_layout);
-echo(rows=rows);
-cols = (len(_tray_layout[0]) - 1) / 2;
-echo(cols=cols);
-
-x_size_tray = sumv(_x_bin_widths, len(_x_bin_widths) - 1, 0) + ( (len(_x_bin_widths) + 1) * _wall_width);
-echo(x_size_tray);
-y_size_tray = (rows * _y_bin_length) + ( (rows + 1) * _wall_width);
-echo(y_size_tray);
-
 // this module can be used as part of a library.
 module tray(
   tray_layout = ["|_|", "|_|"],
