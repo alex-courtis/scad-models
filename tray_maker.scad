@@ -116,6 +116,26 @@ function sumv(v, i, s = 0) = (i == s ? v[i] : v[i] + sumv(v, i - 1, s));
 // output example line for tray layout.
 function outv(i) = (i == 0 ? "|" : str(outv(i - 1), "_|"));
 
+rows = len(_tray_layout);
+echo(rows=rows);
+cols = (len(_tray_layout[0]) - 1) / 2;
+echo(cols=cols);
+
+x_size_tray = sumv(_x_bin_widths, len(_x_bin_widths) - 1, 0) + ( (len(_x_bin_widths) + 1) * _wall_width);
+echo(x_size_tray);
+y_size_tray = (rows * _y_bin_length) + ( (rows + 1) * _wall_width);
+echo(y_size_tray);
+
+rows = len(_tray_layout);
+echo(rows=rows);
+cols = (len(_tray_layout[0]) - 1) / 2;
+echo(cols=cols);
+
+x_size_tray = sumv(_x_bin_widths, len(_x_bin_widths) - 1, 0) + ( (len(_x_bin_widths) + 1) * _wall_width);
+echo(x_size_tray);
+y_size_tray = (rows * _y_bin_length) + ( (rows + 1) * _wall_width);
+echo(y_size_tray);
+
 // this module can be used as part of a library.
 module tray(
   tray_layout = ["|_|", "|_|"],
@@ -278,6 +298,8 @@ module tray_lid(
 
   x_size_tray = sumv(x_bin_widths, len(x_bin_widths) - 1, 0) + ( (len(x_bin_widths) + 1) * wall_width);
   y_size_tray = (rows * y_bin_length) + ( (rows + 1) * wall_width);
+
+  // TODO that extra one isn't necessary. Why is it there?
 
   // 0.8 is a good looseness for a lid (at least for my printrbot), fudging this can make tighter or looser.
   x_inner_lid = x_size_tray + 1 + lid_fudge;
