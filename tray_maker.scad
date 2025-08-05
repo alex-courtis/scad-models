@@ -1,58 +1,66 @@
 /* [Tray Parameters] */
 // Tray Maker.  A text based way to create a custom tray/bin.
 // an array of bin widths (ex: column widths).  This example will create first column 50mm wide, second 25mm, third 25mm.  If a 4th is desired enter [50,25,25,45].  Then 4th column will be 45mm wide.  Adding additional columns will require tray layout modifications to accommodate extra column.
-_x_bin_widths = [50, 25, 25];
+_x_bin_widths_1 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
+_x_bin_widths_2 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
+_x_bin_widths_3 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
+_x_bin_widths_4 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
+_x_bin_widths_5 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
+_x_bin_widths = concat(
+  _x_bin_widths_1,
+  _x_bin_widths_2,
+  _x_bin_widths_3,
+  _x_bin_widths_4,
+  _x_bin_widths_5,
+);
+
 // an integer for y bin length (ex: row height)
-_y_bin_length = 25;
+_y_bin_length = 40; // [0:0.1:200]
 // depth of each bin
-_z_depth = 23;
+_z_depth = 12; // [0:0.1:200]
 // thickness of walls separating bins.
-_wall_width = 1.5;
+_wall_width = 0.8; // [0:0.01:200]
 // thickness of bottom of tray
-_bottom_thickness = 1.2;
+_bottom_thickness = 1.2; // [0:0.01:200]
 
 /* [Tray Layout] */
 // tray layout, array of strings defining layout. More info in thing description about this parameter 
 // number of tray rows to use
-_num_rows = 5;
-// tray layout for row 1
-_tray_layout_1 = "| | |_|";
-// tray layout for row 2
-_tray_layout_2 = "|_|_|_|";
-// row 3
-_tray_layout_3 = "|_ _ _|";
-// etc.
-_tray_layout_4 = "|  _| |";
-_tray_layout_5 = "|_|_ _|";
-_tray_layout_6 = "|_|_|_|";
-_tray_layout_7 = "|_|_|_|";
-_tray_layout_8 = "|_|_|_|";
-_tray_layout_9 = "|_|_|_|";
-_tray_layout_10 = "|_|_|_|";
-_tray_layout_11 = "|_|_|_|";
-_tray_layout_12 = "|_|_|_|";
-_tray_layout_13 = "|_|_|_|";
-_tray_layout_14 = "|_|_|_|";
-_tray_layout_15 = "|_|_|_|";
-_tray_layout_16 = "|_|_|_|";
-_tray_layout_17 = "|_|_|_|";
-_tray_layout_18 = "|_|_|_|";
-_tray_layout_19 = "|_|_|_|";
-_tray_layout_20 = "|_|_|_|";
-_tray_layout_21 = "|_|_|_|";
-_tray_layout_22 = "|_|_|_|";
+_num_rows = 3; // [1:1:22]
+_tray_layout_1 = "|_|_|_|_|_|_|";
+_tray_layout_2 = "|_|_|_|_|_|_|";
+_tray_layout_3 = "|_|_|_|_|_|_|";
+_tray_layout_4 = "|_|_|_|_|_|_|";
+_tray_layout_5 = "|_|_|_|_|_|_|";
+_tray_layout_6 = "|_|_|_|_|_|_|";
+_tray_layout_7 = "|_|_|_|_|_|_|";
+_tray_layout_8 = "|_|_|_|_|_|_|";
+_tray_layout_9 = "|_|_|_|_|_|_|";
+_tray_layout_10 = "|_|_|_|_|_|_|";
+_tray_layout_11 = "|_|_|_|_|_|_|";
+_tray_layout_12 = "|_|_|_|_|_|_|";
+_tray_layout_13 = "|_|_|_|_|_|_|";
+_tray_layout_14 = "|_|_|_|_|_|_|";
+_tray_layout_15 = "|_|_|_|_|_|_|";
+_tray_layout_16 = "|_|_|_|_|_|_|";
+_tray_layout_17 = "|_|_|_|_|_|_|";
+_tray_layout_18 = "|_|_|_|_|_|_|";
+_tray_layout_19 = "|_|_|_|_|_|_|";
+_tray_layout_20 = "|_|_|_|_|_|_|";
+_tray_layout_21 = "|_|_|_|_|_|_|";
+_tray_layout_22 = "|_|_|_|_|_|_|";
 
 /* [Lid Parameters] */
 // generate a lid (instead of the tray) that fits the defined tray
 _generate_lid = "false"; //[true, false] 
 // thickness of lid top
-_lid_thickness = 0.9;
+_lid_thickness = 0.9; // [0:0.01:200]
 // thickness of the lid's sides
-_lid_wall_thickness = 1.5;
+_lid_wall_thickness = 1.5; // [0:0.01:200]
 // the depth of the lid.  
-_lid_depth = 15;
+_lid_depth = 15; // [0:0.01:200]
 // with no fudge, the lid will be snug.  Depending on printer or preference provide negative to make tighter, positive to make looser. (ex: 0.2 will make a looser fitter lid)
-_lid_fudge = 0;
+_lid_fudge = 0; // [0:0.01:200]
 
 /* [Hidden] */
 // for use if using as library and able to view console output.
@@ -339,4 +347,3 @@ if (_generate_lid == "true") {
     _grid_y
   );
 }
-
