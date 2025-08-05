@@ -1,17 +1,17 @@
 /* [Tray Parameters] */
 // Tray Maker.  A text based way to create a custom tray/bin.
 // an array of bin widths (ex: column widths).  This example will create first column 50mm wide, second 25mm, third 25mm.  If a 4th is desired enter [50,25,25,45].  Then 4th column will be 45mm wide.  Adding additional columns will require tray layout modifications to accommodate extra column.
-_x_bin_widths_1 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
-_x_bin_widths_2 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
-_x_bin_widths_3 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
-_x_bin_widths_4 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
-_x_bin_widths_5 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
+_x_bin_widths_01 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
+_x_bin_widths_02 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
+_x_bin_widths_03 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
+_x_bin_widths_04 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
+_x_bin_widths_05 = [20.0, 20.0, 20.0, 20.0]; // [0:0.1:200]
 _x_bin_widths = concat(
-  _x_bin_widths_1,
-  _x_bin_widths_2,
-  _x_bin_widths_3,
-  _x_bin_widths_4,
-  _x_bin_widths_5,
+  _x_bin_widths_01,
+  _x_bin_widths_02,
+  _x_bin_widths_03,
+  _x_bin_widths_04,
+  _x_bin_widths_05,
 );
 
 // an integer for y bin length (ex: row height)
@@ -27,15 +27,15 @@ _bottom_thickness = 1.2; // [0:0.01:200]
 // tray layout, array of strings defining layout. More info in thing description about this parameter 
 // number of tray rows to use
 _num_rows = 3; // [1:1:22]
-_tray_layout_1 = "|_|_|_|_|_|_|";
-_tray_layout_2 = "|_|_|_|_|_|_|";
-_tray_layout_3 = "|_|_|_|_|_|_|";
-_tray_layout_4 = "|_|_|_|_|_|_|";
-_tray_layout_5 = "|_|_|_|_|_|_|";
-_tray_layout_6 = "|_|_|_|_|_|_|";
-_tray_layout_7 = "|_|_|_|_|_|_|";
-_tray_layout_8 = "|_|_|_|_|_|_|";
-_tray_layout_9 = "|_|_|_|_|_|_|";
+_tray_layout_01 = "|_|_|_|_|_|_|";
+_tray_layout_02 = "|_|_|_|_|_|_|";
+_tray_layout_03 = "|_|_|_|_|_|_|";
+_tray_layout_04 = "|_|_|_|_|_|_|";
+_tray_layout_05 = "|_|_|_|_|_|_|";
+_tray_layout_06 = "|_|_|_|_|_|_|";
+_tray_layout_07 = "|_|_|_|_|_|_|";
+_tray_layout_08 = "|_|_|_|_|_|_|";
+_tray_layout_09 = "|_|_|_|_|_|_|";
 _tray_layout_10 = "|_|_|_|_|_|_|";
 _tray_layout_11 = "|_|_|_|_|_|_|";
 _tray_layout_12 = "|_|_|_|_|_|_|";
@@ -71,15 +71,15 @@ _grid_y = 4; // used to generate message for copy/paste.
 
 _tray_layout_array =
 concat(
-  _tray_layout_1,
-  _tray_layout_2,
-  _tray_layout_3,
-  _tray_layout_4,
-  _tray_layout_5,
-  _tray_layout_6,
-  _tray_layout_7,
-  _tray_layout_8,
-  _tray_layout_9,
+  _tray_layout_01,
+  _tray_layout_02,
+  _tray_layout_03,
+  _tray_layout_04,
+  _tray_layout_05,
+  _tray_layout_06,
+  _tray_layout_07,
+  _tray_layout_08,
+  _tray_layout_09,
   _tray_layout_10,
   _tray_layout_11,
   _tray_layout_12,
