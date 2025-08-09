@@ -136,9 +136,9 @@ cols = (len(_tray_layout[0]) - 1) / 2;
 echo(cols=cols);
 
 x_size_tray = sumv(_x_bin_widths, len(_x_bin_widths) - 1, 0) + ( (len(_x_bin_widths) + 1) * _wall_width);
-echo(x_size_tray);
+echo(x_size_tray=x_size_tray);
 y_size_tray = (rows * _y_bin_length) + ( (rows + 1) * _wall_width);
-echo(y_size_tray);
+echo(y_size_tray=y_size_tray);
 
 // this module can be used as part of a library.
 module tray(
@@ -382,5 +382,36 @@ if (false) {
     // cut off at the bottom
     translate(v=[0, -y_size_tray, -_z_depth])
       cube([x_size_tray, y_size_tray, _z_depth]);
+  }
+}
+
+// knife-tray
+if (false) {
+
+  // angled raised floor
+  difference() {
+
+    // slope up from left
+    x = 105;
+    dx = _wall_width;
+
+    // 6 rows
+    y = (_y_bin_length + _wall_width) * 6 + _wall_width;
+
+    // starting at 1
+    dy = -y - (_y_bin_length + _wall_width) * 0;
+
+    // rotate up from left bottom edge
+    z = _z_depth - _bottom_thickness;
+    dz = -z + _bottom_thickness;
+
+    // slope
+    rotate(a=5, v=[0, -1, 0])
+      translate(v=[dx, dy, dz])
+        cube([x, y, z]);
+
+    // cut off at the bottom, small epsilon for compounded rounding
+    translate(v=[0, -y_size_tray - 0.01, -_z_depth])
+      cube([x_size_tray, y_size_tray + 0.02, _z_depth]);
   }
 }
