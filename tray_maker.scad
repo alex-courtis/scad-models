@@ -3,14 +3,14 @@
 // an array of bin widths (ex: column widths).  This example will create first column 50mm wide, second 25mm, third 25mm.  If a 4th is desired enter [50,25,25,45].  Then 4th column will be 45mm wide.  Adding additional columns will require tray layout modifications to accommodate extra column.
 
 // will be trimmed to match _tray_layout_01 length
-_x_bin_widths_01 = [26.5, 26.5, 26.5, 26.5]; // [0:0.1:200]
-_x_bin_widths_02 = [26.5, 26.5, 26.5, 26.5]; // [0:0.1:200]
-_x_bin_widths_03 = [26.5, 26.5, 26.5, 26.5]; // [0:0.1:200]
-_x_bin_widths_04 = [26.5, 26.5, 26.5, 26.5]; // [0:0.1:200]
-_x_bin_widths_05 = [26.5, 26.5, 26.5, 26.5]; // [0:0.1:200]
+_x_bin_widths_01 = [26.5, 26.5, 26.5, 26.5]; // [0:0.01:200]
+_x_bin_widths_02 = [26.5, 26.5, 26.5, 26.5]; // [0:0.01:200]
+_x_bin_widths_03 = [26.5, 26.5, 26.5, 26.5]; // [0:0.01:200]
+_x_bin_widths_04 = [26.5, 26.5, 26.5, 26.5]; // [0:0.01:200]
+_x_bin_widths_05 = [26.5, 26.5, 26.5, 26.5]; // [0:0.01:200]
 
 // an integer for y bin length (ex: row height)
-_y_bin_length = 26.5; // [0:0.1:200]
+_y_bin_length = 26.5; // [0:0.01:200]
 // depth of each bin
 _z_depth = 12; // [0:0.1:200]
 // thickness of walls separating bins.
