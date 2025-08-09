@@ -353,3 +353,34 @@ if (_generate_lid) {
     _grid_y
   );
 }
+
+// knife-saw-tray
+if (false) {
+
+  // angled raised floor
+  #difference() {
+
+    // slope up from left
+    x = 105;
+    dx = _wall_width;
+
+    // 3 rows
+    y = (_y_bin_length + _wall_width) * 3 + _wall_width;
+
+    // starting at 4
+    dy = -y - (_y_bin_length + _wall_width) * 2;
+
+    // rotate up from left bottom edge
+    z = _z_depth - _bottom_thickness;
+    dz = -z + _bottom_thickness;
+
+    // slope
+    rotate(a=2.5, v=[0, -1, 0])
+      translate(v=[dx, dy, dz])
+        cube([x, y, z]);
+
+    // cut off at the bottom
+    translate(v=[0, -y_size_tray, -_z_depth])
+      cube([x_size_tray, y_size_tray, _z_depth]);
+  }
+}
