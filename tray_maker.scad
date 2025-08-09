@@ -373,7 +373,7 @@ if (false) {
     dz = -z + _bottom_thickness;
 
     // slope
-    rotate(a=2.5, v=[0, -1, 0])
+    rotate(a=3, v=[0, -1, 0])
       translate(v=[dx, dy, dz])
         cube([x, y, z]);
 
@@ -410,8 +410,8 @@ if (false) {
       x = 105;
       dx = _wall_width;
 
-      // 6 rows
-      y = (_y_bin_length + _wall_width) * 6 + _wall_width;
+      // 7 rows
+      y = (_y_bin_length + _wall_width) * 7 + _wall_width;
 
       // starting at 1
       dy = -y - (_y_bin_length + _wall_width) * 0;
@@ -421,7 +421,7 @@ if (false) {
       dz = -z + _bottom_thickness;
 
       // slope
-      rotate(a=5, v=[0, -1, 0])
+      rotate(a=3, v=[0, -1, 0])
         translate(v=[dx, dy, dz])
           cube([x, y, z]);
 
