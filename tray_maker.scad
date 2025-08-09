@@ -385,33 +385,51 @@ if (false) {
   }
 }
 
-// knife-tray
+// knife-tray, comment out tray call above
 if (false) {
+  union() {
+    difference() {
+      tray(
+        _tray_layout,
+        _x_bin_widths,
+        _y_bin_length,
+        _z_depth,
+        _wall_width,
+        _bottom_thickness,
+        _grid_x,
+        _grid_y
+      );
 
-  // angled raised floor
-  difference() {
+      // cut out row 0 wall, with magic 0.1
+      translate(v=[3 * (_x_bin_widths[0] + _wall_width), -_wall_width, _bottom_thickness])
+        cube([_x_bin_widths[0] + _wall_width * 2 + 0.1, _wall_width, _z_depth]);
+    }
 
-    // slope up from left
-    x = 105;
-    dx = _wall_width;
+    // angled raised floor
+    difference() {
 
-    // 6 rows
-    y = (_y_bin_length + _wall_width) * 6 + _wall_width;
+      // slope up from left
+      x = 105;
+      dx = _wall_width;
 
-    // starting at 1
-    dy = -y - (_y_bin_length + _wall_width) * 0;
+      // 6 rows
+      y = (_y_bin_length + _wall_width) * 6 + _wall_width;
 
-    // rotate up from left bottom edge
-    z = _z_depth - _bottom_thickness;
-    dz = -z + _bottom_thickness;
+      // starting at 1
+      dy = -y - (_y_bin_length + _wall_width) * 0;
 
-    // slope
-    rotate(a=5, v=[0, -1, 0])
-      translate(v=[dx, dy, dz])
-        cube([x, y, z]);
+      // rotate up from left bottom edge
+      z = _z_depth - _bottom_thickness;
+      dz = -z + _bottom_thickness;
 
-    // cut off at the bottom, small epsilon for compounded rounding
-    translate(v=[0, -y_size_tray - 0.01, -_z_depth])
-      cube([x_size_tray, y_size_tray + 0.02, _z_depth]);
+      // slope
+      rotate(a=5, v=[0, -1, 0])
+        translate(v=[dx, dy, dz])
+          cube([x, y, z]);
+
+      // cut off at the bottom, small epsilon for compounded rounding
+      translate(v=[0, -y_size_tray - 0.01, -_z_depth])
+        cube([x_size_tray, y_size_tray + 0.02, _z_depth]);
+    }
   }
 }
