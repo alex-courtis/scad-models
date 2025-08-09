@@ -1,18 +1,13 @@
 /* [Tray Parameters] */
 // Tray Maker.  A text based way to create a custom tray/bin.
 // an array of bin widths (ex: column widths).  This example will create first column 50mm wide, second 25mm, third 25mm.  If a 4th is desired enter [50,25,25,45].  Then 4th column will be 45mm wide.  Adding additional columns will require tray layout modifications to accommodate extra column.
+
+// will be trimmed to match _tray_layout_01 length
 _x_bin_widths_01 = [26.5, 26.5, 26.5, 26.5]; // [0:0.1:200]
 _x_bin_widths_02 = [26.5, 26.5, 26.5, 26.5]; // [0:0.1:200]
 _x_bin_widths_03 = [26.5, 26.5, 26.5, 26.5]; // [0:0.1:200]
 _x_bin_widths_04 = [26.5, 26.5, 26.5, 26.5]; // [0:0.1:200]
 _x_bin_widths_05 = [26.5, 26.5, 26.5, 26.5]; // [0:0.1:200]
-_x_bin_widths = concat(
-  _x_bin_widths_01,
-  _x_bin_widths_02,
-  _x_bin_widths_03,
-  _x_bin_widths_04,
-  _x_bin_widths_05,
-);
 
 // an integer for y bin length (ex: row height)
 _y_bin_length = 26.5; // [0:0.1:200]
@@ -25,8 +20,9 @@ _bottom_thickness = 1.2; // [0:0.01:200]
 
 /* [Tray Layout] */
 // tray layout, array of strings defining layout. More info in thing description about this parameter 
-// number of tray rows to use
+// number of tray rows (y) to use
 _num_rows = 3; // [1:1:22]
+// first defines the number of columns (x)
 _tray_layout_01 = "|_|_|_|_|_|_|";
 _tray_layout_02 = "|_|_|_|_|_|_|";
 _tray_layout_03 = "|_|_|_|_|_|_|";
@@ -52,7 +48,7 @@ _tray_layout_22 = "|_|_|_|_|_|_|";
 
 /* [Lid Parameters] */
 // generate a lid (instead of the tray) that fits the defined tray
-_generate_lid = "false"; //[true, false] 
+_generate_lid = false;
 // thickness of lid top
 _lid_thickness = 0.9; // [0:0.01:200]
 // thickness of the lid's sides
@@ -66,6 +62,16 @@ _lid_fudge = 0; // [0:0.01:200]
 // for use if using as library and able to view console output.
 _grid_x = 3; // used to generate message for copy/paste.
 _grid_y = 4; // used to generate message for copy/paste.
+
+_x_bin_widths_all = concat(
+  _x_bin_widths_01,
+  _x_bin_widths_02,
+  _x_bin_widths_03,
+  _x_bin_widths_04,
+  _x_bin_widths_05,
+);
+_x_bin_widths = [for (c = [0:1:len(_tray_layout_01) / 2 - 1]) _x_bin_widths_all[c]];
+echo(_x_bin_widths=_x_bin_widths);
 
 // all this fun stuff is because thingiverse customizer cannot accept an array of string values as input.  
 
@@ -95,7 +101,7 @@ concat(
   _tray_layout_22
 );
 _tray_layout = [for (i = [0:_num_rows - 1]) _tray_layout_array[i]];
-echo(_tray_layout);
+echo(_tray_layout=_tray_layout);
 // end the special tray_layout handling for customizer.
 
 // Tray layout explained: each row start with and end with | (a pipe)
@@ -322,7 +328,7 @@ module tray_lid(
 //    "|_|_|_|"
 //];
 
-if (_generate_lid == "true") {
+if (_generate_lid) {
   tray_lid(
     _lid_thickness,
     _lid_wall_thickness,
