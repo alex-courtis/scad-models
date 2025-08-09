@@ -56,7 +56,7 @@ _lid_wall_thickness = 1.5; // [0:0.01:200]
 // the depth of the lid.  
 _lid_depth = 15; // [0:0.01:200]
 // with no fudge, the lid will be snug.  Depending on printer or preference provide negative to make tighter, positive to make looser. (ex: 0.2 will make a looser fitter lid)
-_lid_fudge = 0; // [0:0.01:200]
+_lid_fudge = 0.8; // [0:0.01:200]
 
 /* [Hidden] */
 // for use if using as library and able to view console output.
@@ -303,11 +303,9 @@ module tray_lid(
   x_size_tray = sumv(x_bin_widths, len(x_bin_widths) - 1, 0) + ( (len(x_bin_widths) + 1) * wall_width);
   y_size_tray = (rows * y_bin_length) + ( (rows + 1) * wall_width);
 
-  // TODO that extra one isn't necessary. Why is it there?
-
   // 0.8 is a good looseness for a lid (at least for my printrbot), fudging this can make tighter or looser.
-  x_inner_lid = x_size_tray + 1 + lid_fudge;
-  y_inner_lid = y_size_tray + 1 + lid_fudge;
+  x_inner_lid = x_size_tray + lid_fudge;
+  y_inner_lid = y_size_tray + lid_fudge;
 
   x_lid_outer = x_inner_lid + (lid_wall_thickness * 2);
   y_lid_outer = y_inner_lid + (lid_wall_thickness * 2);
