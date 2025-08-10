@@ -339,7 +339,7 @@ if (_generate_lid) {
     _wall_width,
     _bottom_thickness
   );
-} else {
+} else if (true) {
   tray(
     _tray_layout,
     _x_bin_widths,
@@ -398,33 +398,29 @@ render() if (false) {
         _grid_y
       );
 
-      // angled raised floor
-      difference() {
+      // angled raised floor up from left
+      x = 105;
+      dx = _wall_width;
 
-        // slope up from left
-        x = 105;
-        dx = _wall_width;
+      // all rows
+      y = (_y_bin_length + _wall_width) * _num_rows + _wall_width;
 
-        // all rows
-        y = (_y_bin_length + _wall_width) * _num_rows + _wall_width;
+      // starting at 1
+      dy = -y - (_y_bin_length + _wall_width) * 0;
 
-        // starting at 1
-        dy = -y - (_y_bin_length + _wall_width) * 0;
+      // raise and rotate up from left side
+      z = _z_depth - _bottom_thickness;
+      dz = -z + _bottom_thickness + 3;
 
-        // raise and rotate up from left side
-        z = _z_depth - _bottom_thickness;
-        dz = -z + _bottom_thickness + 3;
-
-        // slope
-        rotate(a=2.5, v=[0, -1, 0])
-          translate(v=[dx, dy, dz])
-            cube([x, y, z]);
-
-        // cut off at the bottom, small epsilon for compounded rounding
-        translate(v=[0, -y_size_tray - 0.01, -_z_depth])
-          cube([x_size_tray, y_size_tray + 0.02, _z_depth]);
-      }
+      // slope
+      rotate(a=2.5, v=[0, -1, 0])
+        translate(v=[dx, dy, dz])
+          cube([x, y, z]);
     }
+
+    // cut off at the bottom, small epsilon for compounded rounding
+    translate(v=[0, -y_size_tray - 0.01, -_z_depth])
+      cube([x_size_tray, y_size_tray + 0.02, _z_depth]);
 
     // cut out col 4 walls with thicker bottom, using magic 0.1
     translate(v=[3 * (_x_bin_widths[0] + _wall_width), -y_size_tray - 0.1, _bottom_thickness * 2.5])
