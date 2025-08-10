@@ -423,7 +423,7 @@ render() if (false) {
       cube([x_size_tray, y_size_tray + 0.02, _z_depth]);
 
     // cut out col 4 walls with thicker bottom, using magic 0.1
-    translate(v=[3 * (_x_bin_widths[0] + _wall_width), -y_size_tray - 0.1, _bottom_thickness * 2.5])
+    translate(v=[3 * (_x_bin_widths[0] + _wall_width), -y_size_tray - 0.1, _bottom_thickness * 2])
       cube([_x_bin_widths[0] + _wall_width * 2, y_size_tray + 0.1 * 2, _z_depth]);
   }
 }
