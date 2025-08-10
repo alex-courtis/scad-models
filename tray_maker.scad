@@ -353,7 +353,7 @@ if (_generate_lid) {
 }
 
 // knife-saw-tray
-if (false) {
+render() if (false) {
 
   // angled raised floor
   #difference() {
@@ -384,9 +384,9 @@ if (false) {
 }
 
 // knife-tray, comment out tray call above
-if (false) {
-  union() {
-    difference() {
+render() if (false) {
+  difference() {
+    union() {
       tray(
         _tray_layout,
         _x_bin_widths,
@@ -398,36 +398,36 @@ if (false) {
         _grid_y
       );
 
-      // cut out row 0 wall, with magic 0.1
-      translate(v=[3 * (_x_bin_widths[0] + _wall_width), -_wall_width, _bottom_thickness])
-        cube([_x_bin_widths[0] + _wall_width * 2 + 0.1, _wall_width, _z_depth]);
+      // angled raised floor
+      difference() {
+
+        // slope up from left
+        x = 105;
+        dx = _wall_width;
+
+        // all rows
+        y = (_y_bin_length + _wall_width) * _num_rows + _wall_width;
+
+        // starting at 1
+        dy = -y - (_y_bin_length + _wall_width) * 0;
+
+        // raise and rotate up from left side
+        z = _z_depth - _bottom_thickness;
+        dz = -z + _bottom_thickness + 3;
+
+        // slope
+        rotate(a=2.5, v=[0, -1, 0])
+          translate(v=[dx, dy, dz])
+            cube([x, y, z]);
+
+        // cut off at the bottom, small epsilon for compounded rounding
+        translate(v=[0, -y_size_tray - 0.01, -_z_depth])
+          cube([x_size_tray, y_size_tray + 0.02, _z_depth]);
+      }
     }
 
-    // angled raised floor
-    difference() {
-
-      // slope up from left
-      x = 105;
-      dx = _wall_width;
-
-      // 7 rows
-      y = (_y_bin_length + _wall_width) * 7 + _wall_width;
-
-      // starting at 1
-      dy = -y - (_y_bin_length + _wall_width) * 0;
-
-      // rotate up from left bottom edge
-      z = _z_depth - _bottom_thickness;
-      dz = -z + _bottom_thickness;
-
-      // slope
-      rotate(a=3, v=[0, -1, 0])
-        translate(v=[dx, dy, dz])
-          cube([x, y, z]);
-
-      // cut off at the bottom, small epsilon for compounded rounding
-      translate(v=[0, -y_size_tray - 0.01, -_z_depth])
-        cube([x_size_tray, y_size_tray + 0.02, _z_depth]);
-    }
+    // cut out col 4 walls with thicker bottom, using magic 0.1
+    translate(v=[3 * (_x_bin_widths[0] + _wall_width), -y_size_tray - 0.1, _bottom_thickness * 2.5])
+      cube([_x_bin_widths[0] + _wall_width * 2, y_size_tray + 0.1 * 2, _z_depth]);
   }
 }
