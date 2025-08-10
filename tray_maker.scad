@@ -352,34 +352,62 @@ if (_generate_lid) {
   );
 }
 
-// knife-saw-tray
+// knife-saw-tray, comment out tray call above
 render() if (false) {
+  difference() {
+    union() {
+      translate(v=[y_size_tray, 0, 0])
+        rotate(a=270, v=[0, 0, 1])
+          tray(
+            _tray_layout,
+            _x_bin_widths,
+            _y_bin_length,
+            _z_depth,
+            _wall_width,
+            _bottom_thickness,
+            _grid_x,
+            _grid_y
+          );
 
-  // angled raised floor
-  #difference() {
+      // angled raised floor up from left
+      x = 105;
+      dx = _wall_width;
 
-    // slope up from left
-    x = 105;
-    dx = _wall_width;
+      // 3 rows
+      y = (_x_bin_widths[1] + _wall_width) * 3 + _wall_width;
 
-    // 3 rows
-    y = (_y_bin_length + _wall_width) * 3 + _wall_width;
+      // starting at 2
+      dy = -y - (_x_bin_widths[0] + _wall_width);
 
-    // starting at 4
-    dy = -y - (_y_bin_length + _wall_width) * 2;
+      // rotate up from left bottom edge
+      z = _z_depth - _bottom_thickness;
+      dz = -z + _bottom_thickness + 3;
 
-    // rotate up from left bottom edge
-    z = _z_depth - _bottom_thickness;
-    dz = -z + _bottom_thickness;
-
-    // slope
-    rotate(a=3, v=[0, -1, 0])
-      translate(v=[dx, dy, dz])
-        cube([x, y, z]);
+      // slope
+      rotate(a=1.0, v=[0, -1, 0])
+        translate(v=[dx, dy, dz])
+          cube([x, y, z]);
+    }
 
     // cut off at the bottom
     translate(v=[0, -y_size_tray, -_z_depth])
       cube([x_size_tray, y_size_tray, _z_depth]);
+
+    // cut out col 4 walls with thicker bottom to match knife-tray, using magic 0.1
+    translate(
+      v=[
+        (y_size_tray - 24.59) / 2,
+        -150,
+        _bottom_thickness * 1,
+      ]
+    )
+      cube(
+        [
+          24.59,
+          100,
+          _z_depth,
+        ]
+      );
   }
 }
 
