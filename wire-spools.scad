@@ -49,10 +49,10 @@ n_spokes = 4; // [0:1:10]
 w_brace = 20; // [0:1:50]
 
 // centre hole for drill shaft
-d_hole_shaft = 3.75;
+d_hole_shaft = 4.10;
 
 // other holes for brace
-d_hole_brace = 2.8;
+d_hole_brace = 3.1;
 
 // offset from shaft hole
 offset_hole_brace = 10;
