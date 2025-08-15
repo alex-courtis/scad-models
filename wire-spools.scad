@@ -4,19 +4,19 @@ hub = true;
 /* [Hub] */
 
 // excluding h_wheel
-h_hub = 20; // [5:1:50]
+h_hub = 10; // [5:1:50]
 
 // inner including walls
-r_hub = 25; // [10:1:50]
+r_hub = 20; // [10:1:50]
 
 // inside r_hub
 t_hub = 1.6; // [0.4:0.1:10]
 
 // single slot
-h_hub_starter = 10; // [1:1:50]
+h_hub_starter = 5; // [1:1:50]
 
 // single slot
-w_hub_starter = 4; // [1:1:50]
+w_hub_starter = 3; // [1:1:50]
 
 /* [Wheel] */
 
@@ -24,10 +24,10 @@ w_hub_starter = 4; // [1:1:50]
 t_wheel = 1.2; // [0.4:0.1:10]
 
 // total
-r_wheel = 80; // [10:1:400]
+r_wheel = 40; // [10:1:400]
 
-// slot larger than r_hub
-dr_rim = 0.4; // [10:1:50]
+// rim r_hub delta
+dr_rim = -0.4; // [-50:1:50]
 
 // inside hub
 h_rim = 6; // [0:0.1:10]
@@ -38,10 +38,10 @@ h_rim = 6; // [0:0.1:10]
 a_spoke = 5; // [0:5:90]
 
 // centered
-h_spoke = 45; // [0:1:400]
+h_spoke = 15; // [0:1:400]
 
 // pairs: gap, spoke, gap
-n_spokes = 4; // [0:1:10]
+n_spokes = 2; // [0:1:10]
 
 /* [Brace] */
 
@@ -104,7 +104,7 @@ module wheel_rim() {
 
     // connecting rim
     difference() {
-      cylinder(r=r_hub - t_hub + dr_rim, h=t_wheel + h_rim);
+      cylinder(r=r_hub - t_hub, h=t_wheel + h_rim);
       cylinder(r=r_hub - t_hub + dr_rim - t_hub, h=t_wheel + h_rim);
     }
   }
