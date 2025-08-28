@@ -12,7 +12,7 @@ _x_bin_widths_05 = [26.5, 26.5, 26.5, 26.5]; // [0:0.001:200]
 // an integer for y bin length (ex: row height)
 _y_bin_length = 26.5; // [0:0.01:200]
 // depth of each bin
-_z_depth = 12; // [0:0.1:200]
+_z_depth = 12; // [0:0.01:200]
 // thickness of walls separating bins.
 _wall_width = 0.8; // [0:0.01:200]
 // thickness of bottom of tray
