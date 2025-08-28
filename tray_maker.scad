@@ -339,7 +339,7 @@ if (_generate_lid) {
     _wall_width,
     _bottom_thickness
   );
-} else if (false) {
+} else if (true) {
   tray(
     _tray_layout,
     _x_bin_widths,
@@ -417,7 +417,7 @@ render() if (false) {
 }
 
 // knife-tray-front-2, comment out tray call above
-render() if (true) {
+render() if (false) {
   difference() {
     tray(
       _tray_layout,
