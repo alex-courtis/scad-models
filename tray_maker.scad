@@ -339,7 +339,7 @@ if (_generate_lid) {
     _wall_width,
     _bottom_thickness
   );
-} else if (true) {
+} else if (false) {
   tray(
     _tray_layout,
     _x_bin_widths,
@@ -370,14 +370,14 @@ render() if (false) {
     translate(
       v=[
         3 * (_x_bin_widths[0] + _wall_width),
-        -y_size_tray + _wall_width * 0,
-        _bottom_thickness * 1 + _z_depth / 3,
+        -y_size_tray,
+        _bottom_thickness + _z_depth / 3,
       ]
     )
       cube(
         [
           _x_bin_widths[0] + _wall_width * 2,
-          y_size_tray - _wall_width * 0,
+          y_size_tray,
           _z_depth * 2 / 3,
         ]
       );
@@ -387,7 +387,7 @@ render() if (false) {
       v=[
         -0.01,
         -10 * (_y_bin_length + _wall_width),
-        _bottom_thickness * 1 + _z_depth / 3,
+        _bottom_thickness + _z_depth / 3,
       ]
     )
       cube(
@@ -400,24 +400,24 @@ render() if (false) {
   }
 
   // add col 5 left cross members to a height of a third, small epsilon for compounded rounding
-  #translate(
+  translate(
     v=[
-      4 * (_x_bin_widths[0] + _wall_width) - 0.01 + _wall_width,
-      -y_size_tray + _wall_width,
-      _bottom_thickness * 1,
+      4 * (_x_bin_widths[0] + _wall_width) + _wall_width,
+      -y_size_tray,
+      _bottom_thickness,
     ]
   )
     cube(
       [
-        _wall_width + 0.02,
-        y_size_tray - _wall_width * 2,
+        _wall_width,
+        y_size_tray,
         _z_depth * 1 / 3,
       ]
     );
 }
 
 // knife-tray-front-2, comment out tray call above
-render() if (false) {
+render() if (true) {
   difference() {
     tray(
       _tray_layout,
@@ -434,31 +434,31 @@ render() if (false) {
     translate(
       v=[
         3 * (_x_bin_widths[0] + _wall_width),
-        -y_size_tray + _wall_width,
-        _bottom_thickness * 1 + _z_depth / 3,
+        -y_size_tray,
+        _bottom_thickness + _z_depth / 3,
       ]
     )
       cube(
         [
           _x_bin_widths[0] + _wall_width * 2,
-          y_size_tray - _wall_width * 2,
+          y_size_tray,
           _z_depth * 2 / 3,
         ]
       );
   }
 
-  // add col 5 right cross members to a height of a third, small epsilon for compounded rounding
-  #translate(
+  // add col 5 right cross members to a height of a third
+  translate(
     v=[
-      5 * (_x_bin_widths[0] + _wall_width) - 0.01,
-      -y_size_tray + _wall_width,
-      _bottom_thickness * 1,
+      5 * (_x_bin_widths[0] + _wall_width),
+      -y_size_tray,
+      _bottom_thickness,
     ]
   )
     cube(
       [
-        _wall_width + 0.02,
-        y_size_tray - _wall_width * 2,
+        _wall_width,
+        y_size_tray,
         _z_depth * 1 / 3,
       ]
     );
