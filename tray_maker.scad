@@ -339,7 +339,7 @@ if (_generate_lid) {
     _wall_width,
     _bottom_thickness
   );
-} else if (false) {
+} else if (true) {
   tray(
     _tray_layout,
     _x_bin_widths,
@@ -352,67 +352,8 @@ if (_generate_lid) {
   );
 }
 
-// knife-saw-tray, comment out tray call above
+// knife-tray-back-2, comment out tray call above
 render() if (false) {
-  difference() {
-    union() {
-      translate(v=[y_size_tray, 0, 0])
-        rotate(a=270, v=[0, 0, 1])
-          tray(
-            _tray_layout,
-            _x_bin_widths,
-            _y_bin_length,
-            _z_depth,
-            _wall_width,
-            _bottom_thickness,
-            _grid_x,
-            _grid_y
-          );
-
-      // angled raised floor up from left
-      x = 105;
-      dx = _wall_width;
-
-      // 3 rows
-      y = (_x_bin_widths[1] + _wall_width) * 3 + _wall_width;
-
-      // starting at 2
-      dy = -y - (_x_bin_widths[0] + _wall_width);
-
-      // rotate up from left bottom edge
-      z = _z_depth - _bottom_thickness;
-      dz = -z + _bottom_thickness + 3;
-
-      // slope
-      rotate(a=1.0, v=[0, -1, 0])
-        translate(v=[dx, dy, dz])
-          cube([x, y, z]);
-    }
-
-    // cut off at the bottom
-    translate(v=[0, -y_size_tray, -_z_depth])
-      cube([x_size_tray, y_size_tray, _z_depth]);
-
-    // cut out col 4 walls with thicker bottom to match knife-tray, using magic 0.1
-    translate(
-      v=[
-        (y_size_tray - 24.59) / 2,
-        -150,
-        _bottom_thickness * 1,
-      ]
-    )
-      cube(
-        [
-          24.59,
-          100,
-          _z_depth,
-        ]
-      );
-  }
-}
-
-// knife-tray, comment out tray call above
-render() if (true) {
   difference() {
     tray(
       _tray_layout,
@@ -429,20 +370,84 @@ render() if (true) {
     translate(
       v=[
         3 * (_x_bin_widths[0] + _wall_width),
-        -y_size_tray + _wall_width - (_y_bin_length + _wall_width) * 0,
+        -y_size_tray + _wall_width * 0,
         _bottom_thickness * 1 + _z_depth / 3,
       ]
     )
       cube(
         [
           _x_bin_widths[0] + _wall_width * 2,
-          y_size_tray - _wall_width * 2 - (_y_bin_length + _wall_width) * 0,
+          y_size_tray - _wall_width * 0,
+          _z_depth * 2 / 3,
+        ]
+      );
+
+    // cut out row 4 walls to a height of a third
+    translate(
+      v=[
+        -0.01,
+        -10 * (_y_bin_length + _wall_width),
+        _bottom_thickness * 1 + _z_depth / 3,
+      ]
+    )
+      cube(
+        [
+          x_size_tray + 0.02,
+          (_y_bin_length + _wall_width) * 3 - _wall_width,
           _z_depth * 2 / 3,
         ]
       );
   }
 
-  // add col 5 cross members to a height of a third, small epsilon for compounded rounding
+  // add col 5 left cross members to a height of a third, small epsilon for compounded rounding
+  #translate(
+    v=[
+      4 * (_x_bin_widths[0] + _wall_width) - 0.01 + _wall_width,
+      -y_size_tray + _wall_width,
+      _bottom_thickness * 1,
+    ]
+  )
+    cube(
+      [
+        _wall_width + 0.02,
+        y_size_tray - _wall_width * 2,
+        _z_depth * 1 / 3,
+      ]
+    );
+}
+
+// knife-tray-front-2, comment out tray call above
+render() if (false) {
+  difference() {
+    tray(
+      _tray_layout,
+      _x_bin_widths,
+      _y_bin_length,
+      _z_depth,
+      _wall_width,
+      _bottom_thickness,
+      _grid_x,
+      _grid_y
+    );
+
+    // cut out col 4 walls to a height of a third
+    translate(
+      v=[
+        3 * (_x_bin_widths[0] + _wall_width),
+        -y_size_tray + _wall_width,
+        _bottom_thickness * 1 + _z_depth / 3,
+      ]
+    )
+      cube(
+        [
+          _x_bin_widths[0] + _wall_width * 2,
+          y_size_tray - _wall_width * 2,
+          _z_depth * 2 / 3,
+        ]
+      );
+  }
+
+  // add col 5 right cross members to a height of a third, small epsilon for compounded rounding
   #translate(
     v=[
       5 * (_x_bin_widths[0] + _wall_width) - 0.01,
