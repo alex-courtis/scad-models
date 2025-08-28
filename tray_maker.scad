@@ -3,11 +3,11 @@
 // an array of bin widths (ex: column widths).  This example will create first column 50mm wide, second 25mm, third 25mm.  If a 4th is desired enter [50,25,25,45].  Then 4th column will be 45mm wide.  Adding additional columns will require tray layout modifications to accommodate extra column.
 
 // will be trimmed to match _tray_layout_01 length
-_x_bin_widths_01 = [26.5, 26.5, 26.5, 26.5]; // [0:0.01:200]
-_x_bin_widths_02 = [26.5, 26.5, 26.5, 26.5]; // [0:0.01:200]
-_x_bin_widths_03 = [26.5, 26.5, 26.5, 26.5]; // [0:0.01:200]
-_x_bin_widths_04 = [26.5, 26.5, 26.5, 26.5]; // [0:0.01:200]
-_x_bin_widths_05 = [26.5, 26.5, 26.5, 26.5]; // [0:0.01:200]
+_x_bin_widths_01 = [26.5, 26.5, 26.5, 26.5]; // [0:0.001:200]
+_x_bin_widths_02 = [26.5, 26.5, 26.5, 26.5]; // [0:0.001:200]
+_x_bin_widths_03 = [26.5, 26.5, 26.5, 26.5]; // [0:0.001:200]
+_x_bin_widths_04 = [26.5, 26.5, 26.5, 26.5]; // [0:0.001:200]
+_x_bin_widths_05 = [26.5, 26.5, 26.5, 26.5]; // [0:0.001:200]
 
 // an integer for y bin length (ex: row height)
 _y_bin_length = 26.5; // [0:0.01:200]
@@ -339,7 +339,7 @@ if (_generate_lid) {
     _wall_width,
     _bottom_thickness
   );
-} else if (true) {
+} else if (false) {
   tray(
     _tray_layout,
     _x_bin_widths,
@@ -412,56 +412,49 @@ render() if (false) {
 }
 
 // knife-tray, comment out tray call above
-render() if (false) {
+render() if (true) {
   difference() {
-    union() {
-      tray(
-        _tray_layout,
-        _x_bin_widths,
-        _y_bin_length,
-        _z_depth,
-        _wall_width,
-        _bottom_thickness,
-        _grid_x,
-        _grid_y
-      );
+    tray(
+      _tray_layout,
+      _x_bin_widths,
+      _y_bin_length,
+      _z_depth,
+      _wall_width,
+      _bottom_thickness,
+      _grid_x,
+      _grid_y
+    );
 
-      // angled raised floor up from left
-      x = 105;
-      dx = _wall_width;
-
-      // rows starting at 2
-      y = (_y_bin_length + _wall_width) * (_num_rows - 1) + _wall_width;
-      dy = -y - (_y_bin_length + _wall_width) * 1;
-
-      // raise and rotate up from left side
-      z = _z_depth - _bottom_thickness;
-      dz = -z + _bottom_thickness + 3;
-
-      // slope
-      rotate(a=3, v=[0, -1, 0])
-        translate(v=[dx, dy, dz])
-          cube([x, y, z]);
-    }
-
-    // cut off at the bottom, small epsilon for compounded rounding
-    translate(
-      v=[
-        0,
-        -y_size_tray - 0.01,
-        -_z_depth,
-      ]
-    )
-      cube([x_size_tray, y_size_tray + 0.02, _z_depth]);
-
-    // cut out col 4 walls with thicker bottom
+    // cut out col 4 walls to a height of a third
     translate(
       v=[
         3 * (_x_bin_widths[0] + _wall_width),
         -y_size_tray + _wall_width - (_y_bin_length + _wall_width) * 0,
-        _bottom_thickness * 2,
+        _bottom_thickness * 1 + _z_depth / 3,
       ]
     )
-      cube([_x_bin_widths[0] + _wall_width * 2, y_size_tray - _wall_width * 2 - (_y_bin_length + _wall_width) * 1, _z_depth]);
+      cube(
+        [
+          _x_bin_widths[0] + _wall_width * 2,
+          y_size_tray - _wall_width * 2 - (_y_bin_length + _wall_width) * 0,
+          _z_depth * 2 / 3,
+        ]
+      );
   }
+
+  // add col 5 cross members to a height of a third, small epsilon for compounded rounding
+  #translate(
+    v=[
+      5 * (_x_bin_widths[0] + _wall_width) - 0.01,
+      -y_size_tray + _wall_width,
+      _bottom_thickness * 1,
+    ]
+  )
+    cube(
+      [
+        _wall_width + 0.02,
+        y_size_tray - _wall_width * 2,
+        _z_depth * 1 / 3,
+      ]
+    );
 }
