@@ -430,24 +430,24 @@ render() if (false) {
       _grid_y
     );
 
-    // cut out col 4 walls to a height of a third
+    // cut out col 4 walls to a height of 0
     translate(
       v=[
         3 * (_x_bin_widths[0] + _wall_width),
-        -y_size_tray,
-        _bottom_thickness + _z_depth / 3,
+        -y_size_tray + _wall_width,
+        _bottom_thickness + _z_depth * 0,
       ]
     )
       cube(
         [
           _x_bin_widths[0] + _wall_width * 2,
-          y_size_tray,
-          _z_depth * 2 / 3,
+          y_size_tray - _wall_width * 2,
+          _z_depth * 1,
         ]
       );
   }
 
-  // add col 5 right cross members to a height of a third
+  // add col 5 right cross members to a height of 0.4
   translate(
     v=[
       5 * (_x_bin_widths[0] + _wall_width),
@@ -459,7 +459,23 @@ render() if (false) {
       [
         _wall_width,
         y_size_tray,
-        _z_depth * 1 / 3,
+        _z_depth * 0.4,
+      ]
+    );
+
+  // add col 2 right cross members to a height of 0.15
+  translate(
+    v=[
+      2 * (_x_bin_widths[0] + _wall_width),
+      -y_size_tray,
+      _bottom_thickness,
+    ]
+  )
+    cube(
+      [
+        _wall_width,
+        y_size_tray,
+        _z_depth * 0.15,
       ]
     );
 }
