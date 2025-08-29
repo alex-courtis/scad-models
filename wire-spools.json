@@ -1,0 +1,24 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "r15,r40,h25": {
+            "$fn": "200",
+            "a_spoke": "10",
+            "d_hole_brace": "3.1000000000000001",
+            "d_hole_shaft": "4.0999999999999996",
+            "dr_rim": "0",
+            "h_hub": "25",
+            "h_hub_starter": "5",
+            "h_rim": "6",
+            "h_spoke": "20",
+            "n_spokes": "3",
+            "offset_hole_brace": "10",
+            "r_hub": "15",
+            "r_wheel": "40",
+            "t_hub": "1.6000000000000001",
+            "t_wheel": "1.6000000000000001",
+            "w_brace": "20",
+            "w_hub_starter": "3"
+        }
+    }
+}

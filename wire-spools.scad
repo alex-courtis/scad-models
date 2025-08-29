@@ -1,13 +1,10 @@
-// or just the wheel with rim
-hub = true;
-
 /* [Hub] */
 
 // excluding h_wheel
-h_hub = 10; // [5:1:50]
+h_hub = 10; // [5:0.1:50]
 
 // inner including walls
-r_hub = 20; // [10:1:50]
+r_hub = 15; // [15:0.1:50]
 
 // inside r_hub
 t_hub = 1.6; // [0.4:0.1:10]
@@ -21,7 +18,7 @@ w_hub_starter = 3; // [1:1:50]
 /* [Wheel] */
 
 // wheel and brace
-t_wheel = 1.2; // [0.4:0.1:10]
+t_wheel = 1.6; // [0.4:0.1:10]
 
 // total
 r_wheel = 40; // [10:1:400]
@@ -35,13 +32,13 @@ h_rim = 6; // [0:0.1:10]
 /* [Spokes] */
 
 // gap, spoke, gap
-a_spoke = 5; // [0:5:90]
+a_spoke = 10; // [0:5:90]
 
 // centered
 h_spoke = 15; // [0:1:400]
 
 // pairs: gap, spoke, gap
-n_spokes = 2; // [0:1:10]
+n_spokes = 3; // [0:1:10]
 
 /* [Brace] */
 
@@ -49,13 +46,13 @@ n_spokes = 2; // [0:1:10]
 w_brace = 20; // [0:1:50]
 
 // centre hole for drill shaft
-d_hole_shaft = 4.10;
+d_hole_shaft = 4.10; // [1:0.01:10]
 
 // other holes for brace
-d_hole_brace = 3.1;
+d_hole_brace = 4.05; // [1:0.01:10]
 
 // offset from shaft hole
-offset_hole_brace = 10;
+offset_hole_brace = 10; // [0:1:400]
 
 $fn = 200;
 
@@ -88,13 +85,14 @@ module wheel() {
         cube([w_brace, r_hub * 2, t_wheel], center=true);
 
       // shaft hole
-      cylinder(d=d_hole_shaft, h=t_wheel);
+      translate(v=[0, 0, -0.1])
+        cylinder(d=d_hole_shaft, h=t_wheel + 0.2);
 
       // brace holes
-      translate(v=[0, offset_hole_brace, 0])
-        cylinder(d=d_hole_brace, h=t_wheel);
-      translate(v=[0, -offset_hole_brace, 0])
-        cylinder(d=d_hole_brace, h=t_wheel);
+      translate(v=[0, offset_hole_brace, -0.1])
+        cylinder(d=d_hole_brace, h=t_wheel + 0.2);
+      translate(v=[0, -offset_hole_brace, -0.1])
+        cylinder(d=d_hole_brace, h=t_wheel + 0.2);
     }
   }
 }
@@ -132,12 +130,19 @@ render() {
   difference() {
     union() {
       wheel();
-      if (hub) {
-        hub();
-      } else {
-        wheel_rim();
-      }
+      hub();
     }
     hub_starter();
   }
 }
+
+translate(v=[0, r_wheel * 2 + t_wheel, 0])
+  render() {
+    difference() {
+      union() {
+        wheel();
+        wheel_rim();
+      }
+      hub_starter();
+    }
+  }
