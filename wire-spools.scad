@@ -27,12 +27,12 @@ r_wheel = 40; // [10:1:400]
 dr_rim = 0; // [-50:0.01:50]
 
 // inside hub
-h_rim = 6; // [0:0.1:10]
+h_rim = 6; // [0:0.1:30]
 
 /* [Spokes] */
 
 // gap, spoke, gap
-a_spoke = 10; // [0:5:90]
+a_spoke = 10; // [0:0.1:90]
 
 // centered
 h_spoke = 20; // [0:1:400]
@@ -102,7 +102,7 @@ module wheel_rim() {
 
     // connecting rim
     difference() {
-      cylinder(r=r_hub - t_hub, h=t_wheel + h_rim);
+      cylinder(r=r_hub - t_hub + dr_rim, h=t_wheel + h_rim);
       cylinder(r=r_hub - t_hub + dr_rim - t_hub, h=t_wheel + h_rim);
     }
   }
