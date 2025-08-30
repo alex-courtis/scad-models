@@ -4,7 +4,7 @@
 h_hub = 25; // [5:0.1:100]
 
 // inner including walls
-r_hub = 15; // [15:0.1:50]
+r_hub = 15.5; // [15:0.01:50]
 
 // inside r_hub
 t_hub = 1.6; // [0.4:0.1:10]
@@ -24,7 +24,7 @@ t_wheel = 1.6; // [0.4:0.1:10]
 r_wheel = 40; // [10:1:400]
 
 // rim r_hub delta
-dr_rim = 0; // [-50:0.01:50]
+dr_rim = -0.015; // [-10:0.001:10]
 
 // inside hub
 h_rim = 6; // [0:0.1:30]
@@ -42,8 +42,8 @@ n_spokes = 3; // [0:1:10]
 
 /* [Brace] */
 
-// crosses hub
-w_brace = 20; // [0:1:50]
+// crosses hub, 0 to completely fill
+w_brace = 0; // [0:1:50]
 
 // centre hole for drill shaft
 d_hole_shaft = 4.10; // [1:0.01:10]
@@ -81,8 +81,12 @@ module wheel() {
     difference() {
 
       // brace
-      translate(v=[0, 0, t_wheel / 2])
-        cube([w_brace, r_hub * 2, t_wheel], center=true);
+      if (w_brace == 0) {
+        cylinder(r=r_hub - t_hub, h=t_wheel);
+      } else {
+        translate(v=[0, 0, t_wheel / 2])
+          cube([w_brace, r_hub * 2, t_wheel], center=true);
+      }
 
       // shaft hole
       translate(v=[0, 0, -0.1])
@@ -102,7 +106,10 @@ module wheel_rim() {
 
     // connecting rim
     difference() {
-      cylinder(r=r_hub - t_hub + dr_rim, h=t_wheel + h_rim);
+      union() {
+        cylinder(r=r_hub - t_hub + dr_rim, h=t_wheel + h_rim);
+        cylinder(r=r_hub - t_hub, h=t_wheel);
+      }
       cylinder(r=r_hub - t_hub + dr_rim - t_hub, h=t_wheel + h_rim);
     }
   }
