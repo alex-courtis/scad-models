@@ -8,7 +8,7 @@
             "d_hole_shaft": "4.0999999999999996",
             "dr_rim": "-0.029999999999999361",
             "h_hub": "25",
-            "h_hub_starter": "5",
+            "h_hub_starter": "8",
             "h_rim": "6",
             "h_spoke": "20",
             "n_spokes": "3",
@@ -18,7 +18,7 @@
             "t_hub": "1.6000000000000001",
             "t_wheel": "2",
             "w_brace": "0",
-            "w_hub_starter": "3"
+            "w_hub_starter": "2"
         },
         "r15r40h45": {
             "$fn": "200",
@@ -27,7 +27,7 @@
             "d_hole_shaft": "4.0999999999999996",
             "dr_rim": "-0.029999999999999361",
             "h_hub": "45",
-            "h_hub_starter": "5",
+            "h_hub_starter": "8",
             "h_rim": "12",
             "h_spoke": "20",
             "n_spokes": "3",
@@ -37,7 +37,7 @@
             "t_hub": "1.6000000000000001",
             "t_wheel": "2",
             "w_brace": "0",
-            "w_hub_starter": "3"
+            "w_hub_starter": "2"
         },
         "r15r60h45": {
             "$fn": "200",
@@ -46,7 +46,7 @@
             "d_hole_shaft": "4.0999999999999996",
             "dr_rim": "-0.029999999999999361",
             "h_hub": "45",
-            "h_hub_starter": "5",
+            "h_hub_starter": "8",
             "h_rim": "12",
             "h_spoke": "40",
             "n_spokes": "3",
@@ -56,7 +56,7 @@
             "t_hub": "1.6000000000000001",
             "t_wheel": "2",
             "w_brace": "0",
-            "w_hub_starter": "3"
+            "w_hub_starter": "2"
         }
     }
 }

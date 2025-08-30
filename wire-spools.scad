@@ -10,10 +10,10 @@ r_hub = 15.5; // [15:0.01:50]
 t_hub = 1.6; // [0.4:0.1:10]
 
 // single slot
-h_hub_starter = 5; // [1:1:50]
+h_hub_starter = 8; // [1:1:50]
 
 // single slot
-w_hub_starter = 3; // [1:1:50]
+w_hub_starter = 2; // [1:1:50]
 
 /* [Wheel] */
 
