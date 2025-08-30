@@ -1,7 +1,7 @@
 /* [Hub] */
 
 // excluding h_wheel
-h_hub = 10; // [5:0.1:50]
+h_hub = 25; // [5:0.1:100]
 
 // inner including walls
 r_hub = 15; // [15:0.1:50]
@@ -24,7 +24,7 @@ t_wheel = 1.6; // [0.4:0.1:10]
 r_wheel = 40; // [10:1:400]
 
 // rim r_hub delta
-dr_rim = -0.4; // [-50:1:50]
+dr_rim = 0; // [-50:0.01:50]
 
 // inside hub
 h_rim = 6; // [0:0.1:10]
@@ -35,7 +35,7 @@ h_rim = 6; // [0:0.1:10]
 a_spoke = 10; // [0:5:90]
 
 // centered
-h_spoke = 15; // [0:1:400]
+h_spoke = 20; // [0:1:400]
 
 // pairs: gap, spoke, gap
 n_spokes = 3; // [0:1:10]
