@@ -1,12 +1,12 @@
 r_outer = 26;
-r_inner = 14.25;
+r_inner = 14.10;
 
-x_hole = 20;
+x_hole = 19;
 
 r_bolt = 1.95;
 l_bolt = 14;
 
-r_head = 4.5;
+r_head = 4.8;
 
 h = [25, 25, 25, 20, 15];
 
