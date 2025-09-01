@@ -1,14 +1,14 @@
-r_outer = 28;
+r_outer = 26;
 r_inner = 14.25;
+
+x_hole = 20;
 
 r_bolt = 1.95;
 l_bolt = 14;
 
-l_connector = 14;
+r_head = 4.5;
 
-r_connector = 4.5;
-
-h = [35, 27.5, 17.5, 15, 12.5];
+h = [25, 25, 25, 20, 15];
 
 function sumv(v, i = 0) = i < len(v) ? v[i] + sumv(v, i + 1) : 0;
 
@@ -18,8 +18,8 @@ $fn = 400;
 
 module cutout(i) {
   shaft(
-    x=r_connector,
-    dx=(r_inner + r_outer) / 2,
+    x=r_head,
+    dx=x_hole,
     y=r_outer,
     dy=l_bolt / 2,
     dz=h[i] / 2
@@ -29,7 +29,7 @@ module cutout(i) {
 module bolt(i) {
   shaft(
     x=r_bolt,
-    dx=(r_inner + r_outer) / 2,
+    dx=x_hole,
     y=r_outer,
     dy=0,
     dz=h[i] / 2
