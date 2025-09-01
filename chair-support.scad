@@ -1,14 +1,17 @@
 r_outer = 28;
-r_inner = 14;
+r_inner = 14.25;
 
-r_bolt = 2.95;
+r_bolt = 1.95;
 
-l_connector = 20;
+l_connector = 14;
 
-r_connector = 6.1;
+r_connector = 4.5;
 
-// h = [30, 25, 25, 15, 15];
-h = [15];
+h = [35, 27.5, 17.5, 15, 12.5];
+
+function sumv(v, i = 0) = i < len(v) ? v[i] + sumv(v, i + 1) : 0;
+
+echo(h_total=sumv(h));
 
 $fn = 400;
 
