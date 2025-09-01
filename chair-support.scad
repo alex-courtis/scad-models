@@ -3,20 +3,39 @@ r_inner = 14.10;
 
 x_hole = 19;
 
-r_bolt = 1.95;
+r_bolt = 1.975;
 l_bolt = 14;
 
-r_head = 4.8;
+d_nut = 7.00 * 2 / sqrt(3); // M4
+d_nut_adjusted = d_nut * 1.03;
+r_nut = d_nut_adjusted / 2;
+
+r_head = 4.65;
 
 h = [25, 25, 25, 20, 15];
 
 function sumv(v, i = 0) = i < len(v) ? v[i] + sumv(v, i + 1) : 0;
 
+echo(d_nut=d_nut);
+echo(d_nut_adjusted=d_nut_adjusted);
+echo(r_rut=r_nut);
+
 echo(h_total=sumv(h));
 
 $fn = 400;
 
-module cutout(i) {
+module captive_nut(i) {
+  shaft(
+    x=r_nut,
+    dx=x_hole,
+    y=r_outer,
+    dy=l_bolt / 2,
+    dz=h[i] / 2,
+    fn=6,
+  );
+}
+
+module bolt_head(i) {
   shaft(
     x=r_head,
     dx=x_hole,
@@ -26,7 +45,7 @@ module cutout(i) {
   );
 }
 
-module bolt(i) {
+module bolt_shaft(i) {
   shaft(
     x=r_bolt,
     dx=x_hole,
@@ -36,23 +55,29 @@ module bolt(i) {
   );
 }
 
-module shaft(x, y, dx, dy, dz) {
+module shaft(x, y, dx, dy, dz, fn = $fn) {
   translate(v=[dx, dy, dz]) {
     rotate(a=90, v=[-1, 0, 0]) {
-      cylinder(r=x, h=y, center=false);
+      rotate(a=30, v=[0, 0, 1]) // align the nut for better printing
+        cylinder(r=x, h=y, center=false, $fn=fn);
     }
   }
 }
 
-module half_piece(i) {
+module half_piece(i, nut) {
   intersection() {
     difference() {
       // body
       cylinder(r=r_outer, h=h[i]);
 
-      // holes
-      cutout(i);
-      bolt(i);
+      // bolt hole
+      bolt_shaft(i);
+
+      if (nut) {
+        captive_nut(i);
+      } else {
+        bolt_head(i);
+      }
 
       // middle
       cylinder(r=r_inner, h=h[i]);
@@ -64,8 +89,8 @@ module half_piece(i) {
 
 render()for (i = [0:1:len(h) - 1]) {
   translate(v=[0, i * r_outer * 2.5, 0]) {
-    half_piece(i);
+    half_piece(i=i, nut=true);
     mirror(v=[1, 0, 0])
-      half_piece(i);
+      half_piece(i, nut=false);
   }
 }
