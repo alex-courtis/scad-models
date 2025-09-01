@@ -3,11 +3,12 @@ r_inner = 14.10;
 
 x_hole = 19;
 
-r_bolt = 1.975;
-l_bolt = 14;
+r_bolt = 1.965;
+l_bolt = 14.5;
 
-d_nut = 7.00 * 2 / sqrt(3); // M4
-d_nut_adjusted = d_nut * 1.03;
+w_nut = 7;
+d_nut = w_nut * 2 / sqrt(3); // M4
+d_nut_adjusted = d_nut * 1.015;
 r_nut = d_nut_adjusted / 2;
 
 r_head = 4.65;
