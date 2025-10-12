@@ -26,7 +26,7 @@ h_nut_hole = 7;
 d_washer = 12;
 h_washer = 1.5;
 
-h = 25;
+h = 40;
 
 h_lip = 2.5;
 h_peg = 2.5;
