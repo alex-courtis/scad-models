@@ -34,28 +34,26 @@ render() {
         circle(r=r);
         circle(r=r - t_clip);
 
-        // arc triangle + square up
-        xo = r * cos(cutout_outer);
-        yo = r * sin(cutout_outer);
+        // double radius arc triangle up
+        xo = 2 * r * cos(cutout_outer);
+        yo = 2 * r * sin(cutout_outer);
         polygon(
           [
             [0, 0],
             [xo, yo],
-            [r, yo],
-            [r, 0],
+            [2 * r, 0],
             [0, 0],
           ]
         );
 
-        // arc triangle + square down
-        xi = r * cos(cutout_inner);
-        yi = -r * sin(cutout_inner);
+        // double radius arc triangle down
+        xi = 2 * r * cos(cutout_inner);
+        yi = -2 * r * sin(cutout_inner);
         polygon(
           [
             [0, 0],
             [xi, yi],
-            [r, yi],
-            [r, 0],
+            [2 * r, 0],
             [0, 0],
           ]
         );
