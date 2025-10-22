@@ -14,7 +14,7 @@
         },
         "power+lan": {
             "$fn": "200",
-            "cutout_inner": "45",
+            "cutout_inner": "50",
             "cutout_outer": "20",
             "d": "5",
             "t_base": "1.6000000000000001",
