@@ -1,8 +1,8 @@
-x_base = 19; // [10:1:100]
-z_base = 12.5; // [10:1:100]
+x_base = 19; // [10:0.5:100]
+z_base = 13; // [10:0.5:100]
 
 // ratio, overhangs end
-x_clip = 0.4; // [0:0.01:1]
+x_clip = 0; // [-0.5:0.01:0.5]
 
 // inside of clip
 d = 3.5; // [1:0.1:50]
@@ -25,7 +25,7 @@ render() {
     // clip
     translate(
       v=[
-        x_base * x_clip,
+        x_base / 2 + x_base * x_clip,
         r + (t_base > t_clip ? t_base - t_clip : 0),
         0,
       ]
