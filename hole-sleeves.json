@@ -1,0 +1,12 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "desk-speaker": {
+            "$fn": "200",
+            "h_collar": "2.3999999999999999",
+            "h_sleeve": "19",
+            "r_sleeve": "12.75",
+            "t_sleeve": "2"
+        }
+    }
+}
