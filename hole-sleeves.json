@@ -29,13 +29,13 @@
             "t_cutout": "0.20000000000000001",
             "t_sleeve": "2"
         },
-        "desk-top-back": {
+        "desk-top": {
             "$fn": "200",
             "a_cutout": "0",
             "h_collar": "0",
             "h_sleeve": "25",
             "h_top": "2",
-            "r_sleeve": "40.149999999999999",
+            "r_sleeve": "40.649999999999999",
             "t_cutout": "0.20000000000000001",
             "t_sleeve": "2"
         }
