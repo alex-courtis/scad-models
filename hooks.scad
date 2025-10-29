@@ -5,7 +5,7 @@ z_base = 13; // [10:0.5:100]
 x_clip = 0; // [-0.5:0.01:0.5]
 
 // inside of clip
-d = 3.5; // [1:0.1:50]
+r_inner = 3.5; // [1:0.1:50]
 
 cutout_outer = 40; // [0:1:90]
 cutout_inner = 45; // [0:1:90]
@@ -15,7 +15,7 @@ t_clip = 1.6; // [0.4:0.1:10]
 
 $fn = 200; // [0:5:1000]
 
-r = d + t_clip;
+r = r_inner + t_clip;
 
 render() {
   linear_extrude(height=z_base) {
