@@ -10,6 +10,8 @@ a_cutout = 0; // [0:0.5:90]
 
 t_cutout = 0.2; // [0:0.01:10]
 
+h_top = 2.0; // [0:0.05:100]
+
 $fn = 200;
 
 render() {
@@ -45,5 +47,9 @@ render() {
         }
       }
     }
+  }
+  if (h_top) {
+    color(c="orange")
+      cylinder(h=h_top, r=r_sleeve);
   }
 }
