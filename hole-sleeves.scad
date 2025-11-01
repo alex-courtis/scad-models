@@ -1,4 +1,5 @@
 r_sleeve = 12.75; // [5:0.05:100]
+dr_sleeve = 0; // [-10:0.05:20]
 h_sleeve = 19.0; // [5:0.05:100]
 t_sleeve = 2.0; // [0.8:0.4:5]
 
@@ -27,8 +28,8 @@ render() {
       color(c="green") {
         translate(v=[0, 0, h_collar])
           difference() {
-            cylinder(r=r_sleeve, h=h_sleeve);
-            cylinder(r=r_sleeve - t_sleeve, h=h_sleeve);
+            cylinder(r1=r_sleeve, r2=r_sleeve - dr_sleeve, h=h_sleeve);
+            cylinder(r1=r_sleeve - t_sleeve, r2=r_sleeve - dr_sleeve - t_sleeve, h=h_sleeve);
           }
       }
     }
@@ -50,6 +51,6 @@ render() {
   }
   if (h_top) {
     color(c="orange")
-      cylinder(h=h_top, r=r_sleeve);
+      cylinder(h=h_top, r=r_sleeve - t_sleeve);
   }
 }

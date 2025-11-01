@@ -4,6 +4,7 @@
         "desk-speaker": {
             "$fn": "200",
             "a_cutout": "2.5",
+            "dr_sleeve": "0",
             "h_collar": "2.4000000000000004",
             "h_sleeve": "19",
             "h_top": "0",
@@ -13,6 +14,7 @@
         "desk-right-back": {
             "$fn": "200",
             "a_cutout": "2.5",
+            "dr_sleeve": "0",
             "h_collar": "2.4000000000000004",
             "h_sleeve": "19",
             "h_top": "0",
@@ -22,6 +24,7 @@
         "desk-back": {
             "$fn": "200",
             "a_cutout": "0",
+            "dr_sleeve": "0",
             "h_collar": "2.4000000000000004",
             "h_sleeve": "19",
             "h_top": "0",
@@ -32,6 +35,18 @@
         "desk-top": {
             "$fn": "200",
             "a_cutout": "0",
+            "dr_sleeve": "0",
+            "h_collar": "0",
+            "h_sleeve": "25",
+            "h_top": "2",
+            "r_sleeve": "40.649999999999999",
+            "t_cutout": "0.20000000000000001",
+            "t_sleeve": "2"
+        },
+        "desk-top-conical": {
+            "$fn": "200",
+            "a_cutout": "0",
+            "dr_sleeve": "0",
             "h_collar": "0",
             "h_sleeve": "25",
             "h_top": "2",
