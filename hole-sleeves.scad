@@ -19,35 +19,39 @@ dr_fill = h_fill * dr_sleeve / h_sleeve;
 echo(dr_fill=dr_fill);
 
 /* [Holes - Inner Radius] */
-r1_hole = 12.5; // [0:0.05:50]
-r2_hole = 6.5; // [0:0.05:50]
-h1_hole = 30; // [0:0.05:50]
-h2_hole = 5; // [0:0.05:50]
-t_hole = 1.2; // [0.8:0.4:5]
-n_hole = 0; // [0:1:4]
+r1_hole = [12.5, 12.5, 12.5]; // [0:0.05:50]
+r2_hole = [6.5, 6.75, 5.5]; // [0:0.05:50]
+h1_hole = [42.5, 32.5, 37.5]; // [0:0.05:50]
+h2_hole = [5, 5, 5]; // [0:0.05:50]
+dx_hole = -2.4; // [-20:0.4:0]
+t_hole = 0.8; // [0.8:0.4:5]
+n_hole = 0; // [0:1:3]
 
 $fn = 200;
 
-module holes(hollow = false) {
-  for (i = [1:n_hole]) {
+module holes(hollows_only = false) {
+
+  echo("max", max(max(r1_hole), max(r2_hole)));
+  dx = n_hole > 1 ? r_sleeve - max(max(r1_hole), max(r2_hole)) - t_hole + dx_hole : 0;
+  // dx = n_hole > 1 ? r_sleeve - max(max(r1_hole), max(r2_hole)) - t_hole - t_sleeve : 0;
+  for (i = [0:n_hole - 1]) {
     rotate(a=i * 360 / n_hole) {
-      dx = n_hole > 1 ? r_sleeve - max(r1_hole, r2_hole) - t_sleeve - t_hole : 0;
       translate(v=[dx, 0, 0]) {
         color(c="brown") {
           difference() {
-            cylinder(r1=r1_hole + t_hole, r2=r2_hole + t_hole, h=h1_hole);
-            if (hollow) {
-              cylinder(r1=r1_hole, r2=r2_hole, h=h1_hole);
+            if (!hollows_only) {
+              cylinder(r1=r1_hole[i] + t_hole, r2=r2_hole[i] + t_hole, h=h1_hole[i]);
             }
+            cylinder(r1=r1_hole[i], r2=r2_hole[i], h=h1_hole[i]);
           }
         }
         color(c="gray") {
-          translate(v=[0, 0, h1_hole]) {
+          translate(v=[0, 0, h1_hole[i]]) {
             difference() {
-              cylinder(r=r2_hole + t_hole, h=h2_hole);
-              if (hollow) {
-                cylinder(r=r2_hole, h=h2_hole);
+              if (!hollows_only) {
+                cylinder(r=r2_hole[i] + t_hole, h=h2_hole[i]);
               }
+              cylinder(r=r2_hole[i], h=h2_hole[i]);
             }
           }
         }
@@ -105,14 +109,10 @@ render() {
       }
     }
 
-    // remove holes
-    if (n_hole && h_fill) {
-      holes(hollow=false);
-    }
+    // remove hole hollows
+    holes(hollows_only=true);
   }
 
-  // holes
-  if (n_hole && h_fill) {
-    holes(hollow=true);
-  }
+  // create hollow holes
+  holes(hollows_only=false);
 }
