@@ -11,20 +11,28 @@ a_cutout = 0; // [0:0.5:90]
 
 t_cutout = 0.2; // [0:0.01:10]
 
-h_top = 0; // [0:0.05:100]
+h_fill = 0; // [0:0.05:100]
+
+dr_fill = h_fill * dr_sleeve / h_sleeve;
+echo(dr_fill=dr_fill);
 
 $fn = 200;
 
 render() {
   difference() {
     union() {
+
+      // maybe collar
       color(c="blue") {
-        difference() {
-          cylinder(r1=r_sleeve, r2=r_collar, h=h_collar);
-          cylinder(r=r_sleeve - t_sleeve, h=h_sleeve);
+        if (h_collar) {
+          difference() {
+            cylinder(r1=r_sleeve, r2=r_collar, h=h_collar);
+            cylinder(r=r_sleeve - t_sleeve, h=h_sleeve);
+          }
         }
       }
 
+      // always sleeve
       color(c="green") {
         translate(v=[0, 0, h_collar])
           difference() {
@@ -34,23 +42,29 @@ render() {
       }
     }
 
+    // maybe cutout
     color(c="red") {
-      translate(v=[0, 0, t_cutout]) {
-        linear_extrude(height=h_sleeve + h_collar - t_cutout) {
-          polygon(
-            [
-              [0, 0],
-              [2 * r_collar, 0],
-              [2 * r_collar * cos(a_cutout), 2 * r_collar * sin(a_cutout)],
-              [0, 0],
-            ]
-          );
+      if (a_cutout) {
+        translate(v=[0, 0, t_cutout]) {
+          linear_extrude(height=h_sleeve + h_collar - t_cutout) {
+            polygon(
+              [
+                [0, 0],
+                [2 * r_collar, 0],
+                [2 * r_collar * cos(a_cutout), 2 * r_collar * sin(a_cutout)],
+                [0, 0],
+              ]
+            );
+          }
         }
       }
     }
   }
-  if (h_top) {
-    color(c="orange")
-      cylinder(h=h_top, r=r_sleeve - t_sleeve);
+
+  // maybe fill
+  color(c="orange") {
+    if (h_fill) {
+      cylinder(h=h_fill, r1=r_sleeve, r2=r_sleeve - dr_fill);
+    }
   }
 }
