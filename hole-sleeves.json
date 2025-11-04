@@ -6,8 +6,8 @@
             "a_cutout": "2.5",
             "dr_sleeve": "0",
             "h_collar": "2.4000000000000004",
-            "h_sleeve": "19",
             "h_fill": "0",
+            "h_sleeve": "19",
             "r_sleeve": "12.800000000000001",
             "t_sleeve": "2"
         },
@@ -16,8 +16,8 @@
             "a_cutout": "2.5",
             "dr_sleeve": "0",
             "h_collar": "2.4000000000000004",
-            "h_sleeve": "19",
             "h_fill": "0",
+            "h_sleeve": "19",
             "r_sleeve": "16.75",
             "t_sleeve": "2"
         },
@@ -26,8 +26,8 @@
             "a_cutout": "0",
             "dr_sleeve": "0",
             "h_collar": "2.4000000000000004",
-            "h_sleeve": "19",
             "h_fill": "0",
+            "h_sleeve": "19",
             "r_sleeve": "32",
             "t_cutout": "0.20000000000000001",
             "t_sleeve": "2"
@@ -37,11 +37,28 @@
             "a_cutout": "0",
             "dr_sleeve": "0.5",
             "h_collar": "0",
-            "h_sleeve": "25",
             "h_fill": "2",
+            "h_sleeve": "25",
             "r_sleeve": "40.600000000000001",
             "t_cutout": "0.20000000000000001",
             "t_sleeve": "2"
+        },
+        "desk-top-cables-poc": {
+            "$fn": "200",
+            "a_cutout": "0",
+            "dr_sleeve": "0",
+            "h1_hole": "30",
+            "h2_hole": "5",
+            "h_collar": "0",
+            "h_fill": "0.80000000000000004",
+            "h_sleeve": "10.15",
+            "n_hole": "1",
+            "r1_hole": "12.5",
+            "r2_hole": "6.5",
+            "r_sleeve": "22.699999999999999",
+            "t_cutout": "0.20000000000000001",
+            "t_hole": "1.2000000000000002",
+            "t_sleeve": "1.2000000000000002"
         }
     }
 }
