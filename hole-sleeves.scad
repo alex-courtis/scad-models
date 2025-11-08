@@ -10,7 +10,7 @@ r_collar = r_sleeve + h_collar;
 echo(r_collar=r_collar);
 
 /* [Cutout Arc Triangle] */
-a_cutout = 0; // [0:0.5:90]
+a_cutout = 0; // [0:0.05:90]
 t_cutout = 0.2; // [0:0.01:10]
 
 /* [Fill Sleeve] */
