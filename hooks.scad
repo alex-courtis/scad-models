@@ -13,6 +13,10 @@ cutout_inner = 45; // [0:1:90]
 t_base = 1.6; // [0.4:0.1:10]
 t_clip = 1.6; // [0.4:0.1:10]
 
+h_overhang_back = 0; // [0.0:0.1:10]
+h_overhang_front = 0; // [0.0:0.1:10]
+t_overhang = 1.2; // [0.4:0.1:10]
+
 $fn = 200; // [0:5:1000]
 
 r = r_inner + t_clip;
@@ -21,6 +25,20 @@ render() {
   linear_extrude(height=z_base) {
     // base
     square([x_base, t_base]);
+
+    // back overhang, optional
+    if (h_overhang_back > 0) {
+      translate(v=[-t_overhang, -h_overhang_back]) {
+        square([t_overhang, h_overhang_back + t_base]);
+      }
+    }
+
+    // front overhang, optional
+    if (h_overhang_front > 0) {
+      translate(v=[x_base, -h_overhang_front]) {
+        square([t_overhang, h_overhang_front + t_base]);
+      }
+    }
 
     // clip
     translate(
