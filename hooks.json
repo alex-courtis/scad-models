@@ -12,7 +12,7 @@
             "x_clip": "-0.099999999999999978",
             "z_base": "13"
         },
-        "power+lan": {
+        "power+lan-rail": {
             "$fn": "200",
             "cutout_inner": "10",
             "cutout_outer": "0",
@@ -33,6 +33,7 @@
             "r_inner": "2.7000000000000002",
             "t_base": "0.80000000000000004",
             "t_clip": "0.80000000000000004",
+            "t_overhang": "1.2000000000000002",
             "x_base": "15",
             "x_clip": "-0.5",
             "z_base": "10"
@@ -44,6 +45,7 @@
             "r_inner": "3.5",
             "t_base": "1.6000000000000001",
             "t_clip": "1.6000000000000001",
+            "t_overhang": "1.2000000000000002",
             "x_base": "26",
             "x_clip": "-0.099999999999999978",
             "z_base": "26"
@@ -55,8 +57,37 @@
             "r_inner": "3.5",
             "t_base": "1.6000000000000001",
             "t_clip": "1.6000000000000001",
+            "t_overhang": "1.2000000000000002",
             "x_base": "18",
             "x_clip": "-0.049999999999999989",
+            "z_base": "26"
+        },
+        "power+lan-skirting": {
+            "$fn": "200",
+            "cutout_inner": "10",
+            "cutout_outer": "0",
+            "h_overhang_back": "0",
+            "h_overhang_front": "0",
+            "r_inner": "5.2999999999999998",
+            "t_base": "1.6000000000000001",
+            "t_clip": "2.8000000000000003",
+            "t_overhang": "2",
+            "x_base": "18",
+            "x_clip": "0",
+            "z_base": "26"
+        },
+        "power+2lan-skirting": {
+            "$fn": "200",
+            "cutout_inner": "10",
+            "cutout_outer": "0",
+            "h_overhang_back": "0",
+            "h_overhang_front": "0",
+            "r_inner": "6.1000000000000005",
+            "t_base": "1.6000000000000001",
+            "t_clip": "2.8000000000000003",
+            "t_overhang": "2",
+            "x_base": "18",
+            "x_clip": "0",
             "z_base": "26"
         }
     }
