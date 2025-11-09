@@ -14,7 +14,7 @@
         },
         "power+lan": {
             "$fn": "200",
-            "cutout_inner": "55",
+            "cutout_inner": "10",
             "cutout_outer": "0",
             "h_overhang_back": "5",
             "h_overhang_front": "5",
