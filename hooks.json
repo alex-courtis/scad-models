@@ -12,6 +12,20 @@
             "x_clip": "-0.099999999999999978",
             "z_base": "13"
         },
+        "power+2lan-skirting": {
+            "$fn": "200",
+            "cutout_inner": "10",
+            "cutout_outer": "0",
+            "h_overhang_back": "0",
+            "h_overhang_front": "0",
+            "r_inner": "6.1000000000000005",
+            "t_base": "1.6000000000000001",
+            "t_clip": "2.8000000000000003",
+            "t_overhang": "2",
+            "x_base": "18",
+            "x_clip": "0",
+            "z_base": "26"
+        },
         "power+lan-rail": {
             "$fn": "200",
             "cutout_inner": "10",
@@ -26,17 +40,19 @@
             "x_clip": "0",
             "z_base": "26"
         },
-        "xlr": {
+        "power+lan-skirting": {
             "$fn": "200",
-            "cutout_inner": "20",
-            "cutout_outer": "20",
-            "r_inner": "2.7000000000000002",
-            "t_base": "1.2000000000000002",
-            "t_clip": "1.2000000000000002",
-            "t_overhang": "1.2000000000000002",
-            "x_base": "20",
+            "cutout_inner": "10",
+            "cutout_outer": "0",
+            "h_overhang_back": "0",
+            "h_overhang_front": "0",
+            "r_inner": "5.2999999999999998",
+            "t_base": "1.6000000000000001",
+            "t_clip": "2.8000000000000003",
+            "t_overhang": "2",
+            "x_base": "18",
             "x_clip": "0",
-            "z_base": "10"
+            "z_base": "26"
         },
         "power-wide": {
             "$fn": "200",
@@ -62,33 +78,17 @@
             "x_clip": "-0.049999999999999989",
             "z_base": "26"
         },
-        "power+lan-skirting": {
+        "xlr": {
             "$fn": "200",
-            "cutout_inner": "10",
-            "cutout_outer": "0",
-            "h_overhang_back": "0",
-            "h_overhang_front": "0",
-            "r_inner": "5.2999999999999998",
-            "t_base": "1.6000000000000001",
-            "t_clip": "2.8000000000000003",
-            "t_overhang": "2",
-            "x_base": "18",
+            "cutout_inner": "20",
+            "cutout_outer": "20",
+            "r_inner": "2.7000000000000002",
+            "t_base": "1.2000000000000002",
+            "t_clip": "1.2000000000000002",
+            "t_overhang": "1.2000000000000002",
+            "x_base": "20",
             "x_clip": "0",
-            "z_base": "26"
-        },
-        "power+2lan-skirting": {
-            "$fn": "200",
-            "cutout_inner": "10",
-            "cutout_outer": "0",
-            "h_overhang_back": "0",
-            "h_overhang_front": "0",
-            "r_inner": "6.1000000000000005",
-            "t_base": "1.6000000000000001",
-            "t_clip": "2.8000000000000003",
-            "t_overhang": "2",
-            "x_base": "18",
-            "x_clip": "0",
-            "z_base": "26"
+            "z_base": "10"
         }
     }
 }
