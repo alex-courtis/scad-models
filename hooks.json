@@ -54,6 +54,20 @@
             "x_clip": "0",
             "z_base": "26"
         },
+        "power-narrow": {
+            "$fn": "200",
+            "cutout_inner": "55",
+            "cutout_outer": "45",
+            "h_overhang_back": "0",
+            "h_overhang_front": "0",
+            "r_inner": "3.5",
+            "t_base": "1.6000000000000001",
+            "t_clip": "1.6000000000000001",
+            "t_overhang": "1.2000000000000002",
+            "x_base": "26",
+            "x_clip": "-0.099999999999999978",
+            "z_base": "17.5"
+        },
         "power-wide": {
             "$fn": "200",
             "cutout_inner": "55",
