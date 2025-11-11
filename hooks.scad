@@ -5,7 +5,7 @@ z_base = 13; // [10:0.1:100]
 x_clip = 0; // [-0.5:0.01:0.5]
 
 // inside of clip
-r_inner = 3.5; // [1:0.1:50]
+r_inner = 3.5; // [1:0.05:50]
 
 cutout_outer = 40; // [0:1:90]
 cutout_inner = 45; // [0:1:90]

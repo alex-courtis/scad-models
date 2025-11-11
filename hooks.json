@@ -1,17 +1,6 @@
 {
     "fileFormatVersion": "1",
     "parameterSets": {
-        "power": {
-            "$fn": "200",
-            "cutout_inner": "40",
-            "cutout_outer": "40",
-            "r_inner": "3.2000000000000002",
-            "t_base": "1.6000000000000001",
-            "t_clip": "1.6000000000000001",
-            "x_base": "19",
-            "x_clip": "-0.099999999999999978",
-            "z_base": "13"
-        },
         "power+2lan-skirting": {
             "$fn": "200",
             "cutout_inner": "10",
@@ -103,6 +92,34 @@
             "x_base": "20",
             "x_clip": "0",
             "z_base": "10"
+        },
+        "data-small": {
+            "$fn": "200",
+            "cutout_inner": "45",
+            "cutout_outer": "35",
+            "h_overhang_back": "0",
+            "h_overhang_front": "0",
+            "r_inner": "1.9500000000000002",
+            "t_base": "1.2000000000000002",
+            "t_clip": "0.80000000000000004",
+            "t_overhang": "1.2000000000000002",
+            "x_base": "22",
+            "x_clip": "-0.049999999999999989",
+            "z_base": "16"
+        },
+        "data-large": {
+            "$fn": "200",
+            "cutout_inner": "45",
+            "cutout_outer": "35",
+            "h_overhang_back": "0",
+            "h_overhang_front": "0",
+            "r_inner": "2.75",
+            "t_base": "1.2000000000000002",
+            "t_clip": "0.80000000000000004",
+            "t_overhang": "1.2000000000000002",
+            "x_base": "22",
+            "x_clip": "-0.049999999999999989",
+            "z_base": "16"
         }
     }
 }
