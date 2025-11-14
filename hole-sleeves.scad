@@ -11,7 +11,7 @@ echo(r_collar=r_collar);
 
 /* [Cutout Arc Triangle] */
 a_cutout = 0; // [0:0.05:90]
-t_cutout = 0.2; // [0:0.01:10]
+dz_cutout = 0.2; // [0:0.01:10]
 
 /* [Fill Sleeve] */
 h_fill = 0; // [0:0.05:100]
@@ -31,9 +31,7 @@ $fn = 200;
 
 module holes(hollows_only = false) {
 
-  echo("max", max(max(r1_hole), max(r2_hole)));
   dx = n_hole > 1 ? r_sleeve - max(max(r1_hole), max(r2_hole)) - t_hole + dx_hole : 0;
-  // dx = n_hole > 1 ? r_sleeve - max(max(r1_hole), max(r2_hole)) - t_hole - t_sleeve : 0;
   for (i = [0:n_hole - 1]) {
     rotate(a=i * 360 / n_hole) {
       translate(v=[dx, 0, 0]) {
@@ -94,8 +92,8 @@ render() {
     // cutout
     color(c="red") {
       if (a_cutout) {
-        translate(v=[0, 0, t_cutout]) {
-          linear_extrude(height=h_sleeve + h_collar - t_cutout) {
+        translate(v=[0, 0, dz_cutout]) {
+          linear_extrude(height=h_sleeve + h_collar - dz_cutout) {
             polygon(
               [
                 [0, 0],
