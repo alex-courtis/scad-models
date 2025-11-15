@@ -15,8 +15,15 @@ dz_cutout = 0.2; // [0:0.01:10]
 
 /* [Fill Sleeve] */
 z_fill = 0; // [0:0.05:100]
+dy_fill = 0; // [-200:0.05:0]
 dr_fill = z_fill * dr_sleeve / z_sleeve;
 echo(dr_fill=dr_fill);
+
+/* [Bar] */
+bar = false;
+z_bar = 0; // [0:0.05:100]
+dy_bar = 0; // [-100:0.05:100]
+t_bar = 0; // [0:0.05:20]
 
 /* [Holes - Inner Radius] */
 r1_hole = [12.5, 12.5, 12.5]; // [0:0.05:50]
@@ -84,7 +91,39 @@ render() {
       // fill
       color(c="orange") {
         if (z_fill) {
-          cylinder(h=z_fill, r1=r_sleeve, r2=r_sleeve - dr_fill);
+          z = min(z_fill, z_sleeve);
+          difference() {
+            cylinder(h=z, r1=r_sleeve, r2=r_sleeve - dr_fill);
+            translate(v=[0, r_sleeve * 2 + dy_fill, z / 2]) {
+              cube([r_sleeve * 2, r_sleeve * 2, z], center=true);
+            }
+          }
+        }
+      }
+
+      // bar
+      if (bar) {
+
+        // outside portion
+        color(c="darkviolet") {
+          intersection() {
+            translate(v=[0, 0, -z_bar]) {
+              cylinder(r=r_sleeve, h=z_bar);
+            }
+            translate(v=[0, dy_bar, -z_bar / 2]) {
+              cube([r_sleeve * 2, t_bar, z_bar], center=true);
+            }
+          }
+        }
+
+        // inside bar portion
+        color(c="plum") {
+          intersection() {
+            cylinder(r1=r_sleeve, r2=r_sleeve - dr_sleeve, h=z_sleeve);
+            translate(v=[0, dy_bar, z_sleeve / 2]) {
+              cube([r_sleeve * 2, t_bar, z_sleeve], center=true);
+            }
+          }
         }
       }
     }
