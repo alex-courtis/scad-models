@@ -19,7 +19,7 @@ w_inner = 30;
 h_shaft = 9;
 
 // gap between shafts
-dh_shaft = 0.2;
+dh_shaft = 0.4;
 
 d_bolt = 3;
 
@@ -27,7 +27,7 @@ d_bolt = 3;
 dr_shaft = -2.6;
 
 // outer radius including slot
-r_out = 86;
+r_out = 79;
 
 // corner radius
 r_corn = 6;
@@ -36,7 +36,7 @@ r_corn = 6;
 r_slot = (dr_band ^ 2 + (w_band / 2) ^ 2) / (2 * dr_band);
 
 // arc to support
-a = 95;
+a = 85;
 
 // length of the lower
 h = 2 * sin(a / 2) * (r_out - dr_band - r_corn);
@@ -130,11 +130,13 @@ module band() {
 }
 
 render() {
+  translate(v=[0, 0, 50]) {
+    color(c="blue")
+      top_half(s=500) {
+        band();
+      }
+  }
   color(c="green")
-    top_half(s=500) {
-      band();
-    }
-  color(c="blue")
     bottom_half(s=500) {
       band();
     }
