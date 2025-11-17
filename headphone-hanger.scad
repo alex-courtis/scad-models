@@ -9,14 +9,22 @@ w_band = 34;
 dr_band = 10;
 
 // thickness of the slot at the lowest point
-t_slot = 2;
+t_slot = 3;
 
 // extend in and out of the band
-w_outer = 4;
+w_outer = 1.2;
 w_inner = 30;
 
 // either side of the break
-h_shaft = 12;
+h_shaft = 9;
+
+// gap between shafts
+dh_shaft = 0.2;
+
+d_bolt = 3;
+
+// relative to r_corn
+dr_shaft = -2.6;
 
 // outer radius including slot
 r_out = 86;
@@ -28,10 +36,11 @@ r_corn = 6;
 r_slot = (dr_band ^ 2 + (w_band / 2) ^ 2) / (2 * dr_band);
 
 // arc to support
-a = 110;
+a = 95;
 
 // length of the lower
 h = 2 * sin(a / 2) * (r_out - dr_band - r_corn);
+echo(h=h);
 
 module cross_section() {
   difference() {
@@ -45,9 +54,28 @@ module cross_section() {
   }
 }
 
+module shaft() {
+  translate(v=[0, 0, (w_outer - w_inner) / 2]) {
+    difference() {
+      cylinder(r=r_corn + dr_shaft, h=h_shaft, center=true);
+      cylinder(d=d_bolt, h=h_shaft, center=true);
+      cylinder(r=r_corn + dr_shaft, h=dh_shaft, center=true);
+    }
+  }
+}
+
 module band_upper() {
   translate(v=[-r_out + dr_band, 0, 0]) {
     rotate(a=-a) {
+
+      color(c="pink") {
+        rotate(a=a / 2) {
+          translate(v=[r_out - dr_band - r_corn, 0, 0]) {
+            shaft();
+          }
+        }
+      }
+
       rotate_extrude(a=a) {
         translate(v=[r_out - dr_band - t_slot, 0]) {
           cross_section();
@@ -62,23 +90,16 @@ module band_upper() {
 
 module band_corner() {
   translate(v=[-r_corn, 0, 0]) {
-    rotate(a=-180 + a / 2) {
 
-      // regular cross section
+    color(c="red")
+      shaft();
+
+    rotate(a=-180 + a / 2) {
       rotate_extrude(a=180 - a / 2) {
         translate(v=[r_corn - t_slot, 0]) {
           cross_section();
         }
       }
-
-      // shaft
-      rotate_extrude() {
-        x = r_corn - t_slot;
-        y = h_shaft;
-        translate(v=[x / 2, (w_outer - w_inner) / 2])
-          square([x, y], center=true);
-      }
-
       translate(v=[r_corn, 0, 0]) {
         children();
       }
@@ -109,12 +130,12 @@ module band() {
 }
 
 render() {
-  top_half(s=500) {
-    color(c="green")
+  color(c="green")
+    top_half(s=500) {
       band();
-  }
-  bottom_half(s=500) {
-    color(c="blue")
+    }
+  color(c="blue")
+    bottom_half(s=500) {
       band();
-  }
+    }
 }
