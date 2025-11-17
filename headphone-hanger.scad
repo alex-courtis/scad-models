@@ -1,6 +1,6 @@
 include <BOSL2/std.scad>
 
-$fn = 120;
+$fn = 400;
 
 // width of the band, height of the slot
 w_band = 34;
@@ -11,17 +11,20 @@ dr_band = 10;
 // thickness of the slot at the lowest point
 t_slot = 3;
 
+// thickness of the backing
+t_back = 2.4;
+
 // extend in and out of the band
-w_outer = 1.2;
+w_outer = 2.4;
 w_inner = 30;
 
 // either side of the break
-h_shaft = 9;
+h_shaft = 8;
 
 // gap between shafts
 dh_shaft = 0.4;
 
-d_bolt = 3;
+d_bolt = 3.05;
 
 // relative to r_corn
 dr_shaft = -2.6;
@@ -54,6 +57,14 @@ module cross_section() {
   }
 }
 
+module cross_section_back() {
+  x = r_corn + dr_band;
+  y = t_back;
+  translate(v=[-x / 2, -y / 2 + (w_band + w_outer + w_inner) / 2]) {
+    square([x, y], center=true);
+  }
+}
+
 module shaft() {
   translate(v=[0, 0, (w_outer - w_inner) / 2]) {
     difference() {
@@ -79,6 +90,7 @@ module band_upper() {
       rotate_extrude(a=a) {
         translate(v=[r_out - dr_band - t_slot, 0]) {
           cross_section();
+          cross_section_back();
         }
       }
       translate(v=[r_out - dr_band, 0, 0]) {
@@ -100,6 +112,9 @@ module band_corner() {
           cross_section();
         }
       }
+      rotate_extrude() {
+        cross_section_back();
+      }
       translate(v=[r_corn, 0, 0]) {
         children();
       }
@@ -114,6 +129,7 @@ module band_lower() {
       rotate(a=90, v=[1, 0, 0]) {
         linear_extrude(center=true, h=h) {
           cross_section();
+          cross_section_back();
         }
       }
     }
