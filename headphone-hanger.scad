@@ -11,8 +11,12 @@ dr_band = 10;
 // thickness of the slot at the lowest point
 t_slot = 2;
 
-// TODO replace this with proper 
-tu = 4;
+// extend in and out of the band
+w_outer = 4;
+w_inner = 30;
+
+// either side of the break
+h_shaft = 12;
 
 // outer radius including slot
 r_out = 86;
@@ -33,9 +37,9 @@ module cross_section() {
   difference() {
     x = dr_band + t_slot;
     translate(v=[x / 2, 0]) {
-      square([x, w_band + tu], center=true);
+      square([x, w_band + w_outer + w_inner], center=true);
     }
-    translate(v=[r_slot + t_slot, 0]) {
+    translate(v=[r_slot + t_slot, (w_outer - w_inner) / 2]) {
       circle(r=r_slot);
     }
   }
@@ -59,11 +63,22 @@ module band_upper() {
 module band_corner() {
   translate(v=[-r_corn, 0, 0]) {
     rotate(a=-180 + a / 2) {
+
+      // regular cross section
       rotate_extrude(a=180 - a / 2) {
         translate(v=[r_corn - t_slot, 0]) {
           cross_section();
         }
       }
+
+      // shaft
+      rotate_extrude() {
+        x = r_corn - t_slot;
+        y = h_shaft;
+        translate(v=[x / 2, (w_outer - w_inner) / 2])
+          square([x, y], center=true);
+      }
+
       translate(v=[r_corn, 0, 0]) {
         children();
       }
@@ -85,12 +100,21 @@ module band_lower() {
   }
 }
 
-render()
+module band() {
+  rotate(a=-90) {
+    translate(v=[-dr_band, -h / 2, (w_inner - w_outer) / 2]) {
+      band_corner() band_upper() band_corner() band_lower();
+    }
+  }
+}
+
+render() {
   top_half(s=500) {
     color(c="green")
-      rotate(a=-90) {
-        translate(v=[-dr_band, -h / 2, 0]) {
-          band_corner() band_upper() band_corner() band_lower();
-        }
-      }
+      band();
   }
+  bottom_half(s=500) {
+    color(c="blue")
+      band();
+  }
+}
