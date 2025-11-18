@@ -19,7 +19,7 @@ t_back = 2.4;
 
 // extend in and out of the band
 w_outer = 2.4;
-w_inner = small ? 30 : w_outer;
+w_inner = small ? 30 : 50;
 
 // either side of the break
 h_shaft_pieces = 8;
