@@ -3,7 +3,7 @@ include <BOSL2/std.scad>
 $fn = 400;
 
 // momentum 4, HD820
-small = true;
+small = false;
 
 // width of the band, height of the slot
 w_band = small ? 34 : 43;
@@ -19,7 +19,7 @@ t_back = 2.4;
 
 // extend in and out of the band
 w_outer = 2.4;
-w_inner = small ? 30 : 60;
+w_inner = small ? 30 : w_outer;
 
 // either side of the break
 h_shaft_pieces = 8;
@@ -39,7 +39,7 @@ r_shaft_wall = 6;
 h_shaft_wall = 12;
 
 // inset from upper
-dr_shaft_wall = 2;
+dr_shaft_wall = 1.5;
 
 // outer radius including slot
 r_out = 79;
@@ -102,12 +102,12 @@ module band_upper() {
       }
 
       color(c="orange") {
-        rotate(a=a / 8) {
+        rotate(a=a / 12) {
           translate(v=[r_out - dr_band - t_slot - r_shaft_wall + dr_shaft_wall, 0, 0]) {
             shaft_wall();
           }
         }
-        rotate(a=a * 7 / 8) {
+        rotate(a=a * 11 / 12) {
           translate(v=[r_out - dr_band - t_slot - r_shaft_wall + dr_shaft_wall, 0, 0]) {
             shaft_wall();
           }
