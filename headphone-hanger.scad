@@ -19,15 +19,24 @@ w_outer = 2.4;
 w_inner = 30;
 
 // either side of the break
-h_shaft = 8;
+h_shaft_pieces = 8;
 
 // gap between shafts
 dh_shaft = 0.4;
 
-d_bolt = 3.05;
+// hold pieces together
+d_bolt_pieces = 3.1;
+r_shaft_pieces = 3.4;
 
-// relative to r_corn
-dr_shaft = -2.6;
+// hold hanger to wall
+d_bolt_wall = 4.4;
+r_shaft_wall = 6;
+
+// total
+h_shaft_wall = 12;
+
+// inset from upper
+dr_shaft_wall = 2;
 
 // outer radius including slot
 r_out = 79;
@@ -57,20 +66,21 @@ module cross_section() {
   }
 }
 
-module cross_section_back() {
-  x = r_corn + dr_band;
-  y = t_back;
-  translate(v=[-x / 2, -y / 2 + (w_band + w_outer + w_inner) / 2]) {
-    square([x, y], center=true);
+module shaft_wall() {
+  translate(v=[0, 0, -h_shaft_wall / 2 + (w_band + w_outer + w_inner) / 2]) {
+    difference() {
+      cylinder(r=r_shaft_wall, h=h_shaft_wall, center=true);
+      cylinder(d=d_bolt_wall, h=h_shaft_wall, center=true);
+    }
   }
 }
 
-module shaft() {
+module shaft_pieces() {
   translate(v=[0, 0, (w_outer - w_inner) / 2]) {
     difference() {
-      cylinder(r=r_corn + dr_shaft, h=h_shaft, center=true);
-      cylinder(d=d_bolt, h=h_shaft, center=true);
-      cylinder(r=r_corn + dr_shaft, h=dh_shaft, center=true);
+      cylinder(r=r_shaft_pieces, h=h_shaft_pieces, center=true);
+      cylinder(d=d_bolt_pieces, h=h_shaft_pieces, center=true);
+      cylinder(r=r_shaft_pieces, h=dh_shaft, center=true);
     }
   }
 }
@@ -82,7 +92,20 @@ module band_upper() {
       color(c="pink") {
         rotate(a=a / 2) {
           translate(v=[r_out - dr_band - r_corn, 0, 0]) {
-            shaft();
+            shaft_pieces();
+          }
+        }
+      }
+
+      color(c="orange") {
+        rotate(a=a / 8) {
+          translate(v=[r_out - dr_band - t_slot - r_shaft_wall + dr_shaft_wall, 0, 0]) {
+            shaft_wall();
+          }
+        }
+        rotate(a=a * 7 / 8) {
+          translate(v=[r_out - dr_band - t_slot - r_shaft_wall + dr_shaft_wall, 0, 0]) {
+            shaft_wall();
           }
         }
       }
@@ -91,12 +114,6 @@ module band_upper() {
         rotate_extrude(a=a) {
           translate(v=[r_out - dr_band - t_slot, 0]) {
             cross_section();
-          }
-        }
-
-        rotate_extrude(a=a) {
-          translate(v=[r_out - dr_band - t_slot, 0]) {
-            cross_section_back();
           }
         }
       }
@@ -112,7 +129,7 @@ module band_corner() {
   translate(v=[-r_corn, 0, 0]) {
 
     color(c="red") {
-      shaft();
+      shaft_pieces();
     }
 
     rotate(a=-180 + a / 2) {
@@ -121,9 +138,6 @@ module band_corner() {
           translate(v=[r_corn - t_slot, 0]) {
             cross_section();
           }
-        }
-        rotate_extrude() {
-          cross_section_back();
         }
       }
       translate(v=[r_corn, 0, 0]) {
@@ -141,7 +155,6 @@ module band_lower() {
         rotate(a=90, v=[1, 0, 0]) {
           linear_extrude(center=true, h=h) {
             cross_section();
-            cross_section_back();
           }
         }
       }
