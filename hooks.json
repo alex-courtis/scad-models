@@ -3,7 +3,7 @@
     "parameterSets": {
         "power+2lan-skirting": {
             "$fn": "200",
-            "a_anticlockwise_cutout": "-90",
+            "a_anticlockwise_cutout": "90",
             "a_clockwise_cutout": "100",
             "h_overhang_back": "0",
             "h_overhang_front": "0",
@@ -17,7 +17,7 @@
         },
         "power+lan-rail": {
             "$fn": "200",
-            "a_anticlockwise_cutout": "-90",
+            "a_anticlockwise_cutout": "90",
             "a_clockwise_cutout": "100",
             "h_overhang_back": "5",
             "h_overhang_front": "5",
@@ -31,7 +31,7 @@
         },
         "power+lan-skirting": {
             "$fn": "200",
-            "a_anticlockwise_cutout": "-90",
+            "a_anticlockwise_cutout": "90",
             "a_clockwise_cutout": "100",
             "h_overhang_back": "0",
             "h_overhang_front": "0",
@@ -45,7 +45,7 @@
         },
         "power-narrow": {
             "$fn": "200",
-            "a_anticlockwise_cutout": "-45",
+            "a_anticlockwise_cutout": "45",
             "a_clockwise_cutout": "145",
             "h_overhang_back": "0",
             "h_overhang_front": "0",
@@ -59,7 +59,7 @@
         },
         "power-wide": {
             "$fn": "200",
-            "a_anticlockwise_cutout": "-45",
+            "a_anticlockwise_cutout": "45",
             "a_clockwise_cutout": "145",
             "r_inner": "3.5",
             "t_base": "1.6000000000000001",
@@ -71,7 +71,7 @@
         },
         "power-wide-skirting": {
             "$fn": "200",
-            "a_anticlockwise_cutout": "-45",
+            "a_anticlockwise_cutout": "45",
             "a_clockwise_cutout": "145",
             "r_inner": "3.5",
             "t_base": "1.6000000000000001",
@@ -83,7 +83,7 @@
         },
         "xlr": {
             "$fn": "200",
-            "a_anticlockwise_cutout": "-70",
+            "a_anticlockwise_cutout": "70",
             "a_clockwise_cutout": "110",
             "r_inner": "2.7000000000000002",
             "t_base": "1.2000000000000002",
@@ -95,7 +95,7 @@
         },
         "data-small": {
             "$fn": "200",
-            "a_anticlockwise_cutout": "-55",
+            "a_anticlockwise_cutout": "55",
             "a_clockwise_cutout": "135",
             "h_overhang_back": "0",
             "h_overhang_front": "0",
@@ -109,7 +109,7 @@
         },
         "data-large": {
             "$fn": "200",
-            "a_anticlockwise_cutout": "-55",
+            "a_anticlockwise_cutout": "55",
             "a_clockwise_cutout": "135",
             "h_overhang_back": "0",
             "h_overhang_front": "0",
@@ -123,7 +123,7 @@
         },
         "lan": {
             "$fn": "200",
-            "a_anticlockwise_cutout": "-80",
+            "a_anticlockwise_cutout": "80",
             "a_clockwise_cutout": "125",
             "h_overhang_back": "0",
             "h_overhang_front": "0",
@@ -138,7 +138,7 @@
         },
         "headphone": {
             "$fn": "200",
-            "a_anticlockwise_cutout": "30",
+            "a_anticlockwise_cutout": "-30",
             "a_clockwise_cutout": "30",
             "h_overhang_back": "0",
             "h_overhang_front": "0",

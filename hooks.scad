@@ -1,5 +1,3 @@
-include <BOSL2/std.scad>
-
 x_base = 19; // [10:0.1:100]
 z_base = 13; // [10:0.1:100]
 
@@ -9,10 +7,10 @@ x_clip = 0; // [-0.5:0.01:0.5]
 // inside of clip
 r_inner = 3.5; // [1:0.05:50]
 
-// anticlockwise from above top of clip
-a_anticlockwise_cutout = -50; // [-180:1:180]
+// left from above top of clip
+a_anticlockwise_cutout = 50; // [-180:1:180]
 
-// clockwise from above top of clip
+// right from above top of clip
 a_clockwise_cutout = 135; // [-180:1:180]
 
 t_base = 1.6; // [0.4:0.1:10]
@@ -28,11 +26,7 @@ $fn = 200; // [0:5:1000]
 
 r = r_inner + t_clip;
 
-// mask2d_cove is limited to 0 < a < 180
-if (a_anticlockwise_cutout || a_clockwise_cutout) {
-  assert(a_clockwise_cutout + a_anticlockwise_cutout > 0);
-  assert(a_clockwise_cutout + a_anticlockwise_cutout < 180);
-}
+assert(a_clockwise_cutout >= a_anticlockwise_cutout);
 
 render() {
   linear_extrude(height=z_base) {
@@ -68,37 +62,33 @@ render() {
           circle(r=r);
           circle(r=r - t_clip - (1 - y_eccentricity) * t_clip);
 
-          if (a_anticlockwise_cutout || a_clockwise_cutout) {
-            rotate(a=90 - a_clockwise_cutout) {
-              // limited to < 180
-              mask2d_cove(r=r + 0.1, mask_angle=a_clockwise_cutout + a_anticlockwise_cutout);
-            }
-          } else {
+        // radius for the cutout mask - diamond
+        ar = 2 * (r + t_clip);
 
-            // double radius arc triangle up
-            xo = 2 * r * cos(cutout_outer);
-            yo = 2 * r * sin(cutout_outer);
-            polygon(
-              [
-                [0, 0],
-                [xo, yo],
-                [2 * r, 0],
-                [0, 0],
-              ]
-            );
+        // left point
+        xa = ar * cos(-a_anticlockwise_cutout + 90);
+        ya = ar * sin(-a_anticlockwise_cutout + 90);
 
-            // double radius arc triangle down
-            xi = 2 * r * cos(cutout_inner);
-            yi = -2 * r * sin(cutout_inner);
-            polygon(
-              [
-                [0, 0],
-                [xi, yi],
-                [2 * r, 0],
-                [0, 0],
-              ]
-            );
-          }
+        // right point
+        xc = ar * cos(a_clockwise_cutout - 90);
+        yc = -ar * sin(a_clockwise_cutout - 90);
+
+        // mid angle
+        am = (180 - a_anticlockwise_cutout - a_clockwise_cutout) / 2;
+
+        // mid point
+        xm = ar * cos(am);
+        ym = ar * sin(am);
+
+        polygon(
+          [
+            [0, 0],
+            [xc, yc],
+            [xm, ym],
+            [xa, ya],
+            [0, 0],
+          ]
+        );
         }
       }
     }
