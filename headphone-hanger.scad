@@ -87,12 +87,20 @@ module band_upper() {
         }
       }
 
-      rotate_extrude(a=a) {
-        translate(v=[r_out - dr_band - t_slot, 0]) {
-          cross_section();
-          cross_section_back();
+      color(c="yellow") {
+        rotate_extrude(a=a) {
+          translate(v=[r_out - dr_band - t_slot, 0]) {
+            cross_section();
+          }
+        }
+
+        rotate_extrude(a=a) {
+          translate(v=[r_out - dr_band - t_slot, 0]) {
+            cross_section_back();
+          }
         }
       }
+
       translate(v=[r_out - dr_band, 0, 0]) {
         children();
       }
@@ -103,17 +111,20 @@ module band_upper() {
 module band_corner() {
   translate(v=[-r_corn, 0, 0]) {
 
-    color(c="red")
+    color(c="red") {
       shaft();
+    }
 
     rotate(a=-180 + a / 2) {
-      rotate_extrude(a=180 - a / 2) {
-        translate(v=[r_corn - t_slot, 0]) {
-          cross_section();
+      color(c="blue") {
+        rotate_extrude(a=180 - a / 2) {
+          translate(v=[r_corn - t_slot, 0]) {
+            cross_section();
+          }
         }
-      }
-      rotate_extrude() {
-        cross_section_back();
+        rotate_extrude() {
+          cross_section_back();
+        }
       }
       translate(v=[r_corn, 0, 0]) {
         children();
@@ -125,11 +136,13 @@ module band_corner() {
 module band_lower() {
 
   translate(v=[0, -h, 0]) {
-    translate(v=[-t_slot, h / 2, 0]) {
-      rotate(a=90, v=[1, 0, 0]) {
-        linear_extrude(center=true, h=h) {
-          cross_section();
-          cross_section_back();
+    color(c="green") {
+      translate(v=[-t_slot, h / 2, 0]) {
+        rotate(a=90, v=[1, 0, 0]) {
+          linear_extrude(center=true, h=h) {
+            cross_section();
+            cross_section_back();
+          }
         }
       }
     }
@@ -147,13 +160,11 @@ module band() {
 
 render() {
   translate(v=[0, 0, 50]) {
-    color(c="blue")
-      top_half(s=500) {
-        band();
-      }
-  }
-  color(c="green")
-    bottom_half(s=500) {
+    top_half(s=500) {
       band();
     }
+  }
+  bottom_half(s=500) {
+    band();
+  }
 }
