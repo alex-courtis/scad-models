@@ -9,18 +9,11 @@ x_clip = 0; // [-0.5:0.01:0.5]
 // inside of clip
 r_inner = 3.5; // [1:0.05:50]
 
-cutout_outer = 40; // [0:1:90]
-cutout_inner = 45; // [0:1:90]
-
-// anticlockwise from above, overrides cutout_outer and cutout_inner
+// anticlockwise from above top of clip
 a_anticlockwise_cutout = -50; // [-180:1:180]
-// a_anticlockwise_cutout = cutout_outer - 90;
 
-// clockwise from above outside, overrides cutout_outer and cutout_inner
+// clockwise from above top of clip
 a_clockwise_cutout = 135; // [-180:1:180]
-// a_clockwise_cutout = cutout_inner + 90;
-
-use_a12 = false;
 
 t_base = 1.6; // [0.4:0.1:10]
 t_clip = 1.6; // [0.4:0.1:10]
@@ -36,7 +29,7 @@ $fn = 200; // [0:5:1000]
 r = r_inner + t_clip;
 
 // mask2d_cove is limited to 0 < a < 180
-if (use_a12 && (a_anticlockwise_cutout || a_clockwise_cutout)) {
+if (a_anticlockwise_cutout || a_clockwise_cutout) {
   assert(a_clockwise_cutout + a_anticlockwise_cutout > 0);
   assert(a_clockwise_cutout + a_anticlockwise_cutout < 180);
 }
@@ -75,7 +68,7 @@ render() {
           circle(r=r);
           circle(r=r - t_clip - (1 - y_eccentricity) * t_clip);
 
-          if (use_a12 && (a_anticlockwise_cutout || a_clockwise_cutout)) {
+          if (a_anticlockwise_cutout || a_clockwise_cutout) {
             rotate(a=90 - a_clockwise_cutout) {
               // limited to < 180
               mask2d_cove(r=r + 0.1, mask_angle=a_clockwise_cutout + a_anticlockwise_cutout);
