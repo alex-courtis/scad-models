@@ -13,10 +13,12 @@ cutout_outer = 40; // [0:1:90]
 cutout_inner = 45; // [0:1:90]
 
 // anticlockwise from above, overrides cutout_outer and cutout_inner
-a_anticlockwise_cutout = 0; // [-180:1:180]
+a_anticlockwise_cutout = -50; // [-180:1:180]
+// a_anticlockwise_cutout = cutout_outer - 90;
 
 // clockwise from above outside, overrides cutout_outer and cutout_inner
-a_clockwise_cutout = 0; // [-180:1:180]
+a_clockwise_cutout = 135; // [-180:1:180]
+// a_clockwise_cutout = cutout_inner + 90;
 
 use_a12 = false;
 
