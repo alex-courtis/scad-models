@@ -2,11 +2,14 @@ include <BOSL2/std.scad>
 
 $fn = 400;
 
+// momentum 4, HD820
+small = true;
+
 // width of the band, height of the slot
-w_band = 34;
+w_band = small ? 34 : 43;
 
 // inset of the band slot from outside
-dr_band = 10;
+dr_band = small ? 10 : 5;
 
 // thickness of the slot at the lowest point
 t_slot = 3;
@@ -16,7 +19,7 @@ t_back = 2.4;
 
 // extend in and out of the band
 w_outer = 2.4;
-w_inner = 30;
+w_inner = small ? 30 : 60;
 
 // either side of the break
 h_shaft_pieces = 8;
@@ -46,13 +49,14 @@ r_corn = 6;
 
 // radius of the slot cross section, see fig1
 r_slot = (dr_band ^ 2 + (w_band / 2) ^ 2) / (2 * dr_band);
+echo(r_slot=r_slot);
 
 // arc to support
-a = 85;
+a = small ? 85 : 95;
 
 // length of the lower
-h = 2 * sin(a / 2) * (r_out - dr_band - r_corn);
-echo(h=h);
+l_chord = 2 * sin(a / 2) * (r_out - dr_band - r_corn);
+echo(l_chord=l_chord);
 
 module cross_section() {
   difference() {
@@ -149,11 +153,11 @@ module band_corner() {
 
 module band_lower() {
 
-  translate(v=[0, -h, 0]) {
+  translate(v=[0, -l_chord, 0]) {
     color(c="green") {
-      translate(v=[-t_slot, h / 2, 0]) {
+      translate(v=[-t_slot, l_chord / 2, 0]) {
         rotate(a=90, v=[1, 0, 0]) {
-          linear_extrude(center=true, h=h) {
+          linear_extrude(center=true, h=l_chord) {
             cross_section();
           }
         }
@@ -165,7 +169,7 @@ module band_lower() {
 
 module band() {
   rotate(a=-90) {
-    translate(v=[-dr_band, -h / 2, (w_inner - w_outer) / 2]) {
+    translate(v=[-dr_band, -l_chord / 2, (w_inner - w_outer) / 2]) {
       band_corner() band_upper() band_corner() band_lower();
     }
   }
