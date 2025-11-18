@@ -8,10 +8,10 @@ x_clip = 0; // [-0.5:0.01:0.5]
 r_inner = 3.5; // [1:0.05:50]
 
 // left from above top of clip
-a_anticlockwise_cutout = 50; // [-180:1:180]
+a_cutout_left = 50; // [-180:1:180]
 
 // right from above top of clip
-a_clockwise_cutout = 135; // [-180:1:180]
+a_cutout_right = 135; // [-180:1:180]
 
 t_base = 1.6; // [0.4:0.1:10]
 t_clip = 1.6; // [0.4:0.1:10]
@@ -26,7 +26,7 @@ $fn = 200; // [0:5:1000]
 
 r = r_inner + t_clip;
 
-assert(a_clockwise_cutout >= a_anticlockwise_cutout);
+assert(a_cutout_right >= a_cutout_left);
 
 render() {
   linear_extrude(height=z_base) {
@@ -66,15 +66,15 @@ render() {
         ar = 2 * (r + t_clip);
 
         // left point
-        xa = ar * cos(-a_anticlockwise_cutout + 90);
-        ya = ar * sin(-a_anticlockwise_cutout + 90);
+        xa = ar * cos(-a_cutout_left + 90);
+        ya = ar * sin(-a_cutout_left + 90);
 
         // right point
-        xc = ar * cos(a_clockwise_cutout - 90);
-        yc = -ar * sin(a_clockwise_cutout - 90);
+        xc = ar * cos(a_cutout_right - 90);
+        yc = -ar * sin(a_cutout_right - 90);
 
         // mid angle
-        am = (180 - a_anticlockwise_cutout - a_clockwise_cutout) / 2;
+        am = (180 - a_cutout_left - a_cutout_right) / 2;
 
         // mid point
         xm = ar * cos(am);
