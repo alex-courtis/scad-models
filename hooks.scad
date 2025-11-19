@@ -36,89 +36,50 @@ a_guides = 135; // [0:1:360]
 
 $fn = 200; // [0:5:1000]
 
-// mask to cut out two angles from a circle
-// 0 degrees is x,y == 0,r
-// al is anticlockwise, ar is clockwise
-module circle_mask(r, al, ar) {
-  let (r = r * PI) {
-
-    // left
-    xl = r * cos(-al + 90);
-    yl = r * sin(-al + 90);
-    polygon(
-      [
-        [0, 0],
-        [0, -r],
-        [-r, -r],
-        [-r, r],
-        [al > 0 ? r : xl, al > 0 ? r : yl],
-        [xl, yl],
-        [0, 0],
-      ]
-    );
-
-    // right
-    xr = r * cos(ar - 90);
-    yr = -r * sin(ar - 90);
-    polygon(
-      [
-        [0, 0],
-        [0, -r],
-        [r, -r],
-        [r, r],
-        [ar < 0 ? -r : xr, ar < 0 ? r : yr],
-        [xr, yr],
-        [0, 0],
-      ]
-    );
-  }
-}
-
-module clip() {
-  // clip
-  dy_eccentricity = (y_eccentricity - 1) * r_inner + t_clip;
-  dy_base = (t_base > t_clip ? t_base - t_clip : 0);
-  translate(
-    v=[
-      x_base / 2 + x_base * x_clip,
-      r_inner + dy_base + dy_eccentricity,
-      0,
-    ]
-  ) {
-    scale(v=[1, y_eccentricity]) {
-      intersection() {
-        difference() {
-          circle(r=r_inner + t_clip);
-          circle(r=r_inner - (1 - y_eccentricity) * t_clip);
+module clip(dr, eccentricity) {
+  scale(v=[1, eccentricity]) {
+    rotate(a=90 - a_cutout_left) {
+      rotate_extrude(a=360 + a_cutout_left - a_cutout_right) {
+        translate(v=[r_inner + dr, 0]) {
+          square([t_clip - dr, z_base]);
         }
-
-        circle_mask(r=r_inner + t_clip, al=a_cutout_left, ar=a_cutout_right);
       }
     }
   }
 }
 
 module model() {
-  linear_extrude(height=z_base) {
+  // base
+  color(c="blue") {
+    cube([x_base, t_base, z_base]);
+  }
 
-    // base
-    square([x_base, t_base]);
-
-    // back overhang, optional
+  // overhang back
+  color(c="orange") {
     if (h_overhang_back > 0) {
-      translate(v=[-t_overhang, -h_overhang_back]) {
-        square([t_overhang, h_overhang_back + t_base]);
+      translate(v=[-t_overhang, -h_overhang_back, 0]) {
+        cube([t_overhang, h_overhang_back + t_base, z_base]);
       }
     }
+  }
 
-    // front overhang, optional
+  // overhang front
+  color(c="purple") {
     if (h_overhang_front > 0) {
-      translate(v=[x_base, -h_overhang_front]) {
-        square([t_overhang, h_overhang_front + t_base]);
+      translate(v=[x_base, -h_overhang_front, 0]) {
+        cube([t_overhang, h_overhang_front + t_base, z_base]);
       }
     }
+  }
 
-    clip();
+  // clip
+  color(c="green") {
+    dx = x_base / 2 + x_base * x_clip;
+    dy = r_inner + (t_base > t_clip ? t_base - t_clip : 0) + (y_eccentricity - 1) * r_inner + t_clip;
+    dz = 0;
+    translate(v=[dx, dy, dz]) {
+      clip(dr=(y_eccentricity - 1) * t_clip, eccentricity=y_eccentricity);
+    }
   }
 }
 
