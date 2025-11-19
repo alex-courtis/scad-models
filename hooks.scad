@@ -36,12 +36,17 @@ a_guides = 135; // [0:1:360]
 
 $fn = 200; // [0:5:1000]
 
-module clip(dr, eccentricity) {
-  scale(v=[1, eccentricity]) {
-    rotate(a=90 - a_cutout_left) {
-      rotate_extrude(a=360 + a_cutout_left - a_cutout_right) {
-        translate(v=[r_inner + dr, 0]) {
-          square([t_clip - dr, z_base]);
+// bottom at 0,0 cutouts left and right from top
+module cutout_cylinder(ri, t, al, ar, ey) {
+  t = t + (1 - ey) * t;
+
+  scale(v=[1, ey]) {
+    translate(v=[0, ri + t]) {
+      rotate(a=90 - al) {
+        rotate_extrude(a=360 + al - ar) {
+          translate(v=[ri, 0]) {
+            square([t, z_base]);
+          }
         }
       }
     }
@@ -75,10 +80,16 @@ module model() {
   // clip
   color(c="green") {
     dx = x_base / 2 + x_base * x_clip;
-    dy = r_inner + (t_base > t_clip ? t_base - t_clip : 0) + (y_eccentricity - 1) * r_inner + t_clip;
+    dy = (t_base > t_clip ? t_base - t_clip : 0); // push clip up when base is thicker
     dz = 0;
     translate(v=[dx, dy, dz]) {
-      clip(dr=(y_eccentricity - 1) * t_clip, eccentricity=y_eccentricity);
+      cutout_cylinder(
+        ri=r_inner,
+        t=t_clip,
+        al=a_cutout_left,
+        ar=a_cutout_right,
+        ey=y_eccentricity,
+      );
     }
   }
 }
