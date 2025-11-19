@@ -66,7 +66,7 @@ module circle_mask(r, al, ar) {
         [0, -r],
         [r, -r],
         [r, r],
-        [ar > 0 ? r : xr, ar > 0 ? r : yr],
+        [ar < 0 ? -r : xr, ar < 0 ? r : yr],
         [xr, yr],
         [0, 0],
       ]
