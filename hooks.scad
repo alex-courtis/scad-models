@@ -7,6 +7,8 @@ t_base = 1.6; // [0.4:0.1:10]
 /* [Overhang] */
 h_overhang_back = 0; // [0.0:0.1:10]
 h_overhang_front = 0; // [0.0:0.1:10]
+h_overhang_top = 0; // [0.0:0.1:10]
+h_overhang_bottom = 0; // [0.0:0.1:10]
 t_overhang = 1.2; // [0.4:0.1:10]
 
 /* [Clip] */
@@ -110,6 +112,24 @@ module model() {
     if (h_overhang_front > 0) {
       translate(v=[x_base, -h_overhang_front, 0]) {
         cube([t_overhang, h_overhang_front + t_base, z_base]);
+      }
+    }
+  }
+
+  // overhang top
+  color(c="rosybrown") {
+    if (h_overhang_top > 0) {
+      translate(v=[0, -h_overhang_top, z_base - t_overhang]) {
+        cube([x_base, h_overhang_top , t_overhang]);
+      }
+    }
+  }
+
+  // overhang bottom
+  color(c="wheat") {
+    if (h_overhang_bottom > 0) {
+      translate(v=[0, -h_overhang_bottom, 0]) {
+        cube([x_base, h_overhang_bottom + t_overhang, t_overhang]);
       }
     }
   }
