@@ -1,13 +1,21 @@
 include <BOSL2/std.scad>
 include <BOSL2/hinges.scad>
 
+/* TODO
+- clear out body sides
+- decide on base sizing metrics: pins, thickness, guide
+- parameterise hinge thickness etc.
+- orient hinge teardrops
+- angle setter
+*/
+
 $fn = 200;
 
-clearance_guide_back = 0.2;
+clearance_guide_back = 0.4;
 clearance_guide_body = 0.2;
 clearance_guide_back_bottom = 1;
 
-l_hinge = 40;
+l_hinge = 20;
 segs_hinge = 5;
 gap_hinge = 0.2; // [0:0.01:3]
 d_pin = 3.80; // [1:0.01:10]
@@ -15,17 +23,17 @@ dd_pin_back = 0.2;
 r_knuckle = (3.8 + 2 + 2) / 2;
 echo(r_knuckle=r_knuckle);
 
-// POC: 64.5 * 2 wood block
-l_back = 2 * 64.5 + 2 * l_hinge;
+// POC: 65 * wood block + a bit
+l_back = 65 + 2 * l_hinge + 5;
 h_back = 120;
 t_back = d_pin * 2;
-dh_hinge_back = 0.8;
+dh_hinge_back = 2.0;
 echo(l_back=l_back);
 echo(h_back=h_back);
 echo(t_back=t_back);
 
 l_body = l_back;
-t_body = 5;
+t_body = d_pin * 2;
 // POC: 35.3 x 35.3 wood block
 h_body = 35.3 + t_body; // below hinge centre
 d_body = 35.3 + t_body;
@@ -38,6 +46,8 @@ echo(l_guide=l_guide);
 echo(h_guide=h_guide);
 echo(d_guide=d_guide);
 
+explode = false;
+
 module hinge_back(length, flat, inner, offset, clear_top) {
   // this will be completely clipped away, leaving a flat bottom; cannot be exactly r_knuckle
   arm_height = flat ? t_back : 0;
@@ -49,7 +59,7 @@ module hinge_back(length, flat, inner, offset, clear_top) {
     length=length,
     segs=segs_hinge,
     offset=offset,
-    inner=inner,
+    inner=!inner,
     arm_height=arm_height,
     arm_angle=90,
     gap=gap_hinge,
@@ -81,16 +91,17 @@ module part_back() {
   x_back = h_back - x_hinge;
   y = t_back;
   z = l_back;
+  z_hinge = l_hinge - clearance_guide_back;
 
   color(c="darkgreen")
-    translate(v=[0, 0, l_hinge / 2])
+    translate(v=[0, 0, z_hinge / 2])
       rotate(a=180)
-        hinge_back(length=l_hinge, flat=true, inner=true, offset=x_hinge, clear_top=true);
+        hinge_back(length=z_hinge, flat=true, inner=true, offset=x_hinge, clear_top=true);
 
   color(c="darkolivegreen")
-    translate(v=[0, 0, z - l_hinge / 2])
+    translate(v=[0, 0, z - z_hinge / 2])
       rotate(a=180)
-        hinge_back(length=l_hinge, flat=true, inner=true, offset=x_hinge, clear_top=true);
+        hinge_back(length=z_hinge, flat=true, inner=true, offset=x_hinge, clear_top=true);
 
   color(c="lightgreen")
     difference() {
@@ -98,28 +109,29 @@ module part_back() {
         cube(size=[x_back, y, z], center=false);
       translate(v=[clearance_guide_back_bottom, 0, 0])
         part_guide(dxyz=clearance_guide_back);
-      #translate(v=[45, d_pin + dd_pin_back, 0])
+      #translate(v=[50 * cos(4.5), 50 * sin(4.5), 0])
         cylinder(r=(d_pin + dd_pin_back) / 2, h=z);
-      translate(v=[105, d_pin + dd_pin_back, 0])
+      translate(v=[50 * cos(4.5) + 50, 50 * sin(4.5), 0])
         #cylinder(r=(d_pin + dd_pin_back) / 2, h=z);
     }
 }
 
 module part_body() {
   x = h_body + r_knuckle;
-  y_hinge = r_knuckle + dd_hinge_body;
-  y_body = d_body - y_hinge;
+  y_hinge = t_back + dd_hinge_body;
+  y_body = d_body - y_hinge + dd_hinge_body;
   z = l_body;
+  z_hinge = l_hinge - clearance_guide_back;
 
   color(c="fuchsia")
-    translate(v=[0, 0, l_hinge / 2])
+    translate(v=[0, 0, z_hinge / 2])
       rotate(a=270)
-        hinge_back(length=l_hinge, flat=false, inner=false, offset=y_hinge, clear_top=false);
+        hinge_back(length=z_hinge, flat=false, inner=false, offset=y_hinge, clear_top=false);
 
   color(c="orchid")
-    translate(v=[0, 0, z - l_hinge / 2])
+    translate(v=[0, 0, z - z_hinge / 2])
       rotate(a=270)
-        hinge_back(length=l_hinge, flat=false, inner=false, offset=y_hinge, clear_top=false);
+        hinge_back(length=z_hinge, flat=false, inner=false, offset=y_hinge, clear_top=false);
 
   color(c="purple")
     difference() {
@@ -130,8 +142,11 @@ module part_body() {
       part_guide(dxyz=clearance_guide_body);
 
       // clear the guide above the hinge and behind
-      translate(v=[-h_guide + t_body, r_knuckle, 0])
+      translate(v=[-h_guide, t_body + dd_hinge_body, 0])
         part_guide(dxyz=clearance_guide_body);
+
+      translate(v=[50 * cos(50), 50 * sin(50), 0])
+        cylinder(r=(d_pin + dd_pin_back) / 2, h=z);
     }
 }
 
@@ -148,8 +163,10 @@ module part_guide(dxyz = 0) {
 
 render() {
   part_back();
-  rotate(a=5) {
-    // part_body();
-    part_guide();
+  rotate(a=0) {
+    translate(v=[0, explode ? 50 : 0, 0])
+      part_body();
+    translate(v=[explode ? -50 : 0, 0])
+      part_guide();
   }
 }
