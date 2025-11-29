@@ -36,12 +36,14 @@ t_hinge = 2; // [0:0.01:5]
 // knuckle diameter
 d_knuckle = d_pin + t_hinge * 2;
 echo(t_plate=t_plate);
+echo(d_pin=d_pin);
+echo(t_hinge=t_hinge);
 echo(d_knuckle=d_knuckle);
 
 assert(t_plate >= d_knuckle / 2);
 
 // total segments on both sides of the hinge
-segs_hinge = 5;
+segs_hinge = 5; // [3:2:11]
 
 // gap between the bottom of the guide and the plate
 gap_guide_bottom = 0.2; // [0:0.01:5]
@@ -74,51 +76,63 @@ module cross_section_guide() {
   );
 }
 
-module part_guide_surface() {
+module guide_surface() {
+  linear_extrude(h=l_guide / 2, center=false)
+    cross_section_guide();
+}
+
+module guide_outer() {
+  linear_extrude(h=l_hinge, center=false)
+    cross_section_guide_outer();
+}
+
+module guide_hinge(length) {
+  knuckle_hinge(
+    length=length,
+    segs=segs_hinge,
+    offset=d_knuckle / 2 + t_plate,
+    arm_height=0,
+    arm_angle=90,
+    gap=gap_hinge_knuckle,
+    knuckle_diam=d_knuckle,
+    pin_diam=d_pin,
+    clear_top=true,
+    teardrop=BACK,
+    spin=0,
+    inner=true,
+    anchor=LEFT,
+    orient=LEFT,
+    clearance=0,
+  );
+}
+
+module guide_half() {
+  z_guide = l_guide / 2;
+
+  dz_hinge = gap_guide_sides;
+  z_hinge = l_hinge - dz_hinge; // side gap removed
+
   color(c="cornflowerblue")
-    linear_extrude(h=l_guide, center=true)
-      cross_section_guide();
-}
+    guide_surface();
 
-module part_guide_outer() {
   color(c="cadetblue")
-    linear_extrude(h=l_hinge, center=true)
-      cross_section_guide_outer();
+    translate(v=[0, 0, z_guide])
+      guide_outer();
+
+  color(c="skyblue")
+    translate(v=[0, 0, z_guide + dz_hinge])
+      rotate(a=90 - a_paring_range)
+        guide_hinge(length=z_hinge);
 }
 
-module part_guide_hinge() {
-  color(c="aqua")
-    knuckle_hinge(
-      length=l_hinge,
-      segs=segs_hinge,
-      offset=t_plate / 2,
-      arm_height=t_plate / 2 - 0.00000001, // cannot be exactly half a knuckle
-      arm_angle=90 - a_paring_range,
-      gap=gap_hinge_knuckle,
-      knuckle_diam=t_plate,
-      pin_diam=d_pin,
-      clear_top=false,
-      teardrop=true,
-      spin=180,
-      inner=false,
-      anchor=CENTER,
-      orient=LEFT,
-    );
+module guide() {
+  guide_half();
+  zflip() guide_half();
 }
 
-module part_guide() {
-  part_guide_surface();
-  translate(v=[0, 0, (l_hinge + l_guide) / 2]) {
-    part_guide_outer();
-    rotate(a=-a_paring_range)
-      part_guide_hinge();
-  }
-  translate(v=[0, 0, -(l_hinge + l_guide) / 2])
-    part_guide_outer();
-}
-
-module part_plate_hinge(inner, length, offset) {
+module plate_hinge(length, offset) {
   a = asin((d_knuckle / 2) / sqrt(offset ^ 2 + t_plate ^ 2)) + atan(offset / t_plate);
+  echo(arm_angle_plate_hinge=a);
 
   knuckle_hinge(
     length=length,
@@ -130,12 +144,24 @@ module part_plate_hinge(inner, length, offset) {
     knuckle_diam=d_knuckle,
     pin_diam=d_pin,
     clear_top=true,
-    teardrop=true,
+    teardrop=UP,
     spin=180,
-    inner=inner,
+    inner=false,
     anchor=RIGHT,
     orient=LEFT,
+    clearance=0,
   );
+}
+
+module guide_hinge_mask(z_hinge) {
+
+  z = (z_hinge + 1 * gap_hinge_knuckle) / segs_hinge + gap_hinge_knuckle;
+
+  for (i = [2:2:segs_hinge]) {
+    translate(v=[gap_guide_sides, 0, (i - 1) * z - i * gap_hinge_knuckle + z / 2])
+      rotate(a=-a_paring_range)
+        cube(size=[d_knuckle, d_knuckle * 2, z], center=true);
+  }
 }
 
 // hinges far from origin, built at origin then flipped for simplicity
@@ -159,10 +185,13 @@ module plate_half() {
 
       color(c="rosybrown")
         cube([offset_hinge, t_plate, z_hinge]);
+
+      color(c="brown")
+        guide_hinge_mask(z_hinge=z_hinge);
     }
 
     color(c="goldenrod")
-      part_plate_hinge(inner=false, length=z_hinge, offset=offset_hinge);
+      plate_hinge(length=z_hinge, offset=offset_hinge);
   }
 }
 
@@ -174,5 +203,5 @@ module plate() {
 render() {
   plate();
   rotate(a=a_paring + a_paring_range)
-  part_guide();
+    guide();
 }
