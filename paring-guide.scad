@@ -23,7 +23,7 @@ t_plate = 5; // [1:0.5:30]
 /* [Capabilities] */
 
 // paring range up and down
-a_range = 20; // [0:1:90]
+a_range = 35; // [0:1:45]
 
 /* [Hinges] */
 
@@ -43,7 +43,7 @@ echo(d_knuckle=d_knuckle);
 assert(t_plate >= d_knuckle / 2);
 
 // total segments on both sides of the hinge
-segs_hinge = 5; // [3:2:11]
+segs_hinge = 5; // [2:1:11]
 
 /* [Supports] */
 d_plate_pin = 3.75; // [1:0.01:10]
@@ -57,15 +57,18 @@ gap_swing_bottom = 0.2; // [0:0.01:5]
 gap_swing_sides = 0.2; // [0:0.01:5]
 
 // gap between the arm surface and the plate
-gap_arm_hinge = 0.1; // [0:0.01:5]
+gap_arm_plate = 0.1; // [0:0.01:5]
 
 // gap between each hinge knuckle
-gap_hinge_knuckle = 0.2;
+gap_hinge_knuckle = 0.2; // [0:0.01:5]
+
+// gap between the arm hinge arms and the top of the plate
+gap_hinge_arms = 0.5; // [0:0.01:5]
 
 /* [Dev] */
 
 // model showing paring angle, positive is down
-a_swing = 0; // [-45:1:45]
+a_swing = -35; // [-45:1:45]
 
 // separate pieces
 explode = false;
@@ -81,7 +84,7 @@ $fn = 200;
 module cross_section_arms() {
   difference() {
     cross_section_surf();
-    square([d_surf, t_plate + gap_arm_hinge]);
+    square([d_surf, t_plate + gap_arm_plate]);
   }
 }
 module cross_section_surf() {
@@ -181,10 +184,10 @@ module arms_hinge_mask(z_hinge) {
 
   z = (z_hinge + 1 * gap_hinge_knuckle) / segs_hinge + gap_hinge_knuckle;
 
-  for (i = [2:2:segs_hinge]) {
-    translate(v=[gap_swing_sides, 0, (i - 1) * z - i * gap_hinge_knuckle + z / 2])
+  for (i = [1 + segs_hinge % 2:2:segs_hinge]) {
+    translate(v=[gap_hinge_arms, 0, (i - 1) * z - i * gap_hinge_knuckle + z / 2])
       rotate(a=-a_range)
-        cube(size=[d_knuckle, d_knuckle * 2, z], center=true);
+        cube(size=[d_knuckle, h_plate * 2, z], center=true);
   }
 }
 
@@ -209,8 +212,8 @@ module plate_half() {
 
   zflip(z=z_plate / 2) {
     difference() {
-      // color(c="chocolate")
-      cube(size=[h_plate, t_plate, z_plate], center=false);
+      color(c="chocolate")
+        cube(size=[h_plate, t_plate, z_plate], center=false);
 
       color(c="maroon")
         translate(v=[0, 0, z_hinge])

@@ -1,0 +1,45 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "New set 1": {
+            "$fn": "200",
+            "a_range": "35",
+            "a_swing": "0",
+            "d_hinge_pin": "3.75",
+            "d_plate_pin": "3.75",
+            "d_surf": "30",
+            "explode": "true",
+            "gap_arm_hinge": "0.10000000000000001",
+            "gap_hinge_knuckle": "0.20000000000000001",
+            "gap_swing_bottom": "0.20000000000000001",
+            "gap_swing_sides": "0.20000000000000001",
+            "h_plate": "120",
+            "halves": "true",
+            "l_hinge": "25",
+            "l_surf": "100",
+            "segs_hinge": "5",
+            "t_hinge": "2",
+            "t_plate": "5"
+        },
+        "POC half fit": {
+            "$fn": "200",
+            "a_range": "35",
+            "a_swing": "0",
+            "d_hinge_pin": "3.75",
+            "d_plate_pin": "3.75",
+            "d_surf": "30",
+            "explode": "true",
+            "gap_arm_hinge": "0.10000000000000001",
+            "gap_hinge_knuckle": "0.20000000000000001",
+            "gap_swing_bottom": "0.20000000000000001",
+            "gap_swing_sides": "0.20000000000000001",
+            "h_plate": "57",
+            "halves": "true",
+            "l_hinge": "25",
+            "l_surf": "10",
+            "segs_hinge": "5",
+            "t_hinge": "2",
+            "t_plate": "6.5"
+        }
+    }
+}
