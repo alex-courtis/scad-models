@@ -7,7 +7,13 @@ include <BOSL2/hinges.scad>
 l_surf = 100; // [10:1:500]
 
 // depth of the parable surface
-d_surf = 30; // [5:1:50]
+d_surf = 30; // [5:1:100]
+
+// radius of the rear smoothing of the parable surface
+r_surf = 2; // [0:0.05:10]
+
+// thickness of the parable surface
+t_surf = 5; // [1:0.5:10]
 
 /* [Plate Dimensions] */
 
@@ -28,7 +34,7 @@ a_range = 35; // [0:1:45]
 /* [Hinges] */
 
 // hinge pin diameter
-d_hinge_pin = 3.75; // [1:0.01:10]
+d_hinge_pin = 3.85; // [1:0.01:10]
 
 // hinge knuckle thickness
 t_hinge = 2; // [0:0.01:5]
@@ -46,7 +52,7 @@ assert(t_plate >= d_knuckle / 2);
 segs_hinge = 5; // [2:1:11]
 
 /* [Supports] */
-d_plate_pin = 3.75; // [1:0.01:10]
+d_plate_pin = 3.95; // [1:0.01:10]
 
 /* [Tolerances] */
 
@@ -83,31 +89,55 @@ $fn = 200;
 
 module cross_section_arms() {
   difference() {
-    cross_section_surf();
+    cross_section_surf_outer();
     square([d_surf, t_plate + gap_arm_plate]);
   }
 }
-module cross_section_surf() {
-  polygon(
-    [
-      [d_surf, 0],
-      [0, 0],
-      [d_surf * cos(90 - a_range), d_surf * sin(90 - a_range)],
-      [d_surf, 0],
-    ]
-  );
+
+poly_path = [
+  [0, 0],
+  [d_surf * cos(90 - a_range), d_surf * sin(90 - a_range)],
+  [d_surf, 0],
+];
+
+module cross_section_surf_outer() {
+  polygon(round_corners(poly_path, radius=[0, r_surf, 0], method="circle"));
+}
+
+module cross_section_surf_inner() {
+  dx = t_surf / tan((90 - a_range) / 2);
+  dy = t_surf;
+
+  translate(v=[dx, dy])
+    polygon(poly_path);
 }
 
 module surf_half() {
   color(c="cornflowerblue")
-    linear_extrude(h=l_surf / 2, center=false)
-      cross_section_surf();
+    difference() {
+      linear_extrude(h=l_surf / 2, center=false)
+        cross_section_surf_outer();
+
+      // two braces close to the middle
+      z_gap1 = l_surf / 9;
+      z_gap2 = l_surf / 2 - z_gap1 - 2 * t_surf;
+      linear_extrude(h=z_gap1, center=false)
+        cross_section_surf_inner();
+      translate(v=[0, 0, z_gap1 + t_surf])
+        linear_extrude(h=z_gap2, center=false)
+          cross_section_surf_inner();
+    }
 }
 
 module surf() {
   surf_half();
   if (!halves)
     zflip() surf_half();
+}
+
+module arm_pins_mask(z_hinge) {
+  translate(v=[d_surf * cos(90 - a_range), d_surf * sin(90 - a_range)])
+    cylinder(d=d_plate_pin, h=h_plate);
 }
 
 module arms_outer() {
@@ -141,14 +171,21 @@ module arms_half() {
   dz_hinge = gap_swing_sides;
   z_hinge = l_hinge - dz_hinge; // side gap removed
 
-  color(c="cadetblue")
-    translate(v=[0, 0, z_arms])
-      arms_outer();
+  difference() {
+    {
+      color(c="cadetblue")
+        translate(v=[0, 0, z_arms])
+          arms_outer();
 
-  color(c="skyblue")
-    translate(v=[0, 0, z_arms + dz_hinge])
-      rotate(a=90 - a_range)
-        arms_hinge(length=z_hinge);
+      color(c="skyblue")
+        translate(v=[0, 0, z_arms + dz_hinge])
+          rotate(a=90 - a_range)
+            arms_hinge(length=z_hinge);
+    }
+
+    color(c="red")
+      #arm_pins_mask(z_hinge=z_hinge);
+  }
 }
 
 module arms() {
