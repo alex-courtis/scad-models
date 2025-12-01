@@ -173,24 +173,25 @@ module arm_pins_mask(z_hinge, d_pin) {
   }
 }
 
-module arms_hinge(length, inner = true) {
-  knuckle_hinge(
-    length=length,
-    segs=n_hinge_segs,
-    offset=d_knuckle / 2 + w_surf / 2,
-    arm_height=0,
-    arm_angle=90,
-    gap=gap_hinge_knuckle,
-    knuckle_diam=d_knuckle,
-    pin_diam=d_hinge_pin,
-    clear_top=true,
-    teardrop=BACK,
-    spin=0,
-    inner=inner,
-    anchor=LEFT,
-    orient=LEFT,
-    clearance=0,
-  );
+module arms_hinge(length) {
+  #mirror(v=[0, 1, 0])
+    knuckle_hinge(
+      length=length,
+      segs=n_hinge_segs,
+      offset=d_knuckle / 2,
+      arm_height=d_knuckle,
+      arm_angle=90 - a_range,
+      gap=gap_hinge_knuckle,
+      knuckle_diam=d_knuckle,
+      pin_diam=d_hinge_pin,
+      clear_top=true,
+      teardrop=false,
+      spin=0,
+      inner=true,
+      anchor=LEFT,
+      orient=LEFT,
+      clearance=0,
+    );
 }
 
 module arm_half() {
@@ -208,7 +209,7 @@ module arm_half() {
 
       color(c="skyblue")
         translate(v=[0, 0, z_arms + dz_hinge])
-          rotate(a=90 - a_range)
+          rotate(a=-a_range)
             arms_hinge(length=z_hinge);
     }
 
