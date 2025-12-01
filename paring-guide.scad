@@ -18,7 +18,7 @@ t_surf = 5; // [1:0.5:10]
 /* [Plate Dimensions] */
 
 // extends either side of the parable surface
-l_hinge = 25; // [5:1:100]
+l_arm = 25; // [5:1:100]
 
 // total height of the plate inside and above the vise
 h_plate = 120; // [10:1:500]
@@ -36,31 +36,31 @@ a_range = 35; // [0:1:45]
 // hinge pin diameter
 d_hinge_pin = 3.85; // [1:0.01:10]
 
-// hinge knuckle thickness
-t_hinge = 2; // [0:0.01:5]
+// hinge knuckle thickness: radius beyond pin
+t_hinge_knuckle = 2; // [0:0.01:5]
 
 // knuckle diameter
-d_knuckle = d_hinge_pin + t_hinge * 2;
+d_knuckle = d_hinge_pin + t_hinge_knuckle * 2;
 echo(t_plate=t_plate);
 echo(d_hinge_pin=d_hinge_pin);
-echo(t_hinge=t_hinge);
+echo(t_hinge_knuckle=t_hinge_knuckle);
 echo(d_knuckle=d_knuckle);
 
 assert(t_plate >= d_knuckle / 2);
 
 // total segments on both sides of the hinge
-segs_hinge = 5; // [2:1:11]
+n_hinge_segs = 5; // [2:1:11]
 
 /* [Supports] */
 d_plate_pin = 3.95; // [1:0.01:10]
 
 /* [Tolerances] */
 
-// vertical gap between the plate and the swing
-gap_swing_bottom = 0.2; // [0:0.01:5]
+// vertical gap between the plate and parable surface
+gap_plate_surf = 0.2; // [0:0.01:5]
 
-// horizontal gap between the plate and the swing
-gap_swing_sides = 0.2; // [0:0.01:5]
+// horizontal gap between the plate and parable surface
+gap_plate_sides = 0.2; // [0:0.01:5]
 
 // gap between the arm surface and the plate
 gap_arm_plate = 0.1; // [0:0.01:5]
@@ -68,22 +68,19 @@ gap_arm_plate = 0.1; // [0:0.01:5]
 // gap between each hinge knuckle
 gap_hinge_knuckle = 0.2; // [0:0.01:5]
 
-// gap between the arm hinge arms and the top of the plate
-gap_hinge_arms = 0.5; // [0:0.01:5]
+// gap between plate hinge bottom and arm hinge arms
+gap_hinge_arms_plate = 0.5; // [0:0.01:5]
 
 /* [Dev] */
 
 // model showing paring angle, positive is down
-a_swing = -35; // [-45:1:45]
+a_display = -35; // [-90:1:90]
 
 // separate pieces
-explode = false;
+explode = 0; // [0:1:100]
 
 // half pieces
 halves = false;
-
-assert(a_swing <= a_range);
-assert(a_swing >= -a_range);
 
 $fn = 200;
 
@@ -141,14 +138,14 @@ module arm_pins_mask(z_hinge) {
 }
 
 module arms_outer() {
-  linear_extrude(h=l_hinge, center=false)
+  linear_extrude(h=l_arm, center=false)
     cross_section_arms();
 }
 
-module arms_hinge(length) {
+module arms_hinge(length, inner = true) {
   knuckle_hinge(
     length=length,
-    segs=segs_hinge,
+    segs=n_hinge_segs,
     offset=d_knuckle / 2 + d_surf / 2,
     arm_height=0,
     arm_angle=90,
@@ -158,21 +155,21 @@ module arms_hinge(length) {
     clear_top=true,
     teardrop=BACK,
     spin=0,
-    inner=true,
+    inner=inner,
     anchor=LEFT,
     orient=LEFT,
     clearance=0,
   );
 }
 
-module arms_half() {
+module arm_half() {
   z_arms = l_surf / 2;
 
-  dz_hinge = gap_swing_sides;
-  z_hinge = l_hinge - dz_hinge; // side gap removed
+  dz_hinge = gap_plate_sides;
+  z_hinge = l_arm - dz_hinge; // side gap removed
 
   difference() {
-    {
+    union() {
       color(c="cadetblue")
         translate(v=[0, 0, z_arms])
           arms_outer();
@@ -189,40 +186,41 @@ module arms_half() {
 }
 
 module arms() {
-  arms_half();
+  arm_half();
   if (!halves)
-    zflip() arms_half();
+    zflip() arm_half();
 }
 
 module plate_hinge(length, offset) {
   a = asin((d_knuckle / 2) / sqrt(offset ^ 2 + t_plate ^ 2)) + atan(offset / t_plate);
   echo(arm_angle_plate_hinge=a);
 
-  knuckle_hinge(
-    length=length,
-    segs=segs_hinge,
-    offset=offset,
-    arm_height=0,
-    arm_angle=a,
-    gap=gap_hinge_knuckle,
-    knuckle_diam=d_knuckle,
-    pin_diam=d_hinge_pin,
-    clear_top=true,
-    teardrop=UP,
-    spin=180,
-    inner=false,
-    anchor=RIGHT,
-    orient=LEFT,
-    clearance=0,
-  );
+  mirror(v=[0, 1, 0])
+    knuckle_hinge(
+      length=length,
+      segs=n_hinge_segs,
+      offset=offset,
+      arm_height=0,
+      arm_angle=a,
+      gap=gap_hinge_knuckle,
+      knuckle_diam=d_knuckle,
+      pin_diam=d_hinge_pin,
+      clear_top=true,
+      teardrop=UP,
+      spin=0,
+      inner=false,
+      anchor=LEFT,
+      orient=LEFT,
+      clearance=0,
+    );
 }
 
 module arms_hinge_mask(z_hinge) {
 
-  z = (z_hinge + 1 * gap_hinge_knuckle) / segs_hinge + gap_hinge_knuckle;
+  z = (z_hinge + 1 * gap_hinge_knuckle) / n_hinge_segs + gap_hinge_knuckle;
 
-  for (i = [1 + segs_hinge % 2:2:segs_hinge]) {
-    translate(v=[gap_hinge_arms, 0, (i - 1) * z - i * gap_hinge_knuckle + z / 2])
+  for (i = [1 + n_hinge_segs % 2:2:n_hinge_segs]) {
+    translate(v=[gap_hinge_arms_plate, 0, (i - 1) * z - i * gap_hinge_knuckle + z / 2])
       rotate(a=-a_range)
         cube(size=[d_knuckle, h_plate * 2, z], center=true);
   }
@@ -239,13 +237,13 @@ module plate_pins_mask(z_hinge) {
 
 // hinges far from origin, built at origin then flipped for simplicity
 module plate_half() {
-  z_plate = l_surf / 2 + l_hinge;
+  z_plate = l_surf / 2 + l_arm;
 
-  z_hinge = l_hinge - gap_swing_sides; // side gap removed
+  z_hinge = l_arm - gap_plate_sides; // side gap removed
 
-  x_cutout = d_surf + gap_swing_bottom;
+  x_cutout = d_surf + gap_plate_surf;
 
-  offset_hinge = d_knuckle / 2;
+  offset_hinge_knuckle = d_knuckle / 2;
 
   zflip(z=z_plate / 2) {
     difference() {
@@ -257,7 +255,7 @@ module plate_half() {
           cube(size=[x_cutout, t_plate, z_plate], center=false);
 
       color(c="rosybrown")
-        cube([offset_hinge, t_plate, z_hinge]);
+        cube([offset_hinge_knuckle, t_plate, z_hinge]);
 
       color(c="brown")
         arms_hinge_mask(z_hinge=z_hinge);
@@ -267,7 +265,7 @@ module plate_half() {
     }
 
     color(c="goldenrod")
-      plate_hinge(length=z_hinge, offset=offset_hinge);
+      plate_hinge(length=z_hinge, offset=offset_hinge_knuckle);
   }
 }
 
@@ -278,11 +276,13 @@ module plate() {
 }
 
 render() {
-  translate(v=[0, explode ? -50 : 0, 0])
+  a = min(max(a_display, -a_range), a_range) + a_range;
+
+  translate(v=[0, -explode, 0])
     plate();
-  rotate(a=a_swing + a_range) {
+  rotate(a=a) {
     surf();
-    translate(v=[explode ? -50 : 0, 0, 0])
+    translate(v=[-explode, 0, 0])
       arms();
   }
 }
