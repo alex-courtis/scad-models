@@ -40,7 +40,7 @@ a_range = 35; // [0:1:45]
 d_hinge_pin = 3.85; // [1:0.01:10]
 
 // hinge knuckle thickness: radius beyond pin
-t_hinge_knuckle = 2; // [0:0.01:5]
+t_hinge_knuckle = 3; // [0:0.01:5]
 
 // knuckle diameter
 d_knuckle = d_hinge_pin + t_hinge_knuckle * 2;
@@ -55,7 +55,13 @@ assert(t_plate >= d_knuckle / 2);
 n_hinge_segs = 5; // [2:1:11]
 
 /* [Supports] */
-d_plate_pin = 3.95; // [1:0.01:10]
+// d_arm_pin = 4.00; // [1:0.01:10]
+d_arm_pin = 8.000000; // [1:0.01:10]
+
+// d_surf_pin = 3.95; // [1:0.01:10]
+d_surf_pin = 1.000000; // [1:0.01:10]
+
+d_plate_pin = 3.90; // [1:0.01:10]
 
 /* [Tolerances] */
 
@@ -89,7 +95,6 @@ $fn = 200;
 
 module cross_section(part) {
   a = 90 - a_range;
-  echo(a=a);
 
   // surface points clockwise from origin
   Ax = d_surf * cos(a);
@@ -138,15 +143,16 @@ module surf_half() {
           cross_section(part="surf");
 
       // braces to meet arm and at thirds 
-      color(c="blue")
+      color(c="blue") {
         translate(v=[0, 0, l_surf / 2 - t_arm])
           linear_extrude(h=t_arm, center=false)
             cross_section(part="arm");
-      translate(v=[0, 0, l_surf / 6 - t_arm * 2 / 3])
-        linear_extrude(h=t_arm, center=false)
-          cross_section(part="arm");
+        translate(v=[0, 0, l_surf / 6 - t_arm * 2 / 3])
+          linear_extrude(h=t_arm, center=false)
+            cross_section(part="arm");
+      }
     }
-    arm_pins_mask();
+    arm_pins_mask(d_pin=d_surf_pin);
   }
 }
 
@@ -156,13 +162,14 @@ module surf() {
     zflip() surf_half();
 }
 
-module arm_pins_mask(z_hinge) {
+module arm_pins_mask(z_hinge, d_pin) {
   // TODO: pin for lever
+  // TODO: make these line up
   rotate(a=-a_range) {
-    translate(v=[d_plate_pin, d_surf - d_plate_pin, 0])
-      cylinder(d=d_plate_pin, h=l_surf);
-    translate(v=[d_plate_pin, d_surf / 2, 0])
-      cylinder(d=d_plate_pin, h=l_surf);
+    translate(v=[d_pin, d_surf - d_pin, 0])
+      cylinder(d=d_pin, h=l_surf);
+    translate(v=[d_pin, d_surf / 2, 0])
+      cylinder(d=d_pin, h=l_surf);
   }
 }
 
@@ -206,7 +213,7 @@ module arm_half() {
     }
 
     color(c="red")
-      arm_pins_mask(z_hinge=z_hinge);
+      arm_pins_mask(z_hinge=z_hinge, d_pin=d_arm_pin);
   }
 }
 
@@ -252,12 +259,12 @@ module arms_hinge_mask(z_hinge) {
 }
 
 module plate_pins_mask(z_hinge) {
-  translate(v=[d_knuckle * 1.5, t_plate / 2, z_hinge / 2])
+  translate(v=[d_knuckle * 2, t_plate / 2, z_hinge / 2])
     rotate(a=90, v=[0, 1, 0])
       cylinder(d=d_plate_pin, h=h_plate);
 
-  translate(v=[d_surf * 1.5, t_plate / 2, 0])
-    cylinder(d=d_plate_pin, h=h_plate);
+  translate(v=[d_surf * 1.5, t_plate / 2, -l_arm])
+    cylinder(d=d_plate_pin, h=l_surf + l_arm);
 }
 
 // hinges far from origin, built at origin then flipped for simplicity

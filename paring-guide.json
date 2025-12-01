@@ -1,14 +1,14 @@
 {
     "fileFormatVersion": "1",
     "parameterSets": {
-        "POC2": {
+        "POC2.5": {
             "$fn": "200",
             "a_display": "-35",
             "a_range": "35",
             "d_hinge_pin": "3.8500000000000001",
             "d_plate_pin": "3.9500000000000002",
             "d_surf": "30",
-            "explode": "0",
+            "explode": "30",
             "gap_arm_plate": "0.10000000000000001",
             "gap_hinge_arms_plate": "0.5",
             "gap_hinge_knuckle": "0.20000000000000001",
@@ -21,7 +21,7 @@
             "n_hinge_segs": "5",
             "r_surf": "2",
             "t_arm": "5",
-            "t_hinge_knuckle": "2",
+            "t_hinge_knuckle": "3",
             "t_plate": "7",
             "t_surf": "10"
         }
