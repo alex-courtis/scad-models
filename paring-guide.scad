@@ -13,7 +13,7 @@ d_surf = 30; // [5:1:100]
 r_surf = 2; // [0:0.05:10]
 
 // thickness of the parable surface
-t_surf = 5; // [1:0.5:10]
+t_surf = 10; // [1:0.5:20]
 
 /* [Plate Dimensions] */
 
@@ -24,7 +24,10 @@ l_arm = 25; // [5:1:100]
 h_plate = 120; // [10:1:500]
 
 // thickness of the plate inside the vise
-t_plate = 5; // [1:0.5:30]
+t_plate = 7; // [1:0.5:30]
+
+// thickness of the arms under the plate
+t_arm = 5; // [1:0.1:30]
 
 /* [Capabilities] */
 
@@ -84,46 +87,67 @@ halves = false;
 
 $fn = 200;
 
-module cross_section_arms() {
-  difference() {
-    cross_section_surf_outer();
-    square([d_surf, t_plate + gap_arm_plate]);
+module cross_section(part) {
+  a = 90 - a_range;
+  echo(a=a);
+
+  // surface points clockwise from origin
+  Ax = d_surf * cos(a);
+  Ay = d_surf * sin(a);
+  Bx = Ax + t_surf * sin(a);
+  By = Ay - t_surf * cos(a);
+  Cx = t_surf / sin(a);
+  Cy = 0;
+
+  path_surf = [
+    [0, 0],
+    [Ax, Ay],
+    [Bx, By],
+    [Cx, Cy],
+  ];
+
+  // arm points clockwise from closest to origin
+  Tx = t_plate / tan(a);
+  Ty = t_plate;
+  // A
+  // B
+  Ux = Bx;
+  Uy = t_plate;
+
+  path_arm = [
+    [Tx, Ty + gap_arm_plate],
+    [Ax, Ay],
+    [Bx, By],
+    [Ux, Uy + gap_arm_plate],
+  ];
+
+  if (part == "surf") {
+    // round the back corner
+    polygon(round_corners(path_surf, radius=[0, r_surf, 0, 0], method="circle"));
+  } else if (part == "arm") {
+    // round the bottom and back corners
+    polygon(round_corners(path_arm, radius=[0, r_surf, 0, 0], method="circle"));
   }
 }
 
-poly_path = [
-  [0, 0],
-  [d_surf * cos(90 - a_range), d_surf * sin(90 - a_range)],
-  [d_surf, 0],
-];
-
-module cross_section_surf_outer() {
-  polygon(round_corners(poly_path, radius=[0, r_surf, 0], method="circle"));
-}
-
-module cross_section_surf_inner() {
-  dx = t_surf / tan((90 - a_range) / 2);
-  dy = t_surf;
-
-  translate(v=[dx, dy])
-    polygon(poly_path);
-}
-
 module surf_half() {
-  color(c="cornflowerblue")
-    difference() {
-      linear_extrude(h=l_surf / 2, center=false)
-        cross_section_surf_outer();
+  difference() {
+    union() {
+      color(c="cornflowerblue")
+        linear_extrude(h=l_surf / 2, center=false)
+          cross_section(part="surf");
 
-      // two braces close to the middle
-      z_gap1 = l_surf / 9;
-      z_gap2 = l_surf / 2 - z_gap1 - 2 * t_surf;
-      linear_extrude(h=z_gap1, center=false)
-        cross_section_surf_inner();
-      translate(v=[0, 0, z_gap1 + t_surf])
-        linear_extrude(h=z_gap2, center=false)
-          cross_section_surf_inner();
+      // braces to meet arm and at thirds 
+      color(c="blue")
+        translate(v=[0, 0, l_surf / 2 - t_arm])
+          linear_extrude(h=t_arm, center=false)
+            cross_section(part="arm");
+      translate(v=[0, 0, l_surf / 6 - t_arm * 2 / 3])
+        linear_extrude(h=t_arm, center=false)
+          cross_section(part="arm");
     }
+    arm_pins_mask();
+  }
 }
 
 module surf() {
@@ -133,13 +157,13 @@ module surf() {
 }
 
 module arm_pins_mask(z_hinge) {
-  translate(v=[d_surf * cos(90 - a_range), d_surf * sin(90 - a_range)])
-    cylinder(d=d_plate_pin, h=h_plate);
-}
-
-module arms_outer() {
-  linear_extrude(h=l_arm, center=false)
-    cross_section_arms();
+  // TODO: pin for lever
+  rotate(a=-a_range) {
+    translate(v=[d_plate_pin, d_surf - d_plate_pin, 0])
+      cylinder(d=d_plate_pin, h=l_surf);
+    translate(v=[d_plate_pin, d_surf / 2, 0])
+      cylinder(d=d_plate_pin, h=l_surf);
+  }
 }
 
 module arms_hinge(length, inner = true) {
@@ -172,7 +196,8 @@ module arm_half() {
     union() {
       color(c="cadetblue")
         translate(v=[0, 0, z_arms])
-          arms_outer();
+          linear_extrude(h=l_arm, center=false)
+            cross_section(part="arm");
 
       color(c="skyblue")
         translate(v=[0, 0, z_arms + dz_hinge])
@@ -181,7 +206,7 @@ module arm_half() {
     }
 
     color(c="red")
-      #arm_pins_mask(z_hinge=z_hinge);
+      arm_pins_mask(z_hinge=z_hinge);
   }
 }
 
@@ -241,7 +266,8 @@ module plate_half() {
 
   z_hinge = l_arm - gap_plate_sides; // side gap removed
 
-  x_cutout = d_surf + gap_plate_surf;
+  // TODO cut exactly
+  x_cutout = t_surf * 1.8; // + gap_plate_surf;
 
   offset_hinge_knuckle = d_knuckle / 2;
 
@@ -281,7 +307,8 @@ render() {
   translate(v=[0, -explode, 0])
     plate();
   rotate(a=a) {
-    surf();
+    translate(v=[explode, 0, 0])
+      surf();
     translate(v=[-explode, 0, 0])
       arms();
   }
