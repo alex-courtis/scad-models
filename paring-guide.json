@@ -7,14 +7,12 @@
             "a_range": "35",
             "d_hinge_pin": "3.8500000000000001",
             "d_plate_pin": "3.9500000000000002",
-            "d_surf": "30",
             "explode": "30",
             "gap_arm_plate": "0.10000000000000001",
             "gap_hinge_arms_plate": "0.5",
             "gap_hinge_knuckle": "0.20000000000000001",
             "gap_plate_sides": "0.20000000000000001",
             "gap_plate_surf": "0.20000000000000001",
-            "h_plate": "55",
             "halves": "false",
             "l_arm": "25",
             "l_surf": "75",
@@ -23,7 +21,9 @@
             "t_arm": "5",
             "t_hinge_knuckle": "3",
             "t_plate": "7",
-            "t_surf": "10"
+            "t_surf": "10",
+            "w_plate": "55",
+            "w_surf": "30"
         }
     }
 }

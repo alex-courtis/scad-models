@@ -6,8 +6,8 @@ include <BOSL2/hinges.scad>
 // length of the parable surface
 l_surf = 100; // [10:1:500]
 
-// depth of the parable surface
-d_surf = 30; // [5:1:100]
+// width of the parable surface
+w_surf = 30; // [5:1:100]
 
 // radius of the rear smoothing of the parable surface
 r_surf = 2; // [0:0.05:10]
@@ -21,7 +21,7 @@ t_surf = 10; // [1:0.5:20]
 l_arm = 25; // [5:1:100]
 
 // total height of the plate inside and above the vise
-h_plate = 120; // [10:1:500]
+w_plate = 120; // [10:1:500]
 
 // thickness of the plate inside the vise
 t_plate = 7; // [1:0.5:30]
@@ -32,7 +32,7 @@ t_arm = 5; // [1:0.1:30]
 /* [Capabilities] */
 
 // paring range up and down
-a_range = 35; // [0:1:45]
+a_range = 20; // [0:1:45]
 
 /* [Hinges] */
 
@@ -97,8 +97,8 @@ module cross_section(part) {
   a = 90 - a_range;
 
   // surface points clockwise from origin
-  Ax = d_surf * cos(a);
-  Ay = d_surf * sin(a);
+  Ax = w_surf * cos(a);
+  Ay = w_surf * sin(a);
   Bx = Ax + t_surf * sin(a);
   By = Ay - t_surf * cos(a);
   Cx = t_surf / sin(a);
@@ -166,9 +166,9 @@ module arm_pins_mask(z_hinge, d_pin) {
   // TODO: pin for lever
   // TODO: make these line up
   rotate(a=-a_range) {
-    translate(v=[d_pin, d_surf - d_pin, 0])
+    translate(v=[d_pin, w_surf - d_pin, 0])
       cylinder(d=d_pin, h=l_surf);
-    translate(v=[d_pin, d_surf / 2, 0])
+    translate(v=[d_pin, w_surf / 2, 0])
       cylinder(d=d_pin, h=l_surf);
   }
 }
@@ -177,7 +177,7 @@ module arms_hinge(length, inner = true) {
   knuckle_hinge(
     length=length,
     segs=n_hinge_segs,
-    offset=d_knuckle / 2 + d_surf / 2,
+    offset=d_knuckle / 2 + w_surf / 2,
     arm_height=0,
     arm_angle=90,
     gap=gap_hinge_knuckle,
@@ -254,16 +254,16 @@ module arms_hinge_mask(z_hinge) {
   for (i = [1 + n_hinge_segs % 2:2:n_hinge_segs]) {
     translate(v=[gap_hinge_arms_plate, 0, (i - 1) * z - i * gap_hinge_knuckle + z / 2])
       rotate(a=-a_range)
-        cube(size=[d_knuckle, h_plate * 2, z], center=true);
+        cube(size=[d_knuckle, w_plate * 2, z], center=true);
   }
 }
 
 module plate_pins_mask(z_hinge) {
   translate(v=[d_knuckle * 2, t_plate / 2, z_hinge / 2])
     rotate(a=90, v=[0, 1, 0])
-      cylinder(d=d_plate_pin, h=h_plate);
+      cylinder(d=d_plate_pin, h=w_plate);
 
-  translate(v=[d_surf * 1.5, t_plate / 2, -l_arm])
+  translate(v=[w_surf * 1.5, t_plate / 2, -l_arm])
     cylinder(d=d_plate_pin, h=l_surf + l_arm);
 }
 
@@ -281,7 +281,7 @@ module plate_half() {
   zflip(z=z_plate / 2) {
     difference() {
       color(c="chocolate")
-        cube(size=[h_plate, t_plate, z_plate], center=false);
+        cube(size=[w_plate, t_plate, z_plate], center=false);
 
       color(c="maroon")
         translate(v=[0, 0, z_hinge])
