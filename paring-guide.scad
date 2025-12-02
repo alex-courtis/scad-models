@@ -68,11 +68,15 @@ d_plate_pin = 3.90; // [1:0.01:10]
 // vertical gap between the plate and parable surface
 gap_plate_surf = 0.2; // [0:0.01:5]
 
+// TODO
+// height of the surface above the arms
+h_surf_arms = 0.8; // [0:0.01:5]
+
 // horizontal gap between the plate and parable surface
-gap_plate_sides = 0.2; // [0:0.01:5]
+gap_plate_sides = 0.4; // [0:0.01:5]
 
 // gap between the arm surface and the plate
-gap_arm_plate = 0.1; // [0:0.01:5]
+gap_arm_plate = 0.25; // [0:0.01:5]
 
 // gap between each hinge knuckle
 gap_hinge_knuckle = 0.2; // [0:0.01:5]
@@ -225,16 +229,13 @@ module arms() {
 }
 
 module plate_hinge(length, offset) {
-  a = asin((d_knuckle / 2) / sqrt(offset ^ 2 + t_plate ^ 2)) + atan(offset / t_plate);
-  echo(arm_angle_plate_hinge=a);
-
-  mirror(v=[0, 1, 0])
+  #mirror(v=[0, 1, 0])
     knuckle_hinge(
       length=length,
       segs=n_hinge_segs,
       offset=offset,
-      arm_height=0,
-      arm_angle=a,
+      arm_height=t_plate - d_knuckle / 2,
+      arm_angle=90,
       gap=gap_hinge_knuckle,
       knuckle_diam=d_knuckle,
       pin_diam=d_hinge_pin,
