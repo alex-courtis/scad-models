@@ -109,6 +109,7 @@ halves = false;
 
 $fn = 200;
 
+// see fig1
 module cross_section(part, d_pin) {
   a = 90 - a_range;
 
