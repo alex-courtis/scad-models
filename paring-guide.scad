@@ -3,21 +3,21 @@ include <BOSL2/hinges.scad>
 
 /* [Paring Surface Dimensions] */
 
-// length of the parable surface
+// length of the paring surface
 l_surf = 100; // [10:1:500]
 
-// width of the parable surface
+// width of the paring surface
 w_surf = 30; // [5:1:100]
 
-// radius of the rear smoothing of the parable surface
-r_surf = 2; // [0:0.05:10]
+// back of the paring surface
+chamfer_surf = 1.5; // [0:0.05:10]
 
-// thickness of the parable surface
-t_surf = 10; // [1:0.5:20]
+// thickness of the paring surface
+t_surf = 6; // [1:0.5:20]
 
 /* [Plate Dimensions] */
 
-// extends either side of the parable surface
+// extends either side of the paring surface
 l_arm = 25; // [5:1:100]
 
 // total height of the plate inside and above the vise
@@ -28,6 +28,15 @@ t_plate = 7; // [1:0.5:30]
 
 // thickness of the arms under the plate
 t_arm = 5; // [1:0.1:30]
+
+// height of the plate above the vise
+h_plate = 30; // [15:1:200]
+
+// size of the vise stop cutout
+t_stop = 10; // [1:1:20]
+
+// height of the arms; must be above h_plate
+h_arm = 24; // [1:1:20]
 
 /* [Capabilities] */
 
@@ -55,24 +64,27 @@ assert(t_plate >= d_knuckle / 2);
 n_hinge_segs = 5; // [2:1:11]
 
 /* [Supports] */
-// d_arm_pin = 4.00; // [1:0.01:10]
-d_arm_pin = 8.000000; // [1:0.01:10]
+d_arm_pin = 4.00; // [1:0.01:10]
 
-// d_surf_pin = 3.95; // [1:0.01:10]
-d_surf_pin = 1.000000; // [1:0.01:10]
+d_surf_pin = 3.8; // [1:0.01:10]
 
 d_plate_pin = 3.90; // [1:0.01:10]
 
+d_max_pin = max(d_arm_pin, d_surf_pin, d_plate_pin);
+echo(d_max_pin=d_max_pin);
+
+l_bottom_fitting = 15; // [1:0.01:10]
+
 /* [Tolerances] */
 
-// vertical gap between the plate and parable surface
+// vertical gap between the plate and paring surface
 gap_plate_surf = 0.2; // [0:0.01:5]
 
 // TODO
 // height of the surface above the arms
 h_surf_arms = 0.8; // [0:0.01:5]
 
-// horizontal gap between the plate and parable surface
+// horizontal gap between the plate and paring surface
 gap_plate_sides = 0.4; // [0:0.01:5]
 
 // gap between the arm surface and the plate
@@ -97,45 +109,92 @@ halves = false;
 
 $fn = 200;
 
-module cross_section(part) {
+module cross_section(part, d_pin) {
   a = 90 - a_range;
 
   // surface points clockwise from origin
   Ax = w_surf * cos(a);
   Ay = w_surf * sin(a);
-  Bx = Ax + t_surf * sin(a);
-  By = Ay - t_surf * cos(a);
-  Cx = t_surf / sin(a);
-  Cy = 0;
+
+  Bx = Ax + t_surf / sin(a);
+  By = Ay;
+
+  Fx = t_surf / sin(a);
+  Fy = 0;
 
   path_surf = [
     [0, 0],
     [Ax, Ay],
     [Bx, By],
-    [Cx, Cy],
+    [Fx, Fy],
   ];
 
-  // arm points clockwise from closest to origin
-  Tx = t_plate / tan(a);
-  Ty = t_plate;
-  // A
-  // B
-  Ux = Bx;
-  Uy = t_plate;
+  Cx = h_arm;
+  Cy = Ay;
+  Dx = h_arm;
+  Dy = t_plate + gap_arm_plate;
+  Ex = Fx + t_plate / tan(a) + gap_arm_plate / tan(a); // push out both gaps
+  Ey = t_plate + gap_arm_plate;
+
+  path_brace = [
+    [Bx, By],
+    [Cx, Cy],
+    [Dx, Dy],
+    [Ex, Ey],
+  ];
+
+  Gx = Ex - Fx;
+  Gy = Ey;
 
   path_arm = [
-    [Tx, Ty + gap_arm_plate],
+    [Gx, Gy],
     [Ax, Ay],
     [Bx, By],
-    [Ux, Uy + gap_arm_plate],
+    [Ex, Ey],
+  ];
+
+  centre_pin_lower = [
+    Cx - d_max_pin,
+    Cy - d_max_pin,
+  ];
+
+  centre_pin_upper = [
+    Ex + d_max_pin * cos(a),
+    Ey + d_max_pin * sin(a),
   ];
 
   if (part == "surf") {
-    // round the back corner
-    polygon(round_corners(path_surf, radius=[0, r_surf, 0, 0], method="circle"));
+    // chamfer the top edges
+    polygon(
+      round_corners(
+        path_surf,
+        width=[0, chamfer_surf, 0, 0],
+        method="chamfer"
+      )
+    );
+  } else if (part == "brace") {
+    // chamfer the bottom edges
+    polygon(
+      round_corners(
+        path_brace,
+        width=[0, chamfer_surf, 0, 0],
+        method="chamfer"
+      )
+    );
   } else if (part == "arm") {
-    // round the bottom and back corners
-    polygon(round_corners(path_arm, radius=[0, r_surf, 0, 0], method="circle"));
+    // chamfer the top edges
+    polygon(
+      round_corners(
+        path_arm, width=[0, chamfer_surf, 0, 0],
+        method="chamfer"
+      )
+    );
+  } else if (part == "arm_pin_lower") {
+    translate(v=centre_pin_lower)
+      circle(d=d_pin);
+  } else if (part == "arm_pin_upper") {
+    translate(v=centre_pin_upper)
+      circle(d=d_pin);
   }
 }
 
@@ -147,16 +206,24 @@ module surf_half() {
           cross_section(part="surf");
 
       // braces to meet arm and at thirds 
-      color(c="blue") {
+      color(c="turquoise")
         translate(v=[0, 0, l_surf / 2 - t_arm])
           linear_extrude(h=t_arm, center=false)
-            cross_section(part="arm");
+            cross_section(part="brace");
+
+      color(c="steelblue")
         translate(v=[0, 0, l_surf / 6 - t_arm * 2 / 3])
           linear_extrude(h=t_arm, center=false)
-            cross_section(part="arm");
-      }
+            cross_section(part="brace");
     }
-    arm_pins_mask(d_pin=d_surf_pin);
+
+    color(c="pink")
+      linear_extrude(h=l_surf / 2, center=false)
+        cross_section(part="arm_pin_upper", d_pin=d_surf_pin);
+
+    color(c="red")
+      linear_extrude(h=l_surf / 2, center=false)
+        cross_section(part="arm_pin_lower", d_pin=d_surf_pin);
   }
 }
 
@@ -166,19 +233,8 @@ module surf() {
     zflip() surf_half();
 }
 
-module arm_pins_mask(z_hinge, d_pin) {
-  // TODO: pin for lever
-  // TODO: make these line up
-  rotate(a=-a_range) {
-    translate(v=[d_pin, w_surf - d_pin, 0])
-      cylinder(d=d_pin, h=l_surf);
-    translate(v=[d_pin, w_surf / 2, 0])
-      cylinder(d=d_pin, h=l_surf);
-  }
-}
-
 module arms_hinge(length) {
-  #mirror(v=[0, 1, 0])
+  mirror(v=[0, 1, 0])
     knuckle_hinge(
       length=length,
       segs=n_hinge_segs,
@@ -206,10 +262,15 @@ module arm_half() {
 
   difference() {
     union() {
-      color(c="cadetblue")
+      color(c="blue")
         translate(v=[0, 0, z_arms])
           linear_extrude(h=l_arm, center=false)
             cross_section(part="arm");
+
+      color(c="cadetblue")
+        translate(v=[0, 0, z_arms])
+          linear_extrude(h=l_arm, center=false)
+            cross_section(part="brace");
 
       color(c="skyblue")
         translate(v=[0, 0, z_arms + dz_hinge])
@@ -217,8 +278,15 @@ module arm_half() {
             arms_hinge(length=z_hinge);
     }
 
-    color(c="red")
-      arm_pins_mask(z_hinge=z_hinge, d_pin=d_arm_pin);
+    color(c="pink")
+      translate(v=[0, 0, z_arms])
+        linear_extrude(h=z_arms / 2, center=false)
+          cross_section(part="arm_pin_lower", d_pin=d_arm_pin);
+
+    color(c="maroon")
+      translate(v=[0, 0, z_arms])
+        linear_extrude(h=z_arms / 2, center=false)
+          cross_section(part="arm_pin_upper", d_pin=d_arm_pin);
   }
 }
 
@@ -229,7 +297,7 @@ module arms() {
 }
 
 module plate_hinge(length, offset) {
-  #mirror(v=[0, 1, 0])
+  mirror(v=[0, 1, 0])
     knuckle_hinge(
       length=length,
       segs=n_hinge_segs,
@@ -260,13 +328,20 @@ module arms_hinge_mask(z_hinge) {
   }
 }
 
-module plate_pins_mask(z_hinge) {
+module plate_pins_mask(z_hinge, z_plate) {
   translate(v=[d_knuckle * 2, t_plate / 2, z_hinge / 2])
     rotate(a=90, v=[0, 1, 0])
       cylinder(d=d_plate_pin, h=w_plate);
 
-  translate(v=[w_surf * 1.5, t_plate / 2, -l_arm])
+  translate(v=[h_plate - d_plate_pin, t_plate / 2, -l_arm])
     cylinder(d=d_plate_pin, h=l_surf + l_arm);
+
+  translate(v=[h_plate - d_plate_pin, t_plate, d_plate_pin * 4])
+    rotate(a=90, v=[1, 0, 0])
+      cylinder(d=d_plate_pin, h=t_plate);
+
+  translate(v=[h_plate - t_stop, 0, z_plate - t_stop / 2])
+    cube(size=[t_stop, t_plate, t_stop / 2], center=false);
 }
 
 // hinges far from origin, built at origin then flipped for simplicity
@@ -276,7 +351,7 @@ module plate_half() {
   z_hinge = l_arm - gap_plate_sides; // side gap removed
 
   // TODO cut exactly
-  x_cutout = t_surf * 1.8; // + gap_plate_surf;
+  x_cutout = t_surf * 1.6; // + gap_plate_surf;
 
   offset_hinge_knuckle = d_knuckle / 2;
 
@@ -296,7 +371,7 @@ module plate_half() {
         arms_hinge_mask(z_hinge=z_hinge);
 
       color(c="red")
-        plate_pins_mask(z_hinge=z_hinge);
+        plate_pins_mask(z_hinge=z_hinge, z_plate);
     }
 
     color(c="goldenrod")
