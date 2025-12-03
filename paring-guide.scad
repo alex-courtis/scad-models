@@ -3,7 +3,6 @@ include <BOSL2/hinges.scad>
 
 /*
 TODO
-braces are separating from plate
 h_surf_arms
 fitting cutout size and shape
 fitting upper
@@ -16,13 +15,13 @@ fitting lower
 l_surf = 150; // [10:1:500]
 
 // width of the paring surface
-w_surf = 30; // [5:1:100]
+w_surf = 35; // [5:1:100]
 
 // back of the paring surface
-chamfer_surf = 1.5; // [0:0.05:10]
+chamfer_surf = 2.0; // [0:0.05:10]
 
 // thickness of the paring surface
-t_surf = 6; // [1:0.5:20]
+t_surf = 4; // [1:0.5:20]
 
 /* [Plate Dimensions] */
 
@@ -67,7 +66,7 @@ d_plate_pin_vert = 3.95; // [1:0.01:10]
 d_plate_pin_horiz = 4.00; // [1:0.01:10]
 
 // vise stop pin, inset from sides twice this
-d_plate_pin_stop = 3.90; // [1:0.01:10]
+d_plate_pin_stop = 3.95; // [1:0.01:10]
 
 d_max_arm_surf_pin = max(d_arm_pin, d_surf_pin);
 echo(d_max_arm_surf_pin=d_max_arm_surf_pin);
@@ -116,6 +115,7 @@ halves = false;
 show_plate = true;
 show_arms = true;
 show_surf = true;
+show_fitting_lower = true;
 
 $fn = 200; // [40:1:1000]
 
@@ -292,7 +292,7 @@ module arm_half() {
       color(c="cadetblue")
         translate(v=[0, 0, z_arms])
           linear_extrude(h=l_arm, center=false)
-            cross_section(part="brace");
+            cross_section(part="brace", dx_epsilon_brace=-0.0001);
 
       color(c="skyblue")
         translate(v=[0, 0, z_arms + dz_hinge])
@@ -399,8 +399,41 @@ module plate_half() {
         plate_pins_mask(z_hinge=z_hinge, z_plate);
     }
 
-    // color(c="goldenrod")
-    //   plate_hinge(length=z_hinge, offset=offset_hinge_knuckle);
+    color(c="goldenrod")
+      plate_hinge(length=z_hinge, offset=offset_hinge_knuckle);
+  }
+}
+
+module fitting_lower() {
+  h_fitting_lower = t_plate; // d_plate_pin_horiz * 2.0;
+  l_fitting_lower = 22.5;
+  t_fitting_lower = h_fitting_lower;//  - gap_hinge_knuckle * 0;
+
+  r_fitting_lower = h_fitting_lower / 2;
+
+  d_fitting_lower_thread = 3.95;
+
+  translate(v=[h_plate - h_fitting_lower, 0, -t_fitting_lower / 2]) {
+    difference() {
+      union() {
+        color(c="yellow")
+          translate(v=[0, r_fitting_lower, 0])
+            cube(size=[h_fitting_lower, l_fitting_lower, t_fitting_lower], center=false);
+
+        color(c="green")
+          translate(v=[r_fitting_lower, t_plate / 2, 0])
+            cylinder(r=t_plate / 2, h=t_fitting_lower);
+      }
+
+      color(c="maroon")
+        translate(v=[r_fitting_lower, t_plate / 2, 0])
+          cylinder(d=d_plate_pin_horiz, h=t_fitting_lower);
+
+      color(c="red")
+        translate(v=[h_fitting_lower / 2, l_fitting_lower + r_fitting_lower, t_fitting_lower / 2])
+          rotate(a=90, v=[1, 0, 0])
+            cylinder(d=d_fitting_lower_thread, h=l_fitting_lower);
+    }
   }
 }
 
@@ -415,9 +448,11 @@ module assemble() {
 
   translate(v=[0, -explode, 0]) if (show_plate) plate();
   rotate(a=a) {
-    translate(v=[explode, 0, 0]) if (show_surf) surf();
-    translate(v=[-explode, 0, 0]) if (show_arms) arms();
+    translate(v=[-explode, 0, 0]) if (show_surf) surf();
+    translate(v=[explode, 0, 0]) if (show_arms) arms();
   }
+
+  if (show_fitting_lower) fitting_lower();
 }
 
 render() assemble();
