@@ -120,7 +120,7 @@ show_surf = true;
 $fn = 200; // [40:1:1000]
 
 // see fig1
-module cross_section(part, d_pin) {
+module cross_section(part, d_pin, dx_epsilon_brace = 0) {
   a = 90 - a_range;
 
   // surface points clockwise from origin
@@ -133,13 +133,9 @@ module cross_section(part, d_pin) {
   Fx = t_surf / sin(a);
   Fy = 0;
 
-  path_surf = [
-    [0, 0],
-    [Ax, Ay],
-    [Bx, By],
-    [Fx, Fy],
-  ];
-
+  // brace points clockwise from origin
+  // Bx
+  // By
   Cx = h_arm;
   Cy = Ay;
   Dx = h_arm;
@@ -147,15 +143,29 @@ module cross_section(part, d_pin) {
   Ex = Fx + t_plate / tan(a) + gap_arm_plate / tan(a); // push out both gaps
   Ey = t_plate + gap_arm_plate;
 
-  path_brace = [
-    [Bx, By],
-    [Cx, Cy],
-    [Dx, Dy],
-    [Ex, Ey],
-  ];
-
+  // arm points clockwise from origin
   Gx = Ex - Fx;
   Gy = Ey;
+  // Ax
+  // Ay
+  // Bx
+  // By
+  // Ex
+  // Ey
+
+  path_surf = [
+    [0, 0],
+    [Ax, Ay],
+    [Bx, By],
+    [Fx, Fy],
+  ];
+
+  path_brace = [
+    [Bx + dx_epsilon_brace, By],
+    [Cx, Cy],
+    [Dx, Dy],
+    [Ex + dx_epsilon_brace, Ey],
+  ];
 
   path_arm = [
     [Gx, Gy],
@@ -171,8 +181,8 @@ module cross_section(part, d_pin) {
 
   // kiss the bottom plate surface
   centre_pin_upper = [
-    Fx + (Ey + d_max_arm_surf_pin) / tan(a) + (d_max_arm_surf_pin / 2) / sin(a),
-    Ey + d_max_arm_surf_pin,
+    Fx + (Ey + d_surf_pin) / tan(a) + (d_surf_pin / 2) / sin(a),
+    Ey + d_surf_pin,
   ];
 
   if (part == "surf") {
@@ -221,12 +231,12 @@ module surf_half() {
       color(c="turquoise")
         translate(v=[0, 0, l_surf / 2 - t_brace])
           linear_extrude(h=t_brace, center=false)
-            cross_section(part="brace");
+            cross_section(part="brace", dx_epsilon_brace=-0.0001);
 
       color(c="steelblue")
         translate(v=[0, 0, l_surf / 6 - t_brace * 2 / 3])
           linear_extrude(h=t_brace, center=false)
-            cross_section(part="brace");
+            cross_section(part="brace", dx_epsilon_brace=-0.0001);
     }
 
     color(c="pink")
