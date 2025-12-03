@@ -1,10 +1,20 @@
 include <BOSL2/std.scad>
 include <BOSL2/hinges.scad>
 
+/*
+TODO
+plate pin in braces only
+braces are separating from plate
+h_surf_arms
+fitting cutout size and shape
+fitting upper
+fitting lower
+*/
+
 /* [Paring Surface Dimensions] */
 
 // length of the paring surface
-l_surf = 100; // [10:1:500]
+l_surf = 150; // [10:1:500]
 
 // width of the paring surface
 w_surf = 30; // [5:1:100]
@@ -27,13 +37,10 @@ w_plate = 120; // [10:1:500]
 t_plate = 7; // [1:0.5:30]
 
 // thickness of the arms under the plate
-t_arm = 5; // [1:0.1:30]
+t_brace = 5; // [1:0.1:30]
 
 // height of the plate above the vise
 h_plate = 30; // [15:1:200]
-
-// size of the vise stop cutout
-t_stop = 10; // [1:1:20]
 
 // height of the arms; must be above h_plate
 h_arm = 24; // [1:1:20]
@@ -43,10 +50,30 @@ h_arm = 24; // [1:1:20]
 // paring range up and down
 a_range = 20; // [0:1:45]
 
-/* [Hinges] */
+/* [Pins] */
 
-// hinge pin diameter
+// hinge pin diameter - arms and plate
 d_hinge_pin = 3.85; // [1:0.01:10]
+
+// horizontal pins in arms
+d_arm_pin = 4.00; // [1:0.01:10]
+
+// horizontal pins below surface
+d_surf_pin = 3.85; // [1:0.01:10]
+
+// vertical pin through plate to hinges, d_knuckle from top, inside of hinge from sides
+d_plate_pin_vert = 3.95; // [1:0.01:10]
+
+// horizontal pin through plate for screw fitting
+d_plate_pin_horiz = 4.00; // [1:0.01:10]
+
+// vise stop pin, inset from sides twice this
+d_plate_pin_stop = 3.90; // [1:0.01:10]
+
+d_max_arm_surf_pin = max(d_arm_pin, d_surf_pin);
+echo(d_max_arm_surf_pin=d_max_arm_surf_pin);
+
+/* [Hinges] */
 
 // hinge knuckle thickness: radius beyond pin
 t_hinge_knuckle = 3; // [0:0.01:5]
@@ -63,24 +90,8 @@ assert(t_plate >= d_knuckle / 2);
 // total segments on both sides of the hinge
 n_hinge_segs = 5; // [2:1:11]
 
-/* [Supports] */
-d_arm_pin = 4.00; // [1:0.01:10]
-
-d_surf_pin = 3.8; // [1:0.01:10]
-
-d_plate_pin = 3.90; // [1:0.01:10]
-
-d_max_pin = max(d_arm_pin, d_surf_pin, d_plate_pin);
-echo(d_max_pin=d_max_pin);
-
-l_bottom_fitting = 15; // [1:0.01:10]
-
 /* [Tolerances] */
 
-// vertical gap between the plate and paring surface
-gap_plate_surf = 0.2; // [0:0.01:5]
-
-// TODO
 // height of the surface above the arms
 h_surf_arms = 0.8; // [0:0.01:5]
 
@@ -101,13 +112,13 @@ gap_hinge_arms_plate = 0.5; // [0:0.01:5]
 // model showing paring angle, positive is down
 a_display = -35; // [-90:1:90]
 
-// separate pieces
 explode = 0; // [0:1:100]
-
-// half pieces
 halves = false;
+show_plate = true;
+show_arms = true;
+show_surf = true;
 
-$fn = 200;
+$fn = 200; // [40:1:1000]
 
 // see fig1
 module cross_section(part, d_pin) {
@@ -155,13 +166,13 @@ module cross_section(part, d_pin) {
   ];
 
   centre_pin_lower = [
-    Cx - d_max_pin,
-    Cy - d_max_pin,
+    Cx - d_max_arm_surf_pin,
+    Cy - d_max_arm_surf_pin,
   ];
 
   centre_pin_upper = [
-    Ex + d_max_pin * cos(a),
-    Ey + d_max_pin * sin(a),
+    Ex + d_max_arm_surf_pin * cos(a),
+    Ey + d_max_arm_surf_pin * sin(a),
   ];
 
   if (part == "surf") {
@@ -190,10 +201,10 @@ module cross_section(part, d_pin) {
         method="chamfer"
       )
     );
-  } else if (part == "arm_pin_lower") {
+  } else if (part == "pin_lower") {
     translate(v=centre_pin_lower)
       circle(d=d_pin);
-  } else if (part == "arm_pin_upper") {
+  } else if (part == "pin_upper") {
     translate(v=centre_pin_upper)
       circle(d=d_pin);
   }
@@ -206,25 +217,25 @@ module surf_half() {
         linear_extrude(h=l_surf / 2, center=false)
           cross_section(part="surf");
 
-      // braces to meet arm and at thirds 
+      // braces to meet arm with thirds cutout
       color(c="turquoise")
-        translate(v=[0, 0, l_surf / 2 - t_arm])
-          linear_extrude(h=t_arm, center=false)
+        translate(v=[0, 0, l_surf / 2 - t_brace])
+          linear_extrude(h=t_brace, center=false)
             cross_section(part="brace");
 
       color(c="steelblue")
-        translate(v=[0, 0, l_surf / 6 - t_arm * 2 / 3])
-          linear_extrude(h=t_arm, center=false)
+        translate(v=[0, 0, l_surf / 6 - t_brace * 2 / 3])
+          linear_extrude(h=t_brace, center=false)
             cross_section(part="brace");
     }
 
-    color(c="pink")
+    #color(c="pink")
       linear_extrude(h=l_surf / 2, center=false)
-        cross_section(part="arm_pin_upper", d_pin=d_surf_pin);
+        cross_section(part="pin_upper", d_pin=d_surf_pin);
 
     color(c="red")
       linear_extrude(h=l_surf / 2, center=false)
-        cross_section(part="arm_pin_lower", d_pin=d_surf_pin);
+        cross_section(part="pin_lower", d_pin=d_surf_pin);
   }
 }
 
@@ -282,12 +293,12 @@ module arm_half() {
     color(c="pink")
       translate(v=[0, 0, z_arms])
         linear_extrude(h=z_arms / 2, center=false)
-          cross_section(part="arm_pin_lower", d_pin=d_arm_pin);
+          cross_section(part="pin_lower", d_pin=d_arm_pin);
 
     color(c="maroon")
       translate(v=[0, 0, z_arms])
         linear_extrude(h=z_arms / 2, center=false)
-          cross_section(part="arm_pin_upper", d_pin=d_arm_pin);
+          cross_section(part="pin_upper", d_pin=d_arm_pin);
   }
 }
 
@@ -330,19 +341,23 @@ module arms_hinge_mask(z_hinge) {
 }
 
 module plate_pins_mask(z_hinge, z_plate) {
-  translate(v=[d_knuckle * 2, t_plate / 2, z_hinge / 2])
+  // vertical pins
+  translate(v=[d_knuckle, t_plate / 2, z_hinge - d_plate_pin_vert / 2])
     rotate(a=90, v=[0, 1, 0])
-      cylinder(d=d_plate_pin, h=w_plate);
+      cylinder(d=d_plate_pin_vert, h=w_plate);
 
-  translate(v=[h_plate - d_plate_pin, t_plate / 2, -l_arm])
-    cylinder(d=d_plate_pin, h=l_surf + l_arm);
-
-  translate(v=[h_plate - d_plate_pin, t_plate, d_plate_pin * 4])
+  // vise stop
+  translate(v=[h_plate - d_plate_pin_stop / 2, t_plate, d_plate_pin_stop * 2.5])
     rotate(a=90, v=[1, 0, 0])
-      cylinder(d=d_plate_pin, h=t_plate);
+      cylinder(d=d_plate_pin_stop, h=t_plate);
 
-  translate(v=[h_plate - t_stop, 0, z_plate - t_stop / 2])
-    cube(size=[t_stop, t_plate, t_stop / 2], center=false);
+  // cutout for screw fitting
+  translate(v=[h_plate - d_plate_pin_horiz * 2.5, 0, z_plate - d_plate_pin_horiz])
+    cube(size=[d_plate_pin_horiz * 3.5, t_plate, d_plate_pin_horiz], center=false);
+
+  // horizontaly through the for screw fitting
+  translate(v=[h_plate - d_plate_pin_horiz / 2, t_plate / 2, -l_arm])
+    cylinder(d=d_plate_pin_horiz, h=l_surf + l_arm);
 }
 
 // hinges far from origin, built at origin then flipped for simplicity
@@ -351,7 +366,6 @@ module plate_half() {
 
   z_hinge = l_arm - gap_plate_sides; // side gap removed
 
-  // TODO cut exactly
   x_cutout = t_surf * 1.6; // + gap_plate_surf;
 
   offset_hinge_knuckle = d_knuckle / 2;
@@ -386,15 +400,14 @@ module plate() {
     zflip() plate_half();
 }
 
-render() {
+module assemble() {
   a = min(max(a_display, -a_range), a_range) + a_range;
 
-  translate(v=[0, -explode, 0])
-    plate();
+  translate(v=[0, -explode, 0]) if (show_plate) plate();
   rotate(a=a) {
-    translate(v=[explode, 0, 0])
-      surf();
-    translate(v=[-explode, 0, 0])
-      arms();
+    translate(v=[explode, 0, 0]) if (show_surf) surf();
+    translate(v=[-explode, 0, 0]) if (show_arms) arms();
   }
 }
+
+render() assemble();
