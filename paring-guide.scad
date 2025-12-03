@@ -3,7 +3,6 @@ include <BOSL2/hinges.scad>
 
 /*
 TODO
-plate pin in braces only
 braces are separating from plate
 h_surf_arms
 fitting cutout size and shape
@@ -170,9 +169,10 @@ module cross_section(part, d_pin) {
     Cy - d_max_arm_surf_pin,
   ];
 
+  // kiss the bottom plate surface
   centre_pin_upper = [
-    Ex + d_max_arm_surf_pin * cos(a),
-    Ey + d_max_arm_surf_pin * sin(a),
+    Fx + (Ey + d_max_arm_surf_pin) / tan(a) + (d_max_arm_surf_pin / 2) / sin(a),
+    Ey + d_max_arm_surf_pin,
   ];
 
   if (part == "surf") {
@@ -229,7 +229,7 @@ module surf_half() {
             cross_section(part="brace");
     }
 
-    #color(c="pink")
+    color(c="pink")
       linear_extrude(h=l_surf / 2, center=false)
         cross_section(part="pin_upper", d_pin=d_surf_pin);
 
@@ -347,16 +347,16 @@ module plate_pins_mask(z_hinge, z_plate) {
       cylinder(d=d_plate_pin_vert, h=w_plate);
 
   // vise stop
-  translate(v=[h_plate - d_plate_pin_stop / 2, t_plate, d_plate_pin_stop * 2.5])
+  translate(v=[h_plate - d_plate_pin_stop, t_plate, d_plate_pin_stop * 2.5])
     rotate(a=90, v=[1, 0, 0])
       cylinder(d=d_plate_pin_stop, h=t_plate);
 
   // cutout for screw fitting
-  translate(v=[h_plate - d_plate_pin_horiz * 2.5, 0, z_plate - d_plate_pin_horiz])
-    cube(size=[d_plate_pin_horiz * 3.5, t_plate, d_plate_pin_horiz], center=false);
+  translate(v=[h_plate - d_plate_pin_horiz * 3.0, 0, z_plate - d_plate_pin_horiz])
+    cube(size=[d_plate_pin_horiz * 4.0, t_plate, d_plate_pin_horiz], center=false);
 
   // horizontaly through the for screw fitting
-  translate(v=[h_plate - d_plate_pin_horiz / 2, t_plate / 2, -l_arm])
+  translate(v=[h_plate - d_plate_pin_horiz, t_plate / 2, -l_arm])
     cylinder(d=d_plate_pin_horiz, h=l_surf + l_arm);
 }
 
@@ -389,8 +389,8 @@ module plate_half() {
         plate_pins_mask(z_hinge=z_hinge, z_plate);
     }
 
-    color(c="goldenrod")
-      plate_hinge(length=z_hinge, offset=offset_hinge_knuckle);
+    // color(c="goldenrod")
+    //   plate_hinge(length=z_hinge, offset=offset_hinge_knuckle);
   }
 }
 
