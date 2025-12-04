@@ -406,10 +406,57 @@ module plate_half() {
 }
 
 module fitting_lower() {
+  d_thread = 4.20;
+  d_pin = 4.25;
+
+  h = t_plate;
+
+  // dx_body = -h * 0.12;
+  dx_body = -h * 0.20;
+  // dy_body = h * 0.08;
+  dy_body = h * 0.20;
+
+  t = 8 - gap_hinge_knuckle;
+  l = /*8 +*/ 23.5 + dx_body; // to centre of pin
+
+  translate(v=[h_plate - d_plate_pin_horiz, t_plate / 2, 0]) {
+    rotate(a=30)
+      difference() {
+        union() {
+          color(c="lawngreen") hull() {
+              cylinder(d=h, h=t, center=true);
+              translate(v=[dx_body, dy_body, 0])
+                cylinder(d=h, h=t, center=true);
+            }
+
+          color(c="darkgreen")
+            translate(v=[dx_body, l / 2 + dy_body, 0])
+              cube(size=[h, l, t], center=true);
+
+          dy = dy_body * 3;
+          color(c="lime")
+            translate(v=[dx_body, l / 2 + dy_body + dy / 2, 1])
+              cube(size=[h + 1, l - dy, t + 2], center=true);
+        }
+
+        color(c="red")
+          cylinder(d=d_pin, h=t, center=true);
+
+        #color(c="pink")
+          translate(v=[dx_body, l / 2 + dy_body, 1])
+            rotate(a=90, v=[1, 0, 0])
+              cylinder(d=d_thread, h=l, center=true);
+      }
+  }
+}
+
+module fitting_lower_hinge() {
   d_thread = 4.00;
   d_pin = 4.15;
 
-  h = t_plate;
+  knuckle_diam = t_plate * 0.9;
+
+  h = knuckle_diam / 2 + 0.0001;
 
   // dx_body = -h * 0.34;
   dx_body = -h * 0.12;
@@ -419,29 +466,52 @@ module fitting_lower() {
   t = 8 - gap_hinge_knuckle;
   l = 23.5 + dx_body; // to centre of pin
 
-  translate(v=[h_plate - d_plate_pin_horiz, t_plate / 2, 0]) {
-    difference() {
-      union() {
-        color(c="lawngreen") hull() {
-            cylinder(d=h, h=t, center=true);
-            translate(v=[dx_body, dy_body, 0])
-              cylinder(d=h, h=t, center=true);
-          }
+  aa = 45;
 
-        color(c="darkgreen")
-          translate(v=[dx_body, l / 2 + dy_body, 0])
-            cube(size=[h, l, t], center=true);
-      }
-
-      color(c="red")
-        cylinder(d=d_pin, h=t, center=true);
-
-      #color(c="pink")
-        translate(v=[dx_body, l / 2 + dy_body, 0])
-          rotate(a=90, v=[1, 0, 0])
-            cylinder(d=d_thread, h=l, center=true);
-    }
-  }
+  // translate(v=[h_plate - d_plate_pin_horiz, t_plate / 2, -t / 2])
+  // rotate(a=aa)
+  // mirror(v=[1, 0, 0])
+  //  knuckle_hinge(
+  //    length=t * 2,
+  //    segs=2,
+  //    offset=5,
+  //    arm_angle=aa,
+  //    arm_height=h,
+  //    orient=RIGHT,
+  //    anchor=LEFT,
+  //    spin=180,
+  //    gap=0,
+  //    pin_diam=d_pin,
+  //    knuckle_diam=knuckle_diam,
+  //    fill=false,
+  //    clear_top=true,
+  //  )
+  //  // position(BOTTOM + FRONT)
+  //  //   cuboid([t * 2, t * 1, t * 1])
+  // ;
+  cuboid([2, 40, 15])
+    position(TOP + RIGHT) orient(anchor=RIGHT)
+        knuckle_hinge(
+          length=t,
+          segs=2,
+          offset=3,
+          pin_fn=8
+        );
+  // knuckle_hinge(
+  //   length=t * 1,
+  //   segs=2,
+  //   offset=5,
+  //   arm_angle=aa,
+  //   arm_height=h,
+  //   // orient=RIGHT,
+  //   // anchor=LEFT,
+  //   // spin=180,
+  //   gap=0,
+  //   pin_diam=d_pin,
+  //   knuckle_diam=knuckle_diam,
+  //   fill=false,
+  //   clear_top=true,
+  // );
 }
 
 module fitting_upper() {
@@ -488,6 +558,7 @@ module assemble() {
   translate(v=[0, explode, 0]) rotate(a=a) if (show_arms) arms();
   translate(v=[0, -explode, 0]) if (show_fitting_upper) fitting_upper();
   translate(v=[0, -explode, 0]) if (show_fitting_lower) fitting_lower();
+  // translate(v=[0, -explode, 0]) fitting_lower_hinge();
 }
 
 render() assemble();
