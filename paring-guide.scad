@@ -406,29 +406,38 @@ module plate_half() {
 }
 
 module fitting_lower() {
-  d_thread = 3.95;
-  d_pin = 4.05;
+  d_thread = 4.00;
+  d_pin = 4.15;
+
+  h = t_plate;
+
+  // dx_body = -h * 0.34;
+  dx_body = -h * 0.12;
+  // dy_body = h * 0.0;
+  dy_body = h * 0.08;
 
   t = 8 - gap_hinge_knuckle;
-  l = 22.5;
-  h = t_plate;
+  l = 23.5 + dx_body; // to centre of pin
 
   translate(v=[h_plate - d_plate_pin_horiz, t_plate / 2, 0]) {
     difference() {
       union() {
-        color(c="lightgreen")
-          cylinder(d=h, h=t, center=true);
+        color(c="lawngreen") hull() {
+            cylinder(d=h, h=t, center=true);
+            translate(v=[dx_body, dy_body, 0])
+              cylinder(d=h, h=t, center=true);
+          }
 
         color(c="darkgreen")
-          translate(v=[0, l / 2, 0])
+          translate(v=[dx_body, l / 2 + dy_body, 0])
             cube(size=[h, l, t], center=true);
       }
 
       color(c="red")
         cylinder(d=d_pin, h=t, center=true);
 
-      color(c="pink")
-        translate(v=[0, l / 2, 0])
+      #color(c="pink")
+        translate(v=[dx_body, l / 2 + dy_body, 0])
           rotate(a=90, v=[1, 0, 0])
             cylinder(d=d_thread, h=l, center=true);
     }
@@ -436,12 +445,14 @@ module fitting_lower() {
 }
 
 module fitting_upper() {
-  d_bolt = 4.00;
-  d_pin = 4.05;
+  d_bolt = 4.10;
+  d_pin = 4.15;
 
-  t = 15;
+  t = 25;
   h = (7 - 2.5) * 2;
-  l = 10;
+  l = 12.5;
+
+  h_bolt = h - 2;
 
   difference() {
     union() {
@@ -449,8 +460,8 @@ module fitting_upper() {
         cylinder(d=h, h=t, center=true);
 
       color(c="yellow")
-        translate(v=[0, l / 2, 0])
-          cube(size=[h, l, t], center=true);
+        translate(v=[(h_bolt - h) / 2, l / 2, 0])
+          cube(size=[h_bolt, l, t], center=true);
     }
 
     color(c="red")
