@@ -108,7 +108,7 @@ gap_hinge_arms_plate = 0.5; // [0:0.01:5]
 /* [Dev] */
 
 // model showing paring angle, positive is down
-a_display = -35; // [-90:1:90]
+a_display = -20; // [-45:1:45]
 
 explode = 0; // [0:1:100]
 halves = false;
@@ -116,6 +116,7 @@ show_plate = true;
 show_arms = true;
 show_surf = true;
 show_fitting_lower = true;
+show_fitting_upper = true;
 
 $fn = 200; // [40:1:1000]
 
@@ -405,35 +406,60 @@ module plate_half() {
 }
 
 module fitting_lower() {
-  h_fitting_lower = t_plate; // d_plate_pin_horiz * 2.0;
-  l_fitting_lower = 22.5;
-  t_fitting_lower = h_fitting_lower;//  - gap_hinge_knuckle * 0;
+  d_thread = 3.95;
+  d_pin = 4.05;
 
-  r_fitting_lower = h_fitting_lower / 2;
+  t = 8 - gap_hinge_knuckle;
+  l = 22.5;
+  h = t_plate;
 
-  d_fitting_lower_thread = 3.95;
-
-  translate(v=[h_plate - h_fitting_lower, 0, -t_fitting_lower / 2]) {
+  translate(v=[h_plate - d_plate_pin_horiz, t_plate / 2, 0]) {
     difference() {
       union() {
-        color(c="yellow")
-          translate(v=[0, r_fitting_lower, 0])
-            cube(size=[h_fitting_lower, l_fitting_lower, t_fitting_lower], center=false);
+        color(c="lightgreen")
+          cylinder(d=h, h=t, center=true);
 
-        color(c="green")
-          translate(v=[r_fitting_lower, t_plate / 2, 0])
-            cylinder(r=t_plate / 2, h=t_fitting_lower);
+        color(c="darkgreen")
+          translate(v=[0, l / 2, 0])
+            cube(size=[h, l, t], center=true);
       }
 
-      color(c="maroon")
-        translate(v=[r_fitting_lower, t_plate / 2, 0])
-          cylinder(d=d_plate_pin_horiz, h=t_fitting_lower);
-
       color(c="red")
-        translate(v=[h_fitting_lower / 2, l_fitting_lower + r_fitting_lower, t_fitting_lower / 2])
+        cylinder(d=d_pin, h=t, center=true);
+
+      color(c="pink")
+        translate(v=[0, l / 2, 0])
           rotate(a=90, v=[1, 0, 0])
-            cylinder(d=d_fitting_lower_thread, h=l_fitting_lower);
+            cylinder(d=d_thread, h=l, center=true);
     }
+  }
+}
+
+module fitting_upper() {
+  d_bolt = 4.00;
+  d_pin = 4.05;
+
+  t = 15;
+  h = (7 - 2.5) * 2;
+  l = 10;
+
+  difference() {
+    union() {
+      color(c="darkkhaki")
+        cylinder(d=h, h=t, center=true);
+
+      color(c="yellow")
+        translate(v=[0, l / 2, 0])
+          cube(size=[h, l, t], center=true);
+    }
+
+    color(c="red")
+      cylinder(d=d_pin, h=t, center=true);
+
+    color(c="pink")
+      translate(v=[0, l - d_bolt, 0])
+        rotate(a=90, v=[0, 1, 0])
+          cylinder(d=d_pin, h=h, center=true);
   }
 }
 
@@ -446,13 +472,11 @@ module plate() {
 module assemble() {
   a = min(max(a_display, -a_range), a_range) + a_range;
 
-  translate(v=[0, -explode, 0]) if (show_plate) plate();
-  rotate(a=a) {
-    translate(v=[-explode, 0, 0]) if (show_surf) surf();
-    translate(v=[explode, 0, 0]) if (show_arms) arms();
-  }
-
-  if (show_fitting_lower) fitting_lower();
+  if (show_plate) plate();
+  translate(v=[-explode, 0, 0]) rotate(a=a) if (show_surf) surf();
+  translate(v=[0, explode, 0]) rotate(a=a) if (show_arms) arms();
+  translate(v=[0, -explode, 0]) if (show_fitting_upper) fitting_upper();
+  translate(v=[0, -explode, 0]) if (show_fitting_lower) fitting_lower();
 }
 
 render() assemble();
