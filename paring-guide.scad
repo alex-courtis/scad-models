@@ -445,14 +445,14 @@ module fitting_lower() {
 }
 
 module fitting_upper() {
-  d_bolt = 4.10;
-  d_pin = 4.15;
+  d_bolt = 4.20;
+  d_pin = 4.25;
 
-  t = 25;
+  t = 12.5;
   h = (7 - 2.5) * 2;
   l = 12.5;
 
-  h_bolt = h - 2;
+  h_bolt = h / 2;
 
   difference() {
     union() {
@@ -460,15 +460,15 @@ module fitting_upper() {
         cylinder(d=h, h=t, center=true);
 
       color(c="yellow")
-        translate(v=[(h_bolt - h) / 2, l / 2, 0])
-          cube(size=[h_bolt, l, t], center=true);
+        translate(v=[-h / 2, l / 2, 0])
+          cube(size=[h, l, t], center=true);
     }
 
     color(c="red")
       cylinder(d=d_pin, h=t, center=true);
 
     color(c="pink")
-      translate(v=[0, l - d_bolt, 0])
+      translate(v=[-h_bolt, l - d_bolt, 0])
         rotate(a=90, v=[0, 1, 0])
           cylinder(d=d_pin, h=h, center=true);
   }
