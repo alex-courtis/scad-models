@@ -2,11 +2,23 @@ include <BOSL2/std.scad>
 include <BOSL2/hinges.scad>
 
 /*
-TODO
-h_surf_arms
-fitting cutout size and shape
-fitting upper
-fitting lower
+Surface depth cannot be greater than 30:
+- short chisels
+- deep joints
+
+h_plate should be <=20:
+- racking of piece
+
+Range ~15:
+- 5-7 rake generally for tables and chairs
+- 12-15 chair legs
+
+Surface must firmly contact piece. Tolerance offset may be necessary.
+
+Surface must be rigid across entire length. Consider resting on vise:
+- mid fitting to set angle
+- firmly lock down ends once in place
+- twisting is a problem
 */
 
 /* [Paring Surface Dimensions] */
@@ -89,9 +101,6 @@ assert(t_plate >= d_knuckle / 2);
 n_hinge_segs = 5; // [2:1:11]
 
 /* [Tolerances] */
-
-// height of the surface above the arms
-h_surf_arms = 0.8; // [0:0.01:5]
 
 // horizontal gap between the plate and paring surface
 gap_plate_sides = 0.4; // [0:0.01:5]
