@@ -59,45 +59,42 @@ module tenon(
   ratio = 7 / 18
 ) {
 
-  let (d = d - d_gap * 2) {
+  x_tenon = slot / cos(a);
 
-    x_tenon = slot / cos(a);
+  z_tenon = d * ratio - 2 * d_gap;
 
-    z_tenon = d * ratio;
+  tenon = skewed_rect(x=x_tenon, y=w, a1=a, a2=a);
+  rail1 = skewed_rect(x=l1, y=w, a1=0, a2=a);
+  rail2 = skewed_rect(x=l2, y=w, a1=a, a2=0);
 
-    tenon = skewed_rect(x=x_tenon, y=w, a1=a, a2=a);
-    rail1 = skewed_rect(x=l1, y=w, a1=0, a2=a);
-    rail2 = skewed_rect(x=l2, y=w, a1=a, a2=0);
+  difference() {
+    union() {
+      if (rail1)
+        translate(v=[-(l1 + x_tenon) / 2, 0, 0])
+          linear_extrude(h=d, center=true)
+            polygon(rail1);
 
-    difference() {
-      union() {
-        if (rail1)
-          translate(v=[-(l1 + x_tenon) / 2, 0, 0])
-            linear_extrude(h=d, center=true)
-              polygon(rail1);
+      if (tenon)
+        linear_extrude(h=z_tenon, center=true)
+          polygon(tenon);
 
-        if (tenon)
-          linear_extrude(h=z_tenon, center=true)
-            polygon(tenon);
+      if (rail2)
+        translate(v=[(l2 + x_tenon) / 2, 0, 0])
+          linear_extrude(h=d, center=true)
+            polygon(rail2);
+    }
 
-        if (rail2)
-          translate(v=[(l2 + x_tenon) / 2, 0, 0])
-            linear_extrude(h=d, center=true)
-              polygon(rail2);
+    // edge cuts
+    if (r) {
+      dx = slot / 2;
+      dz = z_tenon / 2;
+      if (rail1) {
+        edge_cyl(a=a, dx=-dx, dz=dz, r=r);
+        edge_cyl(a=a, dx=-dx, dz=-dz, r=r);
       }
-
-      // edge cuts
-      if (r) {
-        dx = slot / 2;
-        dz = z_tenon / 2;
-        if (rail1) {
-          edge_cyl(a=a, dx=-dx, dz=dz, r=r);
-          edge_cyl(a=a, dx=-dx, dz=-dz, r=r);
-        }
-        if (rail2) {
-          edge_cyl(a=a, dx=dx, dz=dz, r=r);
-          edge_cyl(a=a, dx=dx, dz=-dz, r=r);
-        }
+      if (rail2) {
+        edge_cyl(a=a, dx=dx, dz=dz, r=r);
+        edge_cyl(a=a, dx=dx, dz=-dz, r=r);
       }
     }
   }
@@ -180,7 +177,7 @@ module mortise(
 a = 10;
 d = 15;
 r = 0.3;
-tenon_gap = 0.025;
+tenon_gap = 0.02;
 d_gap = 0.0125;
 
 ratio = 5 / 15;
@@ -188,8 +185,7 @@ ratio = 5 / 15;
 render() {
   union() {
     translate(v=[0, 50, 0])
-      // rotate(a=90 + a)
-	  {
+      rotate(a=90 + a) {
         color(c="saddlebrown")
           tenon(
             slot=20,
@@ -197,7 +193,7 @@ render() {
             l2=5,
             w=15,
             d=d,
-			d_gap = d_gap,
+            d_gap=d_gap,
             a=a,
             r=r,
             ratio=ratio,
@@ -210,7 +206,7 @@ render() {
               l2=10,
               w=15,
               d=d,
-			d_gap = d_gap,
+              d_gap=d_gap,
               a=a,
               r=r,
               ratio=ratio,
@@ -230,7 +226,7 @@ render() {
         ratio=ratio,
       );
 
-    translate(v=[-35, 0, 0])
+    translate(v=[-34, 0, 0])
       color(c="goldenrod")
         mortise(
           l1=0,
