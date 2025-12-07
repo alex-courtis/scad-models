@@ -2,8 +2,16 @@ include <BOSL2/std.scad>
 
 $fn = 200;
 
-d_gap = 0.02;
-l_gap = 0.0125;
+d_gap = 1;
+d_gap_halving = 0.025;
+d_gap_mortise = 0.015;
+d_gap_tenon = 0.015;
+
+l_gap = 1;
+l_gap_halving = 0.0125;
+l_gap_mortise = 0.0250;
+l_gap_tenon = 0.0125;
+
 w = 20;
 d = 15;
 l = w;
@@ -92,6 +100,7 @@ module general(
     a2=a2,
   );
 
+  // TODO don't extend gap beyond ends when l1 or l2 zero
   body = [
     l1 ? [-l1 - l / 2, -w / 2] : slot[0], //A
     l1 ? [-l1 - l / 2, w / 2] : slot[1], // B
@@ -157,9 +166,10 @@ module halving(
   d = d,
   a1 = a1,
   a2 = a2,
-  l_gap = l_gap, // gap between shoulders, half of this is removed from each shoulder
-  d_gap = d_gap, // gap between cheeks, half of this is removed from the cheek
+  l_gap = l_gap_halving, // gap between shoulders, half of this is removed from each shoulder
+  d_gap = d_gap_halving, // gap between cheeks, half of this is removed from the cheek
   r_edge = r_edge, // radius of cylinder cut into edges of slot
+  inner = false,
 ) {
   general(
     l=l,
@@ -171,7 +181,8 @@ module halving(
     a2=a2,
     l_gap=l_gap,
     d_gap=d_gap,
-    r_edge=r_edge
+    r_edge=r_edge,
+    inner=inner,
   );
 }
 
@@ -183,9 +194,10 @@ module tenon(
   w = w,
   d = d,
   a = a1,
+  a2 = a2,
   ratio = 1 / 3,
-  l_gap = l_gap, // gap between shoulder and slot, half of this is removed from each
-  d_gap = d_gap, // gap between cheeks, half of this is removed from the cheek
+  l_gap = l_gap_tenon, // gap between shoulder and slot, half of this is removed from each
+  d_gap = d_gap_tenon, // gap between cheeks, half of this is removed from the cheek
   r_edge = r_edge, // radius of cylinder cut into edges of slot
 ) {
 
@@ -196,7 +208,7 @@ module tenon(
     w=w,
     d=d,
     a1=a,
-    a2=a,
+    a2=a2,
     ratios=[0.5 - ratio / 2, 0.5 + ratio / 2],
     l_gap=l_gap,
     d_gap=d_gap,
@@ -214,8 +226,8 @@ module mortise(
   d = d,
   a = a1,
   ratio = 1 / 3,
-  l_gap = l_gap, // gap between shoulders, half of this is removed from each shoulder
-  d_gap = d_gap, // gap between cheeks, half of this is removed from the cheek
+  l_gap = l_gap_mortise, // gap between shoulders, half of this is removed from each shoulder
+  d_gap = d_gap_mortise, // gap between cheeks, half of this is removed from the cheek
   r_edge = r_edge, // radius of cylinder cut into edges of slot
 ) {
   general(
@@ -235,10 +247,57 @@ module mortise(
 }
 
 render() {
-  bridles();
+  stool();
+  // translate(v=[200, 0, 0]) {
+  //   bridles();
+  //
+  //   translate(v=[0, 0, d * 4])
+  //     halvings();
+  // }
+}
 
-  translate(v=[0, 0, d * 4])
-    halvings();
+module stool() {
+  w = 20;
+  d = 30;
+  d_leg = 20;
+
+  translate(v=[0, 50, 0]) {
+
+    color(c="peru")
+      halving(a1=0, a2=0, w=w, d=d, l1=10, l2=10);
+
+    color(c="chocolate")
+      translate(v=[75, 0, 0])
+        rotate(a=-90, v=[1, 0, 0])
+          tenon(a=8, a2=-8, w=d, d=w, l=d_leg * 2, l1=35, l2=0);
+
+    color(c="saddlebrown")
+      translate(v=[-75, 0, 0])
+        rotate(a=90, v=[1, 0, 0])
+          tenon(a=0, a2=8, w=d, d=w, l=d_leg * 2, l1=0, l2=35);
+  }
+
+  {
+    color(c="burlywood")
+      halving(a1=0, a2=0, w=w, d=d, l1=10, l2=10, inner=true);
+
+    color(c="sienna")
+      translate(v=[65, 0, 0])
+        rotate(a=-90, v=[1, 0, 0])
+          tenon(a=8, a2=8, w=d, d=w, l=d_leg, l1=35, l2=0);
+
+    color(c="rosybrown")
+      translate(v=[-75, 0, 0])
+        rotate(a=90, v=[1, 0, 0])
+          tenon(a=8, a2=8, w=d, d=w, l=d_leg * 2, l1=0, l2=35);
+  }
+
+  {
+    color(c="orange")
+      translate(v=[0, -50, 0]) {
+        mortise(a=8, w=d_leg, l=w * 2, l1=20, l2=0);
+      }
+  }
 }
 
 module halvings() {
