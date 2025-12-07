@@ -2,7 +2,7 @@ include <BOSL2/std.scad>
 
 $fn = 200;
 
-d_gap = 0.0125;
+d_gap = 0.02;
 l_gap = 0.0125;
 w = 20;
 d = 15;
@@ -60,8 +60,6 @@ module edge_cyl(a, dx, dz, r, h = 300) {
         cylinder(r=r, h=h, center=true);
 }
 
-// TODO: oblique end for corner bridles and rebates
-
 // origin at cheek centre
 module general(
   l = l, // shoulder to shoulder
@@ -80,17 +78,25 @@ module general(
 
   slot = skewed_rect(
     y=w,
+    d1=(l + l_gap) / 2,
+    d2=(l + l_gap) / 2,
+    a1=a1,
+    a2=a2,
+  );
+
+  edges = skewed_rect(
+    y=w + 2 * r_edge,
     d1=l / 2 + l_gap / 2,
     d2=l / 2 + l_gap / 2,
-    a1=l1 ? a1 : 0,
-    a2=l2 ? a2 : 0
+    a1=a1,
+    a2=a2,
   );
 
   body = [
-    [-l1 - l / 2, -w / 2],
-    [-l1 - l / 2, w / 2],
-    [l2 + l / 2, w / 2],
-    [l2 + l / 2, -w / 2],
+    l1 ? [-l1 - l / 2, -w / 2] : slot[0], //A
+    l1 ? [-l1 - l / 2, w / 2] : slot[1], // B
+    l2 ? [l2 + l / 2, w / 2] : slot[2], // C
+    l2 ? [l2 + l / 2, -w / 2] : slot[3], // D
   ];
 
   // cheek /slot bottom from origin
@@ -110,7 +116,7 @@ module general(
     for (i = [0:1:len(zs) - 1]) {
       difference() {
 
-        // material
+        // all
         translate(v=[0, 0, dzs[i]])
           linear_extrude(h=zs[i], center=false)
             polygon(body);
@@ -129,19 +135,12 @@ module general(
     if (r_edge) {
       for (i = [0:1:len(zs) - 1]) {
         if (i > 0) {
-          cyls = skewed_rect(
-            y=w + 2 * r_edge,
-            d1=l / 2 + l_gap / 2,
-            d2=l / 2 + l_gap / 2,
-            a1=l1 ? a1 : 0,
-            a2=l2 ? a2 : 0
-          );
           translate(v=[0, 0, dzs[i]]) {
             if (l1)
-              extrude_from_to(pt1=cyls[0], pt2=cyls[1])
+              extrude_from_to(pt1=edges[0], pt2=edges[1])
                 circle(r=r_edge);
             if (l2)
-              extrude_from_to(pt1=cyls[2], pt2=cyls[3])
+              extrude_from_to(pt1=edges[2], pt2=edges[3])
                 circle(r=r_edge);
           }
         }
@@ -151,7 +150,7 @@ module general(
 }
 
 module halving(
-  l = w, // shoulder to shoulder
+  l = l, // shoulder to shoulder
   l1 = l1, // end to near mid shoulder
   l2 = l2, // end to near mid shoulder
   w = w,
@@ -178,7 +177,7 @@ module halving(
 
 // origin at tenon centre
 module tenon(
-  l = w, // width of the slot
+  l = l, // width of the slot
   l1 = l1, // rail from mid shoulder edge, negative x
   l2 = l2, // rail from mid shoulder edge, positive x
   w = w,
@@ -196,8 +195,8 @@ module tenon(
     l2=l2,
     w=w,
     d=d,
-    a1=a1,
-    a2=a2,
+    a1=a,
+    a2=a,
     ratios=[0.5 - ratio / 2, 0.5 + ratio / 2],
     l_gap=l_gap,
     d_gap=d_gap,
@@ -208,7 +207,7 @@ module tenon(
 
 // origin at slot centre
 module mortise(
-  tenon = w, // width of the tenon
+  l = l, // width of the tenon
   l1 = l1, // style from mid slot edge, negative x
   l2 = l2, // style from mid slot edge, positive x
   w = w,
@@ -225,8 +224,8 @@ module mortise(
     l2=l2,
     w=w,
     d=d,
-    a1=a1,
-    a2=a2,
+    a1=a,
+    a2=a,
     ratios=[0.5 - ratio / 2, 0.5 + ratio / 2],
     l_gap=l_gap,
     d_gap=d_gap,
@@ -287,7 +286,6 @@ module bridles() {
     color(c="burlywood")
       translate(v=[0, 0, d * 2])
         mortise(
-          a=-8,
         );
 
     color(c="wheat")
