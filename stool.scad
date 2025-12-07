@@ -2,26 +2,6 @@ include <BOSL2/std.scad>
 
 $fn = 200;
 
-d_gap = 1;
-d_gap_halving = 0.025;
-d_gap_mortise = 0.015;
-d_gap_tenon = 0.015;
-
-l_gap = 1;
-l_gap_halving = 0.0125;
-l_gap_mortise = 0.0250;
-l_gap_tenon = 0.0125;
-
-w = 20;
-d = 15;
-l = w;
-l1 = 10;
-l2 = 10;
-a1 = 8;
-a2 = 8;
-ratios = [0.5];
-r_edge = 0.2;
-
 /*
  Return poly ABCD
  d1 is perpendicular from AB to O
@@ -61,27 +41,20 @@ function skewed_rect(x, y, d1, d2, a1, a2) =
     ]
   : undef;
 
-module edge_cyl(a, dx, dz, r, h = 300) {
-  rotate(a=-a, v=[0, 0, 1])
-    translate(v=[dx, 0, dz])
-      rotate(a=90, v=[1, 0, 0])
-        cylinder(r=r, h=h, center=true);
-}
-
-// origin at cheek centre
+// origin at joint centre
 module general(
-  l = l, // shoulder to shoulder
-  l1 = l1, // end to near mid shoulder
-  l2 = l2, // end to near mid shoulder
-  w = w,
-  d = d,
-  a1 = a1,
-  a2 = a2,
-  ratios = ratios, // cuts in d, ascending order
+  l = l, // x shoulder to shoulder
+  l1 = l1, // -x end to near mid shoulder
+  l2 = l2, // +x end to near mid shoulder
+  w = w, // y
+  d = d, // z
+  a1 = a1, // -x
+  a2 = a2, // +x
+  ratios = [1 / 4, 1 / 2, 3 / 4], // cuts in d, increasing z order
   l_gap = l_gap, // gap between shoulders, half of this is removed from each shoulder
   d_gap = d_gap, // gap between cheeks, half of this is removed from the cheek
   r_edge = r_edge, // radius of cylinder cut into edges of slot
-  inner = false, // slot at bottom else cheek
+  inner = false, // true for slot at bottom
 ) {
 
   slot = skewed_rect(
@@ -158,199 +131,118 @@ module general(
   }
 }
 
+// print with cheek facing up, gaps for 0.6
 module halving(
-  l = l, // shoulder to shoulder
-  l1 = l1, // end to near mid shoulder
-  l2 = l2, // end to near mid shoulder
+  l = l,
+  l1 = l1,
+  l2 = l2,
   w = w,
   d = d,
-  a1 = a1,
-  a2 = a2,
-  l_gap = l_gap_halving, // gap between shoulders, half of this is removed from each shoulder
-  d_gap = d_gap_halving, // gap between cheeks, half of this is removed from the cheek
-  r_edge = r_edge, // radius of cylinder cut into edges of slot
+  a1 = 0,
+  a2 = 0,
+  l_gap = 0.01,
+  d_gap = 0.025,
+  r_edge = 0.015,
   inner = false,
 ) {
   general(
-    l=l,
-    l1=l1,
-    l2=l2,
-    w=w,
-    d=d,
-    a1=a1,
-    a2=a2,
-    l_gap=l_gap,
-    d_gap=d_gap,
-    r_edge=r_edge,
+    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2,
+    ratios=[1 / 2],
+    l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
     inner=inner,
   );
 }
 
-// origin at tenon centre
+// print with vertical cheeks, gaps for 0.6
 module tenon(
   l = l, // width of the slot
-  l1 = l1, // rail from mid shoulder edge, negative x
-  l2 = l2, // rail from mid shoulder edge, positive x
+  l1 = l1,
+  l2 = l2,
   w = w,
   d = d,
-  a = a1,
+  a1 = a1,
   a2 = a2,
-  ratio = 1 / 3,
-  l_gap = l_gap_tenon, // gap between shoulder and slot, half of this is removed from each
-  d_gap = d_gap_tenon, // gap between cheeks, half of this is removed from the cheek
-  r_edge = r_edge, // radius of cylinder cut into edges of slot
+  ratio = 1 / 3, // of the tenon
+  l_gap = 0.0250,
+  d_gap = 0.015,
+  r_edge = 0.2,
 ) {
 
   general(
-    l=l,
-    l1=l1,
-    l2=l2,
-    w=w,
-    d=d,
-    a1=a,
-    a2=a2,
-    ratios=[0.5 - ratio / 2, 0.5 + ratio / 2],
-    l_gap=l_gap,
-    d_gap=d_gap,
-    r_edge=r_edge,
+    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2,
+    ratios=[(1 - ratio) / 2, (1 + ratio) / 2],
+    l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
     inner=true,
   );
 }
 
-// origin at slot centre
+// print with vertical slot, gaps for 0.6
 module mortise(
   l = l, // width of the tenon
-  l1 = l1, // style from mid slot edge, negative x
-  l2 = l2, // style from mid slot edge, positive x
+  l1 = l1,
+  l2 = l2,
   w = w,
   d = d,
-  a = a1,
-  ratio = 1 / 3,
-  l_gap = l_gap_mortise, // gap between shoulders, half of this is removed from each shoulder
-  d_gap = d_gap_mortise, // gap between cheeks, half of this is removed from the cheek
-  r_edge = r_edge, // radius of cylinder cut into edges of slot
+  a1 = a1,
+  a2 = a2,
+  ratio = 1 / 3, // of the slot
+  l_gap = 0.0250,
+  d_gap = 0.015,
+  r_edge = 0.2,
 ) {
   general(
-    l=l,
-    l1=l1,
-    l2=l2,
-    w=w,
-    d=d,
-    a1=a,
-    a2=a,
-    ratios=[0.5 - ratio / 2, 0.5 + ratio / 2],
-    l_gap=l_gap,
-    d_gap=d_gap,
-    r_edge=r_edge,
+    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2,
+    ratios=[(1 - ratio) / 2, (1 + ratio) / 2],
+    l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
     inner=false,
   );
 }
 
 render() {
   stool();
-  // translate(v=[200, 0, 0]) {
-  //   bridles();
-  //
-  //   translate(v=[0, 0, d * 4])
-  //     halvings();
-  // }
 }
 
 module stool() {
   w = 20;
+  l = w;
   d = 30;
   d_leg = 20;
 
   translate(v=[0, 50, 0]) {
 
     color(c="peru")
-      halving(a1=0, a2=0, w=w, d=d, l1=10, l2=10);
+      halving(a1=0, a2=0, w=w, d=d, l=l, l1=10, l2=10);
 
     color(c="chocolate")
       translate(v=[75, 0, 0])
         rotate(a=-90, v=[1, 0, 0])
-          tenon(a=8, a2=-8, w=d, d=w, l=d_leg * 2, l1=35, l2=0);
+          tenon(a1=8, a2=-8, w=d, d=w, l=d_leg * 2, l1=35, l2=0);
 
     color(c="saddlebrown")
       translate(v=[-75, 0, 0])
         rotate(a=90, v=[1, 0, 0])
-          tenon(a=0, a2=8, w=d, d=w, l=d_leg * 2, l1=0, l2=35);
+          tenon(a1=0, a2=8, w=d, d=w, l=d_leg * 2, l1=0, l2=35);
   }
 
   {
     color(c="burlywood")
-      halving(a1=0, a2=0, w=w, d=d, l1=10, l2=10, inner=true);
+      halving(a1=0, a2=0, w=w, d=d, l=l, l1=10, l2=10, inner=true);
 
     color(c="sienna")
       translate(v=[65, 0, 0])
         rotate(a=-90, v=[1, 0, 0])
-          tenon(a=8, a2=8, w=d, d=w, l=d_leg, l1=35, l2=0);
+          tenon(a1=8, a2=8, w=d, d=w, l=d_leg, l1=35, l2=0);
 
     color(c="rosybrown")
       translate(v=[-75, 0, 0])
         rotate(a=90, v=[1, 0, 0])
-          tenon(a=8, a2=8, w=d, d=w, l=d_leg * 2, l1=0, l2=35);
+          tenon(a1=8, a2=8, w=d, d=w, l=d_leg * 2, l1=0, l2=35);
   }
 
   {
     color(c="orange")
       translate(v=[0, -50, 0]) {
-        mortise(a=8, w=d_leg, l=w * 2, l1=20, l2=0);
+        mortise(a1=8, a2=8, w=d_leg, l=w * 2, l1=20, l2=0, d=15);
       }
-  }
-}
-
-module halvings() {
-  union() {
-    color(c="peru")
-      halving(
-        a1=a1,
-        a2=a2,
-      );
-
-    color(c="chocolate")
-      translate(v=[l1 + l2 + w, 0, 0])
-        halving(
-          a1=0,
-          a2=0,
-        );
-
-    color(c="saddlebrown")
-      translate(v=[0, 0, d * 2])
-        halving(
-          a1=a1,
-          a2=a2,
-        );
-
-    color(c="tan")
-      translate(v=[l1 + l2 + w, 0, d * 2])
-        halving(
-          a1=0,
-          a2=0,
-        );
-  }
-}
-
-module bridles() {
-  union() {
-    color(c="sienna") tenon(
-      );
-
-    color(c="rosybrown")
-      translate(v=[l1 + l2 + w, 0, 0])
-        tenon(
-          l2=0
-        );
-
-    color(c="burlywood")
-      translate(v=[0, 0, d * 2])
-        mortise(
-        );
-
-    color(c="wheat")
-      translate(v=[l1 + l2 + w, 0, d * 2])
-        mortise(
-          l2=0,
-        );
   }
 }
