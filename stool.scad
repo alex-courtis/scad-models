@@ -6,10 +6,12 @@ d_gap = 0.0125;
 l_gap = 0.0125;
 w = 20;
 d = 15;
+l = w;
 l1 = 10;
 l2 = 10;
 a1 = 8;
 a2 = 8;
+ratios = [0.5];
 r_edge = 0.2;
 
 /*
@@ -226,18 +228,19 @@ module mortise(
 }
 
 // origin at cheek centre
-module halving(
-  l = w, // shoulder to shoulder
+module general(
+  l = l, // shoulder to shoulder
   l1 = l1, // end to near mid shoulder
   l2 = l2, // end to near mid shoulder
   w = w,
   d = d,
   a1 = a1,
   a2 = a2,
-  ratio = 0.5,
+  ratios = ratios, // cuts in d, ascending order
   l_gap = l_gap, // gap between shoulders, half of this is removed from each shoulder
   d_gap = d_gap, // gap between cheeks, half of this is removed from the cheek
   r_edge = r_edge, // radius of cylinder cut into edges of slot
+  inner = false, // slot at bottom else cheek
 ) {
 
   slot = skewed_rect(
@@ -255,49 +258,92 @@ module halving(
     [l2 + l / 2, -w / 2],
   ];
 
-  d_lower = d * ratio - d_gap / 2;
-  d_upper = d - d_lower;
+
+  // cheek /slot bottom from origin
+  im = inner ? 1 : -1;
+  dzs = [
+    -d / 2,
+    for (i = [0:1:len(ratios) - 1]) -d / 2 + ratios[i] * d + (i % 2 == 0 ? im : -im) * d_gap / 2,
+    d / 2,
+  ];
+
+  // cheek / slot heights
+  zs = [
+    for (i = [0:1:len(dzs) - 2]) dzs[i + 1] - dzs[i],
+  ];
 
   difference() {
-    union() {
+    for (i = [0:1:len(zs) - 1]) {
+      difference() {
 
-      // lower
-      translate(v=[0, 0, -d_upper / 2])
-        linear_extrude(h=d_lower, center=true)
-          polygon(body);
-
-      // upper
-      translate(v=[0, 0, d_lower / 2])
-        linear_extrude(h=d_upper, center=true)
-          difference() {
+        // material
+        translate(v=[0, 0, dzs[i]])
+          linear_extrude(h=zs[i], center=false)
             polygon(body);
-            polygon(slot);
-          }
+
+        // maybe subtract slot
+        if (inner && (i % 2 == 0) || !inner && (i % 2 == 1)) {
+          translate(v=[0, 0, dzs[i]])
+            linear_extrude(h=zs[i], center=false)
+              polygon(slot);
+        }
+      }
     }
 
-    // sharpen edges
-    cyls = skewed_rect(
-      y=w + 2 * r_edge,
-      d1=l / 2 + l_gap / 2,
-      d2=l / 2 + l_gap / 2,
-      a1=l1 ? a1 : 0,
-      a2=l2 ? a2 : 0
-    );
-    translate(v=[0, 0, (d_lower - d_upper) / 2]) {
-      if (l1)
-        extrude_from_to(pt1=cyls[0], pt2=cyls[1])
-          circle(r=r_edge);
-      if (l2)
-        extrude_from_to(pt1=cyls[2], pt2=cyls[3])
-          circle(r=r_edge);
+    // sharpen edges for printing
+    // do this after the body to ensure manifold integrity
+    for (i = [0:1:len(zs) - 1]) {
+      if (i > 0) {
+        cyls = skewed_rect(
+          y=w + 2 * r_edge,
+          d1=l / 2 + l_gap / 2,
+          d2=l / 2 + l_gap / 2,
+          a1=l1 ? a1 : 0,
+          a2=l2 ? a2 : 0
+        );
+        translate(v=[0, 0, dzs[i]]) {
+          if (l1)
+            extrude_from_to(pt1=cyls[0], pt2=cyls[1])
+              circle(r=r_edge);
+          if (l2)
+            extrude_from_to(pt1=cyls[2], pt2=cyls[3])
+              circle(r=r_edge);
+        }
+      }
     }
   }
+}
+
+module halving(
+  l = w, // shoulder to shoulder
+  l1 = l1, // end to near mid shoulder
+  l2 = l2, // end to near mid shoulder
+  w = w,
+  d = d,
+  a1 = a1,
+  a2 = a2,
+  l_gap = l_gap, // gap between shoulders, half of this is removed from each shoulder
+  d_gap = d_gap, // gap between cheeks, half of this is removed from the cheek
+  r_edge = r_edge, // radius of cylinder cut into edges of slot
+) {
+  general(
+    l=l,
+    l1=l1,
+    l2=l2,
+    w=w,
+    d=d,
+    a1=a1,
+    a2=a2,
+    l_gap=l_gap,
+    d_gap=d_gap,
+    r_edge=r_edge
+  );
 }
 
 render() {
   bridles();
 
-  translate(v=[0, 0, w * 4])
+  translate(v=[0, 0, d * 4])
     halvings();
 }
 
@@ -317,14 +363,14 @@ module halvings() {
         );
 
     color(c="saddlebrown")
-      translate(v=[0, 0, w * 2])
+      translate(v=[0, 0, d * 2])
         halving(
           a1=a1,
           a2=a2,
         );
 
     color(c="tan")
-      translate(v=[l1 + l2 + w, 0, w * 2])
+      translate(v=[l1 + l2 + w, 0, d * 2])
         halving(
           a1=0,
           a2=0,
@@ -344,13 +390,13 @@ module bridles() {
         );
 
     color(c="burlywood")
-      translate(v=[0, 0, w * 2])
+      translate(v=[0, 0, d * 2])
         mortise(
           a=-8,
         );
 
     color(c="wheat")
-      translate(v=[l1 + l2 + w, 0, w * 2])
+      translate(v=[l1 + l2 + w, 0, d * 2])
         mortise(
           l2=0,
         );
