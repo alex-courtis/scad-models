@@ -146,8 +146,9 @@ module joint(
       }
     }
   }
+}
 
-  /*
+/*
    Return poly ABCD
    d1 is perpendicular from AB to O
    d2 is perpendicular from CD to O
@@ -167,25 +168,24 @@ module joint(
   A-----------------------D             -
   
   */
-  function skewed_rect(x, y, d1, d2, a1, a2) =
-    let (
-      dx1 = y / 2 * tan(a1),
-      dx2 = y / 2 * tan(a2),
-      Mx = d1 / cos(a1),
-      Nx = d2 / cos(a2),
-      Ax = -Mx - dx1,
-      Bx = -Mx + dx1,
-      Cx = Nx + dx2,
-      Dx = Nx - dx2,
-    ) Bx < Cx && Ax < Dx ?
-      [
-        [Ax, -y / 2],
-        [Bx, y / 2],
-        [Cx, y / 2],
-        [Dx, -y / 2],
-      ]
-    : undef;
-}
+function skewed_rect(y, d1, d2, a1, a2) =
+  let (
+    dx1 = y / 2 * tan(a1),
+    dx2 = y / 2 * tan(a2),
+    Mx = d1 / cos(a1),
+    Nx = d2 / cos(a2),
+    Ax = -Mx - dx1,
+    Bx = -Mx + dx1,
+    Cx = Nx + dx2,
+    Dx = Nx - dx2,
+  ) Bx < Cx && Ax < Dx ?
+    [
+      [Ax, -y / 2],
+      [Bx, y / 2],
+      [Cx, y / 2],
+      [Dx, -y / 2],
+    ]
+  : undef;
 
 // print with cheek facing up, default gaps are for 0.6
 module halving(
@@ -196,7 +196,7 @@ module halving(
   d = d_def,
   a1 = 0,
   a2 = 0,
-  l_gap = 0.010,
+  l_gap = 0.005,
   d_gap = 0.025,
   r_edge = 0.015,
   inner = false,
@@ -220,7 +220,7 @@ module tenon(
   a1 = a_def_tenon,
   a2 = a_def_tenon,
   ratio = 1 / 3, // of the tenon, centred
-  l_gap = 0.070,
+  l_gap = 0.100,
   d_gap = 0.020,
   r_edge = 0.3,
 ) {
@@ -244,7 +244,7 @@ module mortise(
   a1 = a_def_mortise,
   a2 = a_def_mortise,
   ratio = 1 / 3, // of the slot, centred
-  l_gap = 0.070,
+  l_gap = 0.100,
   d_gap = 0.020,
   r_edge = 0.3,
 ) {
@@ -288,67 +288,84 @@ module mt_test() {
 }
 
 module stool() {
-  w_cross = 30;
-  d_cross = 20;
-  l_cross = 25;
+  w_cross = 25;
+  d_cross = 17;
 
   w_leg = d_cross;
   d_leg = d_cross;
   l_leg = w_cross;
-  l1_leg = 120;
 
   a_tenon = 8;
 
   l12_halving = 10;
-  l12_tenon = 35;
+  l12_tenon = 15;
 
-  translate(v=[0, w_cross * 2, 0]) {
+  d_top = 125;
+  h_top = 1.2;
 
-    color(c="peru")
-      rotate(a=90, v=[1, 0, 0])
-        halving(d=w_cross, w=d_cross, l=l_cross, l1=l12_halving, l2=l12_halving);
+  module leg(a) {
+    l1_leg = 20;
+    l = 120;
 
-    translate(v=[l_cross / 2 + l12_halving + l12_tenon + w_leg, 0, 0]) {
-      color(c="chocolate")
-        tenon(a1=a_tenon, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg * 2, l1=l12_tenon, l2=0);
-      color(c="orange")
-        translate(v=[-w_leg / 2, 0, 0])
-          rotate(a=-90 - a_tenon)
-            mortise(a1=-a_tenon, a2=-a_tenon, w=w_leg, d=d_cross, l=l_leg, l1=l1_leg, l2=0);
-    }
+    rotate(90 + a) {
+      mortise(a1=a, a2=a, w=w_leg, d=d_cross, l=l_leg, l1=l1_leg, l2=0);
 
-    translate(v=[-l_cross / 2 - l12_halving - l12_tenon - w_leg, 0, 0]) {
-      color(c="saddlebrown")
-        tenon(a1=0, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg * 2, l1=0, l2=l12_tenon);
-
-      color(c="orange")
-        translate(v=[w_leg / 2, 0, 0])
-          rotate(a=-90 + a_tenon)
-            mortise(a1=a_tenon, a2=a_tenon, w=w_leg, d=d_cross, l=l_leg, l1=l1_leg, l2=0);
+      translate(v=[-l_leg / 2 - l1_leg, 0, 0]) {
+        p = skewed_rect(y=w_leg, d1=l - l1_leg, d2=0, a1=a, a2=0);
+        linear_extrude(h=d_cross, center=true)
+          polygon(p);
+      }
     }
   }
 
-  {
-    color(c="burlywood")
+  color(c="wheat")
+    translate(v=[0, (w_cross + h_top) / 2 + d_gap_def, 0])
       rotate(a=90, v=[1, 0, 0])
-        halving(w=d_cross, d=w_cross, l=l_cross, l1=l12_halving, l2=l12_halving);
+        cylinder(d=d_top, h=h_top, center=true);
 
-    translate(v=[l_cross / 2 + l12_halving + l12_tenon + w_leg / 2, 0, 0]) {
-      color(c="sienna")
-        tenon(a1=-a_tenon, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l12_tenon, l2=0);
-      color(c="orange")
-        rotate(a=90 + a_tenon)
-          mortise(a1=a_tenon, a2=a_tenon, w=w_leg, d=d_cross, l=l_leg, l1=l1_leg, l2=0);
-    }
+  rotate(a=-90, v=[0, 1, 0]) {
 
-    translate(v=[-l_cross / 2 - l12_halving - l12_tenon - w_leg, 0, 0]) {
-      color(c="rosybrown")
-        tenon(a1=a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 2, l1=0, l2=l12_tenon);
+    color(c="peru")
+      rotate(a=-90, v=[1, 0, 0])
+        halving(d=w_cross, w=d_cross, l=d_cross, l1=l12_halving, l2=l12_halving, inner=false);
+
+    translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg * 0.75, 0, 0]) {
+      color(c="chocolate")
+        tenon(a1=-a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=l12_tenon, l2=0);
 
       color(c="orange")
-        translate(v=[w_leg / 2, 0, 0])
-          rotate(a=90 - a_tenon)
-            mortise(a1=-a_tenon, a2=-a_tenon, w=w_leg, d=d_cross, l=l_leg, l1=l1_leg, l2=0);
+        translate(v=[-d_leg * 0.25, 0, 0])
+          leg(a=a_tenon);
     }
+
+    translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
+      color(c="saddlebrown")
+        tenon(a1=0, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
+
+      color(c="orange")
+        translate(v=[d_leg * 0.25, 0, 0])
+          leg(a=-a_tenon);
+    }
+  }
+
+  color(c="burlywood")
+    rotate(a=90, v=[1, 0, 0])
+      halving(w=d_cross, d=w_cross, l=d_cross, l1=l12_halving, l2=l12_halving);
+
+  translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg / 2, 0, 0]) {
+    color(c="sienna")
+      tenon(a1=-a_tenon, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l12_tenon, l2=0);
+
+    color(c="orange")
+      leg(a=a_tenon);
+  }
+
+  translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
+    color(c="rosybrown")
+      tenon(a1=a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
+
+    color(c="orange")
+      translate(v=[d_leg * 0.25, 0, 0])
+        leg(a=-a_tenon);
   }
 }
