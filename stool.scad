@@ -27,7 +27,7 @@ function skewed_rect(x, y, d1, d2, a1, a2) =
     dx1 = y / 2 * tan(a1),
     dx2 = y / 2 * tan(a2),
     Mx = d1 / cos(a1),
-    Nx = d1 / cos(a2),
+    Nx = d2 / cos(a2),
     Ax = -Mx - dx1,
     Bx = -Mx + dx1,
     Cx = Nx + dx2,
@@ -43,14 +43,14 @@ function skewed_rect(x, y, d1, d2, a1, a2) =
 
 // origin at joint centre
 module general(
-  l = l, // x shoulder to shoulder
-  l1 = l1, // -x end to near mid shoulder
-  l2 = l2, // +x end to near mid shoulder
-  w = w, // y
-  d = d, // z
-  a1 = a1, // -x
-  a2 = a2, // +x
-  ratios = [1 / 4, 1 / 2, 3 / 4], // cuts in d, increasing z order
+  l = undef, // x shoulder to shoulder
+  l1 = 0, // -x end to near mid shoulder
+  l2 = 0, // +x end to near mid shoulder
+  w = undef, // y
+  d = undef, // z
+  a1 = 0, // -x
+  a2 = 0, // +x
+  ratios = [1 / 3, 2 / 3], // cuts in d, increasing z order
   l_gap = l_gap, // gap between shoulders, half of this is removed from each shoulder
   d_gap = d_gap, // gap between cheeks, half of this is removed from the cheek
   r_edge = r_edge, // radius of cylinder cut into edges of slot
@@ -65,6 +65,15 @@ module general(
     a2=a2,
   );
 
+  // when not l1 or l2 body extends to the side of the joint, without l_gap
+  body = skewed_rect(
+    y=w,
+    d1=l1 ? (l / 2 + l1) : l / 2,
+    d2=l2 ? (l / 2 + l2) : l / 2,
+    a1=l1 ? 0 : a1,
+    a2=l2 ? 0 : a2,
+  );
+
   edges = skewed_rect(
     y=w + 2 * r_edge,
     d1=l / 2 + l_gap / 2,
@@ -72,14 +81,6 @@ module general(
     a1=a1,
     a2=a2,
   );
-
-  // TODO don't extend gap beyond ends when l1 or l2 zero
-  body = [
-    l1 ? [-l1 - l / 2, -w / 2] : slot[0], //A
-    l1 ? [-l1 - l / 2, w / 2] : slot[1], // B
-    l2 ? [l2 + l / 2, w / 2] : slot[2], // C
-    l2 ? [l2 + l / 2, -w / 2] : slot[3], // D
-  ];
 
   // cheek /slot bottom from origin
   im = inner ? 1 : -1;
@@ -133,11 +134,11 @@ module general(
 
 // print with cheek facing up, gaps for 0.6
 module halving(
-  l = l,
-  l1 = l1,
-  l2 = l2,
-  w = w,
-  d = d,
+  l = undef,
+  l1 = 0,
+  l2 = 0,
+  w = undef,
+  d = undef,
   a1 = 0,
   a2 = 0,
   l_gap = 0.01,
@@ -155,13 +156,13 @@ module halving(
 
 // print with vertical cheeks, gaps for 0.6
 module tenon(
-  l = l, // width of the slot
-  l1 = l1,
-  l2 = l2,
-  w = w,
-  d = d,
-  a1 = a1,
-  a2 = a2,
+  l = undef, // width of the slot
+  l1 = 0,
+  l2 = 0,
+  w = undef,
+  d = undef,
+  a1 = 0,
+  a2 = 0,
   ratio = 1 / 3, // of the tenon
   l_gap = 0.0250,
   d_gap = 0.015,
@@ -178,13 +179,13 @@ module tenon(
 
 // print with vertical slot, gaps for 0.6
 module mortise(
-  l = l, // width of the tenon
-  l1 = l1,
-  l2 = l2,
-  w = w,
-  d = d,
-  a1 = a1,
-  a2 = a2,
+  l = undef, // width of the tenon
+  l1 = 0,
+  l2 = 0,
+  w = undef,
+  d = undef,
+  a1 = 0,
+  a2 = 0,
   ratio = 1 / 3, // of the slot
   l_gap = 0.0250,
   d_gap = 0.015,
@@ -203,46 +204,68 @@ render() {
 }
 
 module stool() {
-  w = 20;
-  l = w;
-  d = 30;
-  d_leg = 20;
+  w_cross = 30;
+  d_cross = 20;
+  l_cross = 25;
 
-  translate(v=[0, 50, 0]) {
+  w_leg = d_cross;
+  d_leg = d_cross;
+  l_leg = w_cross;
+  // l1_leg = 120;
+  l1_leg = 30;
+
+  a_tenon = 8;
+
+  l12_halving = 10;
+  l12_tenon = 35;
+
+  translate(v=[0, w_cross * 2, 0]) {
 
     color(c="peru")
-      halving(a1=0, a2=0, w=w, d=d, l=l, l1=10, l2=10);
+      rotate(a=90, v=[1, 0, 0])
+        halving(d=w_cross, w=d_cross, l=l_cross, l1=l12_halving, l2=l12_halving);
 
-    color(c="chocolate")
-      translate(v=[75, 0, 0])
-        rotate(a=-90, v=[1, 0, 0])
-          tenon(a1=8, a2=-8, w=d, d=w, l=d_leg * 2, l1=35, l2=0);
+    translate(v=[l_cross / 2 + l12_halving + l12_tenon + w_leg, 0, 0]) {
+      color(c="chocolate")
+        tenon(a1=a_tenon, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg * 2, l1=l12_tenon, l2=0);
+      color(c="orange")
+        translate(v=[-w_leg / 2, 0, 0])
+          rotate(a=-90 - a_tenon)
+            mortise(a1=-a_tenon, a2=-a_tenon, w=w_leg, d=d_cross, l=l_leg, l1=l1_leg, l2=0);
+    }
 
-    color(c="saddlebrown")
-      translate(v=[-75, 0, 0])
-        rotate(a=90, v=[1, 0, 0])
-          tenon(a1=0, a2=8, w=d, d=w, l=d_leg * 2, l1=0, l2=35);
+    translate(v=[-l_cross / 2 - l12_halving - l12_tenon - w_leg, 0, 0]) {
+      color(c="saddlebrown")
+        tenon(a1=0, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg * 2, l1=0, l2=l12_tenon);
+
+      color(c="orange")
+        translate(v=[w_leg / 2, 0, 0])
+          rotate(a=-90 + a_tenon)
+            mortise(a1=a_tenon, a2=a_tenon, w=w_leg, d=d_cross, l=l_leg, l1=l1_leg, l2=0);
+    }
   }
 
   {
     color(c="burlywood")
-      halving(a1=0, a2=0, w=w, d=d, l=l, l1=10, l2=10, inner=true);
+      rotate(a=90, v=[1, 0, 0])
+        halving(w=d_cross, d=w_cross, l=l_cross, l1=l12_halving, l2=l12_halving);
 
-    color(c="sienna")
-      translate(v=[65, 0, 0])
-        rotate(a=-90, v=[1, 0, 0])
-          tenon(a1=8, a2=8, w=d, d=w, l=d_leg, l1=35, l2=0);
+    translate(v=[l_cross / 2 + l12_halving + l12_tenon + w_leg / 2, 0, 0]) {
+      color(c="sienna")
+        tenon(a1=-a_tenon, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l12_tenon, l2=0);
+      color(c="orange")
+        rotate(a=90 + a_tenon)
+          mortise(a1=a_tenon, a2=a_tenon, w=w_leg, d=d_cross, l=l_leg, l1=l1_leg, l2=0);
+    }
 
-    color(c="rosybrown")
-      translate(v=[-75, 0, 0])
-        rotate(a=90, v=[1, 0, 0])
-          tenon(a1=8, a2=8, w=d, d=w, l=d_leg * 2, l1=0, l2=35);
-  }
+    translate(v=[-l_cross / 2 - l12_halving - l12_tenon - w_leg, 0, 0]) {
+      color(c="rosybrown")
+        tenon(a1=a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 2, l1=0, l2=l12_tenon);
 
-  {
-    color(c="orange")
-      translate(v=[0, -50, 0]) {
-        mortise(a1=8, a2=8, w=d_leg, l=w * 2, l1=20, l2=0, d=15);
-      }
+      color(c="orange")
+        translate(v=[w_leg / 2, 0, 0])
+          rotate(a=90 - a_tenon)
+            mortise(a1=-a_tenon, a2=-a_tenon, w=w_leg, d=d_cross, l=l_leg, l1=l1_leg, l2=0);
+    }
   }
 }
