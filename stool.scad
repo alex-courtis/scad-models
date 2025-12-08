@@ -2,7 +2,7 @@ include <BOSL2/std.scad>
 
 $fn = 200;
 
-w_def = 30+5;
+w_def = 30;
 d_def = 20;
 l1_def = 40;
 l2_def = 40;
@@ -19,45 +19,37 @@ d_gap_def = 0.020;
 r_edge_def = 0.2;
 
 /*
- Return poly ABCD
- d1 is perpendicular from AB to O
- d2 is perpendicular from CD to O
- undef when not a convex polygon
+Generic joint centred at the origin, shoulders along the y axis, length along the x axis measured to the midpoints of the shoulders.
 
+Half gaps are applied to each cut and the same gaps should be applied to the other joints.
 
-          B-----------------------C   ^
-         /       |               /    |
-        /        |              /     |
-       /         |             /      |
-      /          |            /       |
-     M-----------O-----------N        y
-    /            |          /         |
-|a1/             |      |a2/          |
-| /              |      | /           |
-|/               |      |/            |
-A-----------------------D             -
+|<------l1-------->|                       |<------l2-------->|
+.                  .                       .                  .
+.                  .                       .                  .
+------------------------B-----------------------C--------------     ^
+|                  .   /                   .   /              |     |
+|                  .  /        y           .  /               |     |
+|                  . /         ^           . /                |     |
+|                  ./          |           ./                 |     |
+|                  -           O-->x       -                  |     w
+|                 /                       /                   |     |
+|             |a1/                    |a2/                    |     |
+|             | /                     | /                     |     |
+|             |/                      |/                      |     |
+--------------A-----------------------D------------------------     -
 
+l is the sum of the (even) perpendiculars from AB to O and from CD to O. l_gap / 2 is added to each perpendicular.
+
+a1 and a2 may be negative, with size less than 90.
+
+When l1|l2 == 0, joint terminates at AB|CD, with no l_gap added.
+
+Joint is cut at ratios from -z to +z, alternating cheeks and slots, starting with a slot when inner is set.
+
+d_gap/2 is subtracted from each cheek and added to each slot.
+
+r_edge is a cylinder cut into all cheek and slot edges.
 */
-function skewed_rect(x, y, d1, d2, a1, a2) =
-  let (
-    dx1 = y / 2 * tan(a1),
-    dx2 = y / 2 * tan(a2),
-    Mx = d1 / cos(a1),
-    Nx = d2 / cos(a2),
-    Ax = -Mx - dx1,
-    Bx = -Mx + dx1,
-    Cx = Nx + dx2,
-    Dx = Nx - dx2,
-  ) Bx < Cx && Ax < Dx ?
-    [
-      [Ax, -y / 2],
-      [Bx, y / 2],
-      [Cx, y / 2],
-      [Dx, -y / 2],
-    ]
-  : undef;
-
-// origin at joint centre
 module joint(
   l = w_def, // x shoulder to shoulder
   l1 = l1_def, // -x end to near mid shoulder
@@ -154,9 +146,48 @@ module joint(
       }
     }
   }
+
+  /*
+   Return poly ABCD
+   d1 is perpendicular from AB to O
+   d2 is perpendicular from CD to O
+   undef when not a convex polygon
+  
+  
+            B-----------------------C   ^
+           /       |               /    |
+          /        |              /     |
+         /         |             /      |
+        /          |            /       |
+       M-----------O-----------N        y
+      /            |          /         |
+  |a1/             |      |a2/          |
+  | /              |      | /           |
+  |/               |      |/            |
+  A-----------------------D             -
+  
+  */
+  function skewed_rect(x, y, d1, d2, a1, a2) =
+    let (
+      dx1 = y / 2 * tan(a1),
+      dx2 = y / 2 * tan(a2),
+      Mx = d1 / cos(a1),
+      Nx = d2 / cos(a2),
+      Ax = -Mx - dx1,
+      Bx = -Mx + dx1,
+      Cx = Nx + dx2,
+      Dx = Nx - dx2,
+    ) Bx < Cx && Ax < Dx ?
+      [
+        [Ax, -y / 2],
+        [Bx, y / 2],
+        [Cx, y / 2],
+        [Dx, -y / 2],
+      ]
+    : undef;
 }
 
-// print with cheek facing up, gaps for 0.6
+// print with cheek facing up, default gaps are for 0.6
 module halving(
   l = w_def,
   l1 = l1_def,
@@ -178,7 +209,8 @@ module halving(
   );
 }
 
-// print with vertical cheeks, gaps for 0.6
+// print with vertical cheeks, default gaps are for 0.6
+// set l2 for a tee bridle
 module tenon(
   l = w_def, // width of the slot
   l1 = l1_def,
@@ -187,10 +219,10 @@ module tenon(
   d = d_def,
   a1 = a_def_tenon,
   a2 = a_def_tenon,
-  ratio = 1 / 3, // of the tenon
-  l_gap = 0.025,
+  ratio = 1 / 3, // of the tenon, centred
+  l_gap = 0.070,
   d_gap = 0.020,
-  r_edge = 0.2,
+  r_edge = 0.3,
 ) {
 
   joint(
@@ -201,7 +233,8 @@ module tenon(
   );
 }
 
-// print with vertical slot, gaps for 0.6
+// print with vertical slot, default gaps are for 0.6
+// remove l1 or l2 for a corner bridle
 module mortise(
   l = w_def, // width of the tenon
   l1 = l1_def,
@@ -210,10 +243,10 @@ module mortise(
   d = d_def,
   a1 = a_def_mortise,
   a2 = a_def_mortise,
-  ratio = 1 / 3, // of the slot
-  l_gap = 0.025,
+  ratio = 1 / 3, // of the slot, centred
+  l_gap = 0.070,
   d_gap = 0.020,
-  r_edge = 0.2,
+  r_edge = 0.3,
 ) {
   joint(
     l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2,
