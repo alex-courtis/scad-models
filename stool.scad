@@ -48,7 +48,7 @@ Joint is cut at ratios from -z to +z, alternating cheeks and slots, starting wit
 
 d_gap/2 is subtracted from each cheek and added to each slot.
 
-r_edge is a cylinder cut into all cheek and slot edges.
+r_edge is a cylinder cut into all cheek and slot inner edges.
 */
 module joint(
   l = w_def, // x shoulder to shoulder
@@ -303,6 +303,10 @@ module stool() {
   d_top = 125;
   h_top = 1.2;
 
+  d_pin = 3.85;
+  x_pin = d_top * 0.32;
+  l_pin = h_top + w_cross + d_gap_def;
+
   module leg(a) {
     l1_leg = 20;
     l = 120;
@@ -318,54 +322,82 @@ module stool() {
     }
   }
 
-  color(c="wheat")
-    translate(v=[0, (w_cross + h_top) / 2 + d_gap_def, 0])
-      rotate(a=90, v=[1, 0, 0])
-        cylinder(d=d_top, h=h_top, center=true);
+  difference() {
+    union() {
 
-  rotate(a=-90, v=[0, 1, 0]) {
+      // top
+      color(c="wheat")
+        translate(v=[0, (w_cross + h_top) / 2 + d_gap_def, 0])
+          rotate(a=90, v=[1, 0, 0])
+            cylinder(d=d_top, h=h_top, center=true);
 
-    color(c="peru")
-      rotate(a=-90, v=[1, 0, 0])
-        halving(d=w_cross, w=d_cross, l=d_cross, l1=l12_halving, l2=l12_halving, inner=false);
+      rotate(a=-90, v=[0, 1, 0]) {
 
-    translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg * 0.75, 0, 0]) {
-      color(c="chocolate")
-        tenon(a1=-a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=l12_tenon, l2=0);
+        // cross
+        color(c="peru")
+          rotate(a=-90, v=[1, 0, 0])
+            halving(d=w_cross, w=d_cross, l=d_cross, l1=l12_halving, l2=l12_halving, inner=false);
 
-      color(c="orange")
-        translate(v=[-d_leg * 0.25, 0, 0])
+        // oblique leg
+        translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg * 0.75, 0, 0]) {
+          color(c="chocolate")
+            tenon(a1=-a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=l12_tenon, l2=0);
+
+          color(c="orange")
+            translate(v=[-d_leg * 0.25, 0, 0])
+              leg(a=a_tenon);
+        }
+
+        // straight leg
+        translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
+          color(c="saddlebrown")
+            tenon(a1=0, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
+
+          color(c="orange")
+            translate(v=[d_leg * 0.25, 0, 0])
+              leg(a=-a_tenon);
+        }
+      }
+
+      // cross
+      color(c="burlywood")
+        rotate(a=90, v=[1, 0, 0])
+          halving(w=d_cross, d=w_cross, l=d_cross, l1=l12_halving, l2=l12_halving);
+
+      // flush leg
+      translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg / 2, 0, 0]) {
+        color(c="sienna")
+          tenon(a1=-a_tenon, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l12_tenon, l2=0);
+
+        color(c="orange")
           leg(a=a_tenon);
+      }
+
+      // parallel leg
+      translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
+        color(c="rosybrown")
+          tenon(a1=a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
+
+        color(c="orange")
+          translate(v=[d_leg * 0.25, 0, 0])
+            leg(a=-a_tenon);
+      }
     }
 
-    translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
-      color(c="saddlebrown")
-        tenon(a1=0, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
+    // pins
+    translate(v=[0, w_cross / 2 + h_top + d_gap_def, 0])
+      rotate(a=90, v=[1, 0, 0]) {
+        translate(v=[x_pin, 0, 0])
+          cylinder(d=d_pin, h=l_pin, center=false);
 
-      color(c="orange")
-        translate(v=[d_leg * 0.25, 0, 0])
-          leg(a=-a_tenon);
-    }
-  }
+        translate(v=[-x_pin, 0, 0])
+          cylinder(d=d_pin, h=l_pin, center=false);
 
-  color(c="burlywood")
-    rotate(a=90, v=[1, 0, 0])
-      halving(w=d_cross, d=w_cross, l=d_cross, l1=l12_halving, l2=l12_halving);
+        translate(v=[0, x_pin, 0])
+          cylinder(d=d_pin, h=l_pin, center=false);
 
-  translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg / 2, 0, 0]) {
-    color(c="sienna")
-      tenon(a1=-a_tenon, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l12_tenon, l2=0);
-
-    color(c="orange")
-      leg(a=a_tenon);
-  }
-
-  translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
-    color(c="rosybrown")
-      tenon(a1=a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
-
-    color(c="orange")
-      translate(v=[d_leg * 0.25, 0, 0])
-        leg(a=-a_tenon);
+        translate(v=[0, -x_pin, 0])
+          cylinder(d=d_pin, h=l_pin, center=false);
+      }
   }
 }
