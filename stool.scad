@@ -2,6 +2,22 @@ include <BOSL2/std.scad>
 
 $fn = 200;
 
+w_def = 30+5;
+d_def = 20;
+l1_def = 40;
+l2_def = 40;
+
+a1_def = 10;
+a2_def = -5;
+a_def_tenon = 8;
+a_def_mortise = -8;
+
+ratios_def = [1 / 4, 3 / 5, 4 / 5];
+
+l_gap_def = 0.025;
+d_gap_def = 0.020;
+r_edge_def = 0.2;
+
 /*
  Return poly ABCD
  d1 is perpendicular from AB to O
@@ -42,20 +58,28 @@ function skewed_rect(x, y, d1, d2, a1, a2) =
   : undef;
 
 // origin at joint centre
-module general(
-  l = undef, // x shoulder to shoulder
-  l1 = 0, // -x end to near mid shoulder
-  l2 = 0, // +x end to near mid shoulder
-  w = undef, // y
-  d = undef, // z
-  a1 = 0, // -x
-  a2 = 0, // +x
-  ratios = [1 / 3, 2 / 3], // cuts in d, increasing z order
-  l_gap = l_gap, // gap between shoulders, half of this is removed from each shoulder
-  d_gap = d_gap, // gap between cheeks, half of this is removed from the cheek
-  r_edge = r_edge, // radius of cylinder cut into edges of slot
+module joint(
+  l = w_def, // x shoulder to shoulder
+  l1 = l1_def, // -x end to near mid shoulder
+  l2 = l2_def, // +x end to near mid shoulder
+  w = w_def, // y
+  d = d_def, // z
+  a1 = a1_def, // -x
+  a2 = a2_def, // +x
+  ratios = ratios_def, // cuts in d, increasing z order
+  l_gap = l_gap_def, // gap between shoulders, half of this is removed from each shoulder
+  d_gap = d_gap_def, // gap between cheeks, half of this is removed from the cheek
+  r_edge = r_edge_def, // radius of cylinder cut into edges of slot
   inner = false, // true for slot at bottom
 ) {
+  assert(l > 0);
+  assert(l1 >= 0);
+  assert(l2 >= 0);
+  assert(w > 0);
+  assert(d > 0);
+  assert(a1 < 90 && a1 > -90);
+  assert(a2 < 90 && a2 > -90);
+  assert(len(ratios) > 0);
 
   slot = skewed_rect(
     y=w,
@@ -134,11 +158,11 @@ module general(
 
 // print with cheek facing up, gaps for 0.6
 module halving(
-  l = undef,
-  l1 = 0,
-  l2 = 0,
-  w = undef,
-  d = undef,
+  l = w_def,
+  l1 = l1_def,
+  l2 = l2_def,
+  w = w_def,
+  d = d_def,
   a1 = 0,
   a2 = 0,
   l_gap = 0.010,
@@ -146,7 +170,7 @@ module halving(
   r_edge = 0.015,
   inner = false,
 ) {
-  general(
+  joint(
     l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2,
     ratios=[1 / 2],
     l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
@@ -156,20 +180,20 @@ module halving(
 
 // print with vertical cheeks, gaps for 0.6
 module tenon(
-  l = undef, // width of the slot
-  l1 = 0,
+  l = w_def, // width of the slot
+  l1 = l1_def,
   l2 = 0,
-  w = undef,
-  d = undef,
-  a1 = 0,
-  a2 = 0,
+  w = w_def,
+  d = d_def,
+  a1 = a_def_tenon,
+  a2 = a_def_tenon,
   ratio = 1 / 3, // of the tenon
   l_gap = 0.025,
   d_gap = 0.020,
   r_edge = 0.2,
 ) {
 
-  general(
+  joint(
     l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2,
     ratios=[(1 - ratio) / 2, (1 + ratio) / 2],
     l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
@@ -179,19 +203,19 @@ module tenon(
 
 // print with vertical slot, gaps for 0.6
 module mortise(
-  l = undef, // width of the tenon
-  l1 = 0,
-  l2 = 0,
-  w = undef,
-  d = undef,
-  a1 = 0,
-  a2 = 0,
+  l = w_def, // width of the tenon
+  l1 = l1_def,
+  l2 = l2_def,
+  w = w_def,
+  d = d_def,
+  a1 = a_def_mortise,
+  a2 = a_def_mortise,
   ratio = 1 / 3, // of the slot
   l_gap = 0.025,
   d_gap = 0.020,
   r_edge = 0.2,
 ) {
-  general(
+  joint(
     l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2,
     ratios=[(1 - ratio) / 2, (1 + ratio) / 2],
     l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
