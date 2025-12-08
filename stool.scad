@@ -141,7 +141,7 @@ module halving(
   d = undef,
   a1 = 0,
   a2 = 0,
-  l_gap = 0.01,
+  l_gap = 0.010,
   d_gap = 0.025,
   r_edge = 0.015,
   inner = false,
@@ -164,8 +164,8 @@ module tenon(
   a1 = 0,
   a2 = 0,
   ratio = 1 / 3, // of the tenon
-  l_gap = 0.0250,
-  d_gap = 0.015,
+  l_gap = 0.025,
+  d_gap = 0.020,
   r_edge = 0.2,
 ) {
 
@@ -187,8 +187,8 @@ module mortise(
   a1 = 0,
   a2 = 0,
   ratio = 1 / 3, // of the slot
-  l_gap = 0.0250,
-  d_gap = 0.015,
+  l_gap = 0.025,
+  d_gap = 0.020,
   r_edge = 0.2,
 ) {
   general(
@@ -201,6 +201,33 @@ module mortise(
 
 render() {
   stool();
+  // mt_test();
+}
+
+module mt_test() {
+  w_tenon = 30;
+  d_tenon = 20;
+  l12_tenon = 25;
+
+  w_leg = d_tenon;
+  l_leg = w_tenon;
+  l1_leg = 25;
+
+  a = 8;
+
+  color(c="sienna")
+    tenon(a1=-a, a2=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=0);
+  color(c="orange")
+    rotate(a=90 + a)
+      mortise(a1=a, a2=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=l1_leg);
+
+  translate(v=[70, 0, 0]) {
+    color(c="sienna")
+      tenon(a1=-a, a2=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=l12_tenon);
+    color(c="orange")
+      rotate(a=90 + a)
+        mortise(a1=a, a2=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=0);
+  }
 }
 
 module stool() {
@@ -211,8 +238,7 @@ module stool() {
   w_leg = d_cross;
   d_leg = d_cross;
   l_leg = w_cross;
-  // l1_leg = 120;
-  l1_leg = 30;
+  l1_leg = 120;
 
   a_tenon = 8;
 
