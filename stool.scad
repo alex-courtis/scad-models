@@ -196,9 +196,9 @@ module halving(
   d = d_def,
   a1 = 0,
   a2 = 0,
-  l_gap = 0.005,
-  d_gap = 0.025,
-  r_edge = 0.015,
+  l_gap = 0.002,
+  d_gap = 0.045,
+  r_edge = 0.010,
   inner = false,
 ) {
   joint(
@@ -220,8 +220,8 @@ module tenon(
   a1 = a_def_tenon,
   a2 = a_def_tenon,
   ratio = 1 / 3, // of the tenon, centred
-  l_gap = 0.100,
-  d_gap = 0.020,
+  l_gap = 0.140,
+  d_gap = 0.015,
   r_edge = 0.3,
 ) {
 
@@ -244,8 +244,8 @@ module mortise(
   a1 = a_def_mortise,
   a2 = a_def_mortise,
   ratio = 1 / 3, // of the slot, centred
-  l_gap = 0.100,
-  d_gap = 0.020,
+  l_gap = 0.140,
+  d_gap = 0.015,
   r_edge = 0.3,
 ) {
   joint(
@@ -307,6 +307,11 @@ module stool() {
   x_pin = d_top * 0.32;
   l_pin = h_top + w_cross + d_gap_def;
 
+  show_leg = true;
+  show_top = true;
+  show_half1 = true;
+  show_half2 = true;
+
   module leg(a) {
     l1_leg = 20;
     l = 120;
@@ -322,66 +327,79 @@ module stool() {
     }
   }
 
+  module half1() {
+    // cross
+    color(c="peru")
+      rotate(a=-90, v=[1, 0, 0])
+        halving(d=w_cross, w=d_cross, l=d_cross, l1=l12_halving, l2=l12_halving, inner=false);
+
+    // oblique leg
+    translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg * 0.75, 0, 0]) {
+      color(c="chocolate")
+        tenon(a1=-a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=l12_tenon, l2=0);
+
+      if (show_leg)
+        color(c="orange")
+          translate(v=[-d_leg * 0.25, 0, 0])
+            leg(a=a_tenon);
+    }
+
+    // straight leg
+    translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
+      color(c="saddlebrown")
+        tenon(a1=0, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
+
+      if (show_leg)
+        color(c="orange")
+          translate(v=[d_leg * 0.25, 0, 0])
+            leg(a=-a_tenon);
+    }
+  }
+
+  module half2() {
+    // cross
+    color(c="burlywood")
+      rotate(a=90, v=[1, 0, 0])
+        halving(w=d_cross, d=w_cross, l=d_cross, l1=l12_halving, l2=l12_halving);
+
+    // flush leg
+    translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg / 2, 0, 0]) {
+      color(c="sienna")
+        tenon(a1=-a_tenon, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l12_tenon, l2=0);
+
+      if (show_leg)
+        color(c="orange")
+          leg(a=a_tenon);
+    }
+
+    // parallel leg
+    translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
+      color(c="rosybrown")
+        tenon(a1=a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
+
+      if (show_leg)
+        color(c="orange")
+          translate(v=[d_leg * 0.25, 0, 0])
+            leg(a=-a_tenon);
+    }
+  }
+
   difference() {
     union() {
 
       // top
-      color(c="wheat")
-        translate(v=[0, (w_cross + h_top) / 2 + d_gap_def, 0])
-          rotate(a=90, v=[1, 0, 0])
-            cylinder(d=d_top, h=h_top, center=true);
-
-      rotate(a=-90, v=[0, 1, 0]) {
-
-        // cross
-        color(c="peru")
-          rotate(a=-90, v=[1, 0, 0])
-            halving(d=w_cross, w=d_cross, l=d_cross, l1=l12_halving, l2=l12_halving, inner=false);
-
-        // oblique leg
-        translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg * 0.75, 0, 0]) {
-          color(c="chocolate")
-            tenon(a1=-a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=l12_tenon, l2=0);
-
-          color(c="orange")
-            translate(v=[-d_leg * 0.25, 0, 0])
-              leg(a=a_tenon);
-        }
-
-        // straight leg
-        translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
-          color(c="saddlebrown")
-            tenon(a1=0, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
-
-          color(c="orange")
-            translate(v=[d_leg * 0.25, 0, 0])
-              leg(a=-a_tenon);
-        }
+      if (show_top) {
+        color(c="wheat")
+          translate(v=[0, (w_cross + h_top) / 2 + d_gap_def, 0])
+            rotate(a=90, v=[1, 0, 0])
+              cylinder(d=d_top, h=h_top, center=true);
       }
+      if (show_half1)
+        half1();
 
-      // cross
-      color(c="burlywood")
-        rotate(a=90, v=[1, 0, 0])
-          halving(w=d_cross, d=w_cross, l=d_cross, l1=l12_halving, l2=l12_halving);
-
-      // flush leg
-      translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg / 2, 0, 0]) {
-        color(c="sienna")
-          tenon(a1=-a_tenon, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l12_tenon, l2=0);
-
-        color(c="orange")
-          leg(a=a_tenon);
-      }
-
-      // parallel leg
-      translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
-        color(c="rosybrown")
-          tenon(a1=a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
-
-        color(c="orange")
-          translate(v=[d_leg * 0.25, 0, 0])
-            leg(a=-a_tenon);
-      }
+      if (show_half2)
+        rotate(a=-90, v=[0, 1, 0])
+          half2();
     }
 
     // pins
