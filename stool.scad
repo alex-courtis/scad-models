@@ -98,12 +98,13 @@ module joint(
     a2=a2,
   );
 
-  // cheek /slot bottom from origin
+  // cheek/slot bottom from origin
+  // bottom and top extend to prevent any rounding errors and leftovers when inner=true 
   im = inner ? 1 : -1;
   dzs = [
-    -d / 2,
+    -d,
     for (i = [0:1:len(ratios) - 1]) -d / 2 + ratios[i] * d + (i % 2 == 0 ? im : -im) * d_gap / 2,
-    d / 2,
+    d,
   ];
 
   // cheek / slot heights
@@ -111,41 +112,33 @@ module joint(
     for (i = [0:1:len(dzs) - 2]) dzs[i + 1] - dzs[i],
   ];
 
-  // difference() {
-    for (i = [0:1:len(zs) - 1]) {
-      difference() {
+  difference() {
 
-        // all
+    // body - don't try and layer body with waste as body can get disconnected
+    translate(v=[0, 0, -d / 2])
+      linear_extrude(h=d, center=false)
+        polygon(body);
+
+    for (i = [0:1:len(zs) - 1]) {
+      // remove waste
+      if (inner && (i % 2 == 0) || !inner && (i % 2 == 1)) {
         translate(v=[0, 0, dzs[i]])
           linear_extrude(h=zs[i], center=false)
-            polygon(body);
-
-        // maybe subtract slot
-        if (inner && (i % 2 == 0) || !inner && (i % 2 == 1)) {
-          translate(v=[0, 0, dzs[i]])
-            linear_extrude(h=zs[i], center=false)
-              polygon(slot);
-        }
+            polygon(slot);
       }
-    }
 
-    // sharpen edges for printing
-    // do this after the body to ensure manifold integrity
-    // if (r_edge) {
-    //   for (i = [0:1:len(zs) - 1]) {
-    //     if (i > 0) {
-    //       translate(v=[0, 0, dzs[i]]) {
-    //         if (l1)
-    //           extrude_from_to(pt1=edges[0], pt2=edges[1])
-    //             circle(r=r_edge);
-    //         if (l2)
-    //           extrude_from_to(pt1=edges[2], pt2=edges[3])
-    //             circle(r=r_edge);
-    //       }
-    //     }
-    //   }
-    // }
-  // }
+      // sharpen edges for printing
+      if (i > 0 && r_edge)
+        translate(v=[0, 0, dzs[i]]) {
+          if (l1)
+            extrude_from_to(pt1=edges[0], pt2=edges[1])
+              circle(r=r_edge);
+          if (l2)
+            extrude_from_to(pt1=edges[2], pt2=edges[3])
+              circle(r=r_edge);
+        }
+    }
+  }
 }
 
 /*
@@ -308,9 +301,9 @@ module stool() {
   l_pin = h_top + w_cross + d_gap_def;
 
   show_leg = true;
-  show_top = false;
+  show_top = true;
   show_half1 = true;
-  show_half2 = false;
+  show_half2 = true;
   one_leg = false;
 
   module leg(a) {
@@ -334,27 +327,27 @@ module stool() {
       rotate(a=-90, v=[1, 0, 0])
         halving(d=w_cross, w=d_cross, l=d_cross, l1=l12_halving, l2=l12_halving, inner=false);
 
-    // // oblique leg
-    // translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg * 0.75, 0, 0]) {
-    //   color(c="chocolate")
-    //     tenon(a1=-a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=l12_tenon, l2=0);
-    //
-    //   if (show_leg)
-    //     color(c="orange")
-    //       translate(v=[-d_leg * 0.25, 0, 0])
-    //         leg(a=a_tenon);
-    // }
+    // oblique leg
+    translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg * 0.75, 0, 0]) {
+      color(c="chocolate")
+        tenon(a1=-a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=l12_tenon, l2=0);
+
+      if (show_leg)
+        color(c="orange")
+          translate(v=[-d_leg * 0.25, 0, 0])
+            leg(a=a_tenon);
+    }
 
     // straight leg
-    // translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
-    //   color(c="saddlebrown")
-    //     tenon(a1=0, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
-    //
-    //   if (show_leg)
-    //     color(c="orange")
-    //       translate(v=[d_leg * 0.25, 0, 0])
-    //         leg(a=-a_tenon);
-    // }
+    translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
+      color(c="saddlebrown")
+        tenon(a1=0, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
+
+      if (show_leg)
+        color(c="orange")
+          translate(v=[d_leg * 0.25, 0, 0])
+            leg(a=-a_tenon);
+    }
   }
 
   module half2() {
