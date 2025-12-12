@@ -21,7 +21,7 @@ r_edge_def = 0.2;
 /*
 Generic joint centred at the origin, shoulders along the y axis, length along the x axis measured to the midpoints of the shoulders.
 
-Half gaps are applied to each cut and the same gaps should be applied to the other joints.
+Half gaps are added to each cut and the same gaps should be applied to the other joints.
 
 |<------l1-------->|                       |<------l2-------->|
 .                  .                       .                  .
@@ -44,11 +44,11 @@ a1 and a2 may be negative, with size less than 90.
 
 When l1|l2 == 0, joint terminates at AB|CD, with no l_gap added.
 
-Joint is cut at ratios from -z to +z, alternating cheeks and slots, starting with a slot when inner is set.
+Joint is cut at ratios from -z to +z, starting with waste when inner is set.
 
-d_gap/2 is subtracted from each cheek and added to each slot.
+d_gap/2 is added to waste
 
-r_edge is a cylinder cut into all cheek and slot inner edges.
+r_edge is a cylinder cut into all inner edges.
 */
 module joint(
   l = w_def, // x shoulder to shoulder
@@ -59,10 +59,10 @@ module joint(
   a1 = a1_def, // -x
   a2 = a2_def, // +x
   ratios = ratios_def, // cuts in d, increasing z order
-  l_gap = l_gap_def, // gap between shoulders, half of this is removed from each shoulder
-  d_gap = d_gap_def, // gap between cheeks, half of this is removed from the cheek
-  r_edge = r_edge_def, // radius of cylinder cut into edges of slot
-  inner = false, // true for slot at bottom
+  l_gap = l_gap_def, // half removed from each shoulder
+  d_gap = d_gap_def, // half added to bottom of waste
+  r_edge = r_edge_def, // radius of cylinder cut into inner edges
+  inner = false, // true for waste at bottom
 ) {
   assert(l > 0);
   assert(l1 >= 0);
@@ -81,7 +81,7 @@ module joint(
     a2=a2,
   );
 
-  // when not l1 or l2 body extends to the side of the joint, without l_gap
+  // when not l1 or l2, body extends to the side of the joint, without l_gap
   body = skewed_rect(
     y=w,
     d1=l1 ? (l / 2 + l1) : l / 2,
@@ -98,8 +98,8 @@ module joint(
     a2=a2,
   );
 
-  // cheek/slot bottom from origin
-  // bottom and top extend to prevent any rounding errors and leftovers when inner=true 
+  // material/waste bottom up from origin
+  // bottom and top extend to prevent any rounding errors when waste at bottom or top
   im = inner ? 1 : -1;
   dzs = [
     -d,
@@ -107,14 +107,14 @@ module joint(
     d,
   ];
 
-  // cheek / slot heights
+  // material/waste heights
   zs = [
     for (i = [0:1:len(dzs) - 2]) dzs[i + 1] - dzs[i],
   ];
 
   difference() {
 
-    // body - don't try and layer body with waste as body can get disconnected
+    // entire body
     translate(v=[0, 0, -d / 2])
       linear_extrude(h=d, center=false)
         polygon(body);
@@ -217,7 +217,6 @@ module tenon(
   d_gap = 0.015,
   r_edge = 0.3,
 ) {
-
   joint(
     l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2,
     ratios=[(1 - ratio) / 2, (1 + ratio) / 2],
