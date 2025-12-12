@@ -111,7 +111,7 @@ module joint(
     for (i = [0:1:len(dzs) - 2]) dzs[i + 1] - dzs[i],
   ];
 
-  difference() {
+  // difference() {
     for (i = [0:1:len(zs) - 1]) {
       difference() {
 
@@ -131,21 +131,21 @@ module joint(
 
     // sharpen edges for printing
     // do this after the body to ensure manifold integrity
-    if (r_edge) {
-      for (i = [0:1:len(zs) - 1]) {
-        if (i > 0) {
-          translate(v=[0, 0, dzs[i]]) {
-            if (l1)
-              extrude_from_to(pt1=edges[0], pt2=edges[1])
-                circle(r=r_edge);
-            if (l2)
-              extrude_from_to(pt1=edges[2], pt2=edges[3])
-                circle(r=r_edge);
-          }
-        }
-      }
-    }
-  }
+    // if (r_edge) {
+    //   for (i = [0:1:len(zs) - 1]) {
+    //     if (i > 0) {
+    //       translate(v=[0, 0, dzs[i]]) {
+    //         if (l1)
+    //           extrude_from_to(pt1=edges[0], pt2=edges[1])
+    //             circle(r=r_edge);
+    //         if (l2)
+    //           extrude_from_to(pt1=edges[2], pt2=edges[3])
+    //             circle(r=r_edge);
+    //       }
+    //     }
+    //   }
+    // }
+  // }
 }
 
 /*
@@ -303,14 +303,15 @@ module stool() {
   d_top = 125;
   h_top = 1.2;
 
-  d_pin = 3.85;
+  d_pin = 1.85;
   x_pin = d_top * 0.32;
   l_pin = h_top + w_cross + d_gap_def;
 
   show_leg = true;
-  show_top = true;
+  show_top = false;
   show_half1 = true;
-  show_half2 = true;
+  show_half2 = false;
+  one_leg = false;
 
   module leg(a) {
     l1_leg = 20;
@@ -333,27 +334,27 @@ module stool() {
       rotate(a=-90, v=[1, 0, 0])
         halving(d=w_cross, w=d_cross, l=d_cross, l1=l12_halving, l2=l12_halving, inner=false);
 
-    // oblique leg
-    translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg * 0.75, 0, 0]) {
-      color(c="chocolate")
-        tenon(a1=-a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=l12_tenon, l2=0);
-
-      if (show_leg)
-        color(c="orange")
-          translate(v=[-d_leg * 0.25, 0, 0])
-            leg(a=a_tenon);
-    }
+    // // oblique leg
+    // translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg * 0.75, 0, 0]) {
+    //   color(c="chocolate")
+    //     tenon(a1=-a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=l12_tenon, l2=0);
+    //
+    //   if (show_leg)
+    //     color(c="orange")
+    //       translate(v=[-d_leg * 0.25, 0, 0])
+    //         leg(a=a_tenon);
+    // }
 
     // straight leg
-    translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
-      color(c="saddlebrown")
-        tenon(a1=0, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
-
-      if (show_leg)
-        color(c="orange")
-          translate(v=[d_leg * 0.25, 0, 0])
-            leg(a=-a_tenon);
-    }
+    // translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
+    //   color(c="saddlebrown")
+    //     tenon(a1=0, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
+    //
+    //   if (show_leg)
+    //     color(c="orange")
+    //       translate(v=[d_leg * 0.25, 0, 0])
+    //         leg(a=-a_tenon);
+    // }
   }
 
   module half2() {
@@ -417,5 +418,10 @@ module stool() {
         translate(v=[0, -x_pin, 0])
           cylinder(d=d_pin, h=l_pin, center=false);
       }
+  }
+
+  if (one_leg) {
+    color(c="orange")
+      leg(a=-a_tenon);
   }
 }
