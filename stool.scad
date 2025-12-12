@@ -98,12 +98,13 @@ module joint(
     a2=a2,
   );
 
-  // cheek /slot bottom from origin
+  // cheek/slot bottom from origin
+  // bottom and top extend to prevent any rounding errors and leftovers when inner=true 
   im = inner ? 1 : -1;
   dzs = [
-    -d / 2,
+    -d,
     for (i = [0:1:len(ratios) - 1]) -d / 2 + ratios[i] * d + (i % 2 == 0 ? im : -im) * d_gap / 2,
-    d / 2,
+    d,
   ];
 
   // cheek / slot heights
@@ -112,38 +113,30 @@ module joint(
   ];
 
   difference() {
-    for (i = [0:1:len(zs) - 1]) {
-      difference() {
 
-        // all
+    // body - don't try and layer body with waste as body can get disconnected
+    translate(v=[0, 0, -d / 2])
+      linear_extrude(h=d, center=false)
+        polygon(body);
+
+    for (i = [0:1:len(zs) - 1]) {
+      // remove waste
+      if (inner && (i % 2 == 0) || !inner && (i % 2 == 1)) {
         translate(v=[0, 0, dzs[i]])
           linear_extrude(h=zs[i], center=false)
-            polygon(body);
-
-        // maybe subtract slot
-        if (inner && (i % 2 == 0) || !inner && (i % 2 == 1)) {
-          translate(v=[0, 0, dzs[i]])
-            linear_extrude(h=zs[i], center=false)
-              polygon(slot);
-        }
+            polygon(slot);
       }
-    }
 
-    // sharpen edges for printing
-    // do this after the body to ensure manifold integrity
-    if (r_edge) {
-      for (i = [0:1:len(zs) - 1]) {
-        if (i > 0) {
-          translate(v=[0, 0, dzs[i]]) {
-            if (l1)
-              extrude_from_to(pt1=edges[0], pt2=edges[1])
-                circle(r=r_edge);
-            if (l2)
-              extrude_from_to(pt1=edges[2], pt2=edges[3])
-                circle(r=r_edge);
-          }
+      // sharpen edges for printing
+      if (i > 0 && r_edge)
+        translate(v=[0, 0, dzs[i]]) {
+          if (l1)
+            extrude_from_to(pt1=edges[0], pt2=edges[1])
+              circle(r=r_edge);
+          if (l2)
+            extrude_from_to(pt1=edges[2], pt2=edges[3])
+              circle(r=r_edge);
         }
-      }
     }
   }
 }
@@ -303,7 +296,7 @@ module stool() {
   d_top = 125;
   h_top = 1.2;
 
-  d_pin = 3.85;
+  d_pin = 1.85;
   x_pin = d_top * 0.32;
   l_pin = h_top + w_cross + d_gap_def;
 
@@ -311,6 +304,7 @@ module stool() {
   show_top = true;
   show_half1 = true;
   show_half2 = true;
+  one_leg = false;
 
   module leg(a) {
     l1_leg = 20;
@@ -417,5 +411,10 @@ module stool() {
         translate(v=[0, -x_pin, 0])
           cylinder(d=d_pin, h=l_pin, center=false);
       }
+  }
+
+  if (one_leg) {
+    color(c="orange")
+      leg(a=-a_tenon);
   }
 }
