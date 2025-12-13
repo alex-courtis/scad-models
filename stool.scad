@@ -1,5 +1,10 @@
 include <BOSL2/std.scad>
 
+// TODO
+// dovetail fail when a1 or a2 zero
+// edge rounding restricted when dovetailing
+// push waste3/4 into skewed rect
+
 $fn = 200;
 
 w_def = 30;
@@ -8,9 +13,15 @@ l1_def = 40;
 l2_def = 40;
 
 a1_def = 10;
-a2_def = -5;
+a2_def = -6;
+a3_def = 4;
+a4_def = -3;
+
 a_def_tenon = 8;
 a_def_mortise = -8;
+
+a3_def_dovetail = 10;
+a4_def_dovetail = -10;
 
 ratios_def = [1 / 4, 3 / 5, 4 / 5];
 
@@ -18,7 +29,7 @@ l_gap_def = 0.025;
 d_gap_def = 0.020;
 r_edge_def = 0.2;
 
-/*
+/**
 Generic joint centred at the origin, shoulders along the y axis, length along the x axis measured to the midpoints of the shoulders.
 
 Half gaps are added to each cut and the same gaps should be applied to the other joints.
@@ -58,10 +69,12 @@ module joint(
   d = d_def, // z
   a1 = a1_def, // -x
   a2 = a2_def, // +x
+  a3 = a3_def, // +y
+  a4 = a4_def, // -y
   ratios = ratios_def, // cuts in d, increasing z order
   l_gap = l_gap_def, // half removed from each shoulder
   d_gap = d_gap_def, // half added to bottom of waste
-  r_edge = r_edge_def, // radius of cylinder cut into inner edges
+  r_edge = r_edge_def, // radius of cylinder cut into waste edges
   inner = false, // true for waste at bottom
 ) {
   assert(l > 0);
@@ -71,9 +84,11 @@ module joint(
   assert(d > 0);
   assert(a1 < 90 && a1 > -90);
   assert(a2 < 90 && a2 > -90);
+  assert(a3 < 90 && a3 > -90);
+  assert(a4 < 90 && a4 > -90);
   assert(len(ratios) > 0);
 
-  slot = skewed_rect(
+  waste = skewed_rect(
     y=w,
     d1=(l + l_gap) / 2,
     d2=(l + l_gap) / 2,
@@ -89,6 +104,34 @@ module joint(
     a1=l1 ? 0 : a1,
     a2=l2 ? 0 : a2,
   );
+
+  Bx = waste[1][0];
+  By = waste[1][1];
+  Cx = waste[2][0];
+  Cy = waste[2][1];
+  waste_top =
+    !a3 ? undef
+    : [
+      [Bx, By],
+      a3 > 0 ?
+        line_intersect(Bx, By, -90 - a1, Cx, Cy, a3)
+      : line_intersect(Bx, By, a3, Cx, Cy, -90 - a2),
+      [Cx, Cy],
+    ];
+
+  Ax = waste[0][0];
+  Ay = waste[0][1];
+  Dx = waste[3][0];
+  Dy = waste[3][1];
+  waste_bottom =
+    !a4 ? undef
+    : [
+      [Ax, Ay],
+      a4 > 0 ?
+        line_intersect(Ax, Ay, a4, Dx, Dy, 90 - a2)
+      : line_intersect(Ax, Ay, -90 - a1, Dx, Dy, a4),
+      [Dx, Dy],
+    ];
 
   edges = skewed_rect(
     y=w + 2 * r_edge,
@@ -117,14 +160,20 @@ module joint(
     // entire body
     translate(v=[0, 0, -d / 2])
       linear_extrude(h=d, center=false)
-        polygon(body);
+        difference() {
+          polygon(body);
+          if (waste_top)
+            polygon(waste_top);
+          if (waste_bottom)
+            polygon(waste_bottom);
+        }
 
     for (i = [0:1:len(zs) - 1]) {
       // remove waste
       if (inner && (i % 2 == 0) || !inner && (i % 2 == 1)) {
         translate(v=[0, 0, dzs[i]])
           linear_extrude(h=zs[i], center=false)
-            polygon(slot);
+            polygon(waste);
       }
 
       // sharpen edges for printing
@@ -141,7 +190,7 @@ module joint(
   }
 }
 
-/*
+/**
    Return poly ABCD
    d1 is perpendicular from AB to O
    d2 is perpendicular from CD to O
@@ -159,9 +208,22 @@ module joint(
   | /              |      | /           |
   |/               |      |/            |
   A-----------------------D             -
-  
-  */
+*/
 function skewed_rect(y, d1, d2, a1, a2) =
+  assert(y > 0)
+
+  assert(is_num(d1))
+  assert(d1 >= 0)
+
+  assert(is_num(d2))
+  assert(d2 >= 0)
+
+  assert(is_num(a1))
+  assert(a1 < 90 && a1 > -90)
+
+  assert(is_num(a2))
+  assert(a2 < 90 && a2 > -90)
+
   let (
     dx1 = y / 2 * tan(a1),
     dx2 = y / 2 * tan(a2),
@@ -180,6 +242,31 @@ function skewed_rect(y, d1, d2, a1, a2) =
     ]
   : undef;
 
+/**
+Intersection point of two lines specified by point and angle
+*/
+function line_intersect(x1, y1, a1, x2, y2, a2) =
+  assert(is_num(a1))
+  assert(is_num(a2))
+  assert(a1 != a2)
+
+  let (
+    // y = ax + b
+    a = tan(a1),
+    c = -x1 * tan(a1) + y1,
+
+    // y = bx + d
+    b = tan(a2),
+    d = -x2 * tan(a2) + y2,
+
+    // intersect
+    x = (d - c) / (a - b),
+    y = a * x + c,
+  ) [
+      x,
+      y,
+  ];
+
 // print with cheek facing up, default gaps are for 0.6
 module halving(
   l = w_def,
@@ -189,13 +276,15 @@ module halving(
   d = d_def,
   a1 = 0,
   a2 = 0,
+  a3 = 0,
+  a4 = 0,
   l_gap = 0.002,
   d_gap = 0.045,
   r_edge = 0.010,
   inner = false,
 ) {
   joint(
-    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2,
+    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2, a3=a3, a4=a4,
     ratios=[1 / 2],
     l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
     inner=inner,
@@ -212,16 +301,19 @@ module tenon(
   d = d_def,
   a1 = a_def_tenon,
   a2 = a_def_tenon,
+  a3 = 0,
+  a4 = 0,
   ratio = 1 / 3, // of the tenon, centred
   l_gap = 0.140,
   d_gap = 0.015,
   r_edge = 0.3,
+  inner = true,
 ) {
   joint(
-    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2,
+    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2, a3=a3, a4=a4,
     ratios=[(1 - ratio) / 2, (1 + ratio) / 2],
     l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
-    inner=true,
+    inner=inner,
   );
 }
 
@@ -235,22 +327,59 @@ module mortise(
   d = d_def,
   a1 = a_def_mortise,
   a2 = a_def_mortise,
+  a3 = 0,
+  a4 = 0,
   ratio = 1 / 3, // of the slot, centred
   l_gap = 0.140,
   d_gap = 0.015,
   r_edge = 0.3,
+  inner = false,
 ) {
   joint(
-    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2,
+    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2, a3=a3, a4=a4,
     ratios=[(1 - ratio) / 2, (1 + ratio) / 2],
     l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
-    inner=false,
+    inner=inner,
+  );
+}
+
+module dovetail_tail(
+  l = w_def,
+  l1 = l1_def,
+  l2 = 0,
+  w = w_def,
+  d = d_def,
+  a1 = a1_def,
+  a2 = a2_def,
+  a3 = a3_def_dovetail,
+  a4 = a4_def_dovetail,
+  ratio = 1 / 2,
+  l_gap = 0.002,
+  d_gap = 0.045,
+  r_edge = 0.010,
+  inner = false,
+) {
+  joint(
+    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2, a3=a3, a4=a4,
+    ratios=[ratio],
+    l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
+    inner=inner,
   );
 }
 
 render() {
   stool();
   // mt_test();
+  // dov_test();
+}
+
+module dov_test() {
+  // color(c="tan")
+  //   dovetail_socket();
+
+  rotate(a=90)
+    color(c="chocolate")
+      dovetail_tail();
 }
 
 module mt_test() {
