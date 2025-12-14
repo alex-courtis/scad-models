@@ -1,8 +1,9 @@
 include <BOSL2/std.scad>
 
 // TODO
-// edge rounding restricted when dovetailing
+// mechanism to set dovetail or socket width
 // push waste3/4 into skewed rect
+// clean up waste top/bottom and edge calculations and variables
 
 $fn = 200;
 
@@ -18,9 +19,7 @@ a4_def = -3;
 
 a_def_tenon = 8;
 a_def_mortise = -8;
-
-a3_def_dovetail = 10;
-a4_def_dovetail = -10;
+a_def_dovetail = 10;
 
 ratios_def = [1 / 4, 3 / 5, 4 / 5];
 
@@ -132,13 +131,12 @@ module joint(
       [Dx, Dy],
     ];
 
-  edges = skewed_rect(
-    y=w + 2 * r_edge,
-    d1=l / 2 + l_gap / 2,
-    d2=l / 2 + l_gap / 2,
-    a1=a1,
-    a2=a2,
-  );
+  edges = [
+    a4 < 0 ? waste_bottom[1] : waste[0],
+    a3 > 0 ? waste_top[1] : waste[1],
+    a3 < 0 ? waste_top[1] : waste[2],
+    a4 > 0 ? waste_bottom[1] : waste[3],
+  ];
 
   // material/waste bottom up from origin
   // bottom and top extend to prevent any rounding errors when waste at bottom or top
@@ -175,16 +173,50 @@ module joint(
             polygon(waste);
       }
 
-      // sharpen edges for printing
-      if (i > 0 && r_edge)
-        translate(v=[0, 0, dzs[i]]) {
-          if (l1)
-            extrude_from_to(pt1=edges[0], pt2=edges[1])
-              circle(r=r_edge);
-          if (l2)
-            extrude_from_to(pt1=edges[2], pt2=edges[3])
-              circle(r=r_edge);
+      if (r_edge) {
+
+        // remove inner horizontal edges
+        // cut out a cylinder and cap with spheres
+        if (i > 0) {
+          translate(v=[0, 0, dzs[i]]) {
+            if (l1) {
+              extrude_from_to(pt1=edges[0], pt2=edges[1])
+                circle(r=r_edge);
+              translate(v=edges[0])
+                sphere(r=r_edge);
+              translate(v=edges[1])
+                sphere(r=r_edge);
+            }
+            if (l2) {
+              extrude_from_to(pt1=edges[2], pt2=edges[3])
+                circle(r=r_edge);
+              translate(v=edges[2])
+                sphere(r=r_edge);
+              translate(v=edges[3])
+                sphere(r=r_edge);
+            }
+          }
         }
+
+        // remove inner vertical edges
+        // these will intersect with the spheres from the horizontals
+        if (inner && (i % 2 == 1) || !inner && (i % 2 == 0)) {
+          translate(v=[0, 0, dzs[i]]) {
+            if (a4 < 0 && l1)
+              translate(v=edges[0])
+                cylinder(r=r_edge, h=zs[i]);
+            if (a3 > 0 && l1)
+              translate(v=edges[1])
+                cylinder(r=r_edge, h=zs[i]);
+            if (a3 < 0 && l2)
+              translate(v=edges[2])
+                cylinder(r=r_edge, h=zs[i]);
+            if (a4 > 0 && l2)
+              translate(v=edges[3])
+                cylinder(r=r_edge, h=zs[i]);
+          }
+        }
+      }
     }
   }
 }
@@ -358,14 +390,38 @@ module dovetail_tail(
   l2 = 0,
   w = w_def,
   d = d_def,
-  a1 = a1_def,
-  a2 = a2_def,
-  a3 = a3_def_dovetail,
-  a4 = a4_def_dovetail,
+  a1 = 0,
+  a2 = 0,
+  a3 = a_def_dovetail,
+  a4 = -a_def_dovetail,
   ratio = 1 / 2,
-  l_gap = 0.002,
-  d_gap = 0.045,
-  r_edge = 0.010,
+  l_gap = 0.030 * 2, // TODO this needs to be doubled in the a3/a4 case
+  d_gap = 0.040,
+  r_edge = 0.030,
+  inner = true,
+) {
+  joint(
+    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2, a3=a3, a4=a4,
+    ratios=[ratio],
+    l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
+    inner=inner,
+  );
+}
+
+module dovetail_socket(
+  l = w_def,
+  l1 = l1_def,
+  l2 = l2_def,
+  w = w_def,
+  d = d_def,
+  a1 = a_def_dovetail,
+  a2 = -a_def_dovetail,
+  a3 = 0,
+  a4 = 0,
+  ratio = 1 / 2,
+  l_gap = 0.030,
+  d_gap = 0.040,
+  r_edge = 0.030,
   inner = false,
 ) {
   joint(
@@ -377,18 +433,26 @@ module dovetail_tail(
 }
 
 render() {
-  stool();
+  // stool();
   // mt_test();
-  // dov_test();
+  dov_test();
 }
 
 module dov_test() {
-  // color(c="tan")
-  //   dovetail_socket();
+  union() {
+    color(c="tan")
+      dovetail_socket(
+        l1=20,
+        l2=20,
+      );
 
-  rotate(a=90)
-    color(c="chocolate")
-      dovetail_tail();
+    rotate(a=-90)
+      color(c="chocolate")
+        dovetail_tail(
+          l1=30,
+          w=w_def + 5.725, // TODO formulate this
+        );
+  }
 }
 
 module mt_test() {
