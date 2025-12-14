@@ -1,7 +1,6 @@
 include <BOSL2/std.scad>
 
 // TODO
-// dovetail fail when a1 or a2 zero
 // edge rounding restricted when dovetailing
 // push waste3/4 into skewed rect
 
@@ -252,16 +251,26 @@ function line_intersect(x1, y1, a1, x2, y2, a2) =
 
   let (
     // y = ax + b
-    a = tan(a1),
-    c = -x1 * tan(a1) + y1,
+    v1 = (a1 % 90 == 0),
+    a = v1 ? undef : tan(a1),
+    c = v1 ? undef : y1 - x1 * a,
 
     // y = bx + d
+    v2 = (a2 % 90 == 0),
     b = tan(a2),
-    d = -x2 * tan(a2) + y2,
+    d = y2 - x2 * b,
 
-    // intersect
-    x = (d - c) / (a - b),
-    y = a * x + c,
+    // x = (d - c) / (a - b)
+    x = v1 ?
+      x1
+    : v2 ?
+      x2
+    : (d - c) / (a - b),
+
+    // y = a * x + c
+    y = v1 ?
+      (b * x + d)
+    : (a * x + c),
   ) [
       x,
       y,
