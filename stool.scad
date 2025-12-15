@@ -1,9 +1,8 @@
 include <BOSL2/std.scad>
 
 // TODO
-// mechanism to set dovetail or socket width
-// push waste3/4 into skewed rect
-// clean up waste top/bottom and edge calculations and variables
+// move calculations to each joint
+// keep_top as per waste_top
 
 $fn = 200;
 
@@ -27,10 +26,10 @@ l_gap_def = 0.025;
 d_gap_def = 0.020;
 r_edge_def = 0.2;
 
+debug = false;
+
 /**
 Generic joint centred at the origin, shoulders along the y axis, length along the x axis measured to the midpoints of the shoulders.
-
-Half gaps are added to each cut and the same gaps should be applied to the other joints.
 
 |<------l1-------->|                       |<------l2-------->|
 .                  .                       .                  .
@@ -47,7 +46,7 @@ Half gaps are added to each cut and the same gaps should be applied to the other
 |             |/                      |/                      |     |
 --------------A-----------------------D------------------------     -
 
-l is the sum of the (even) perpendiculars from AB to O and from CD to O. l_gap / 2 is added to each perpendicular.
+l is the sum of the (even) perpendiculars from AB to O and from CD to O. l_gap is added to each perpendicular.
 
 a1 and a2 may be negative, with size less than 90.
 
@@ -55,7 +54,7 @@ When l1|l2 == 0, joint terminates at AB|CD, with no l_gap added.
 
 Joint is cut at ratios from -z to +z, starting with waste when inner is set.
 
-d_gap/2 is added to waste
+d_gap/2 is added to waste and should be applied to the other joint.
 
 r_edge is a cylinder cut into all inner edges.
 */
@@ -70,7 +69,7 @@ module joint(
   a3 = a3_def, // +y
   a4 = a4_def, // -y
   ratios = ratios_def, // cuts in d, increasing z order
-  l_gap = l_gap_def, // half removed from each shoulder
+  l_gap = l_gap_def, // removed from each shoulder
   d_gap = d_gap_def, // half added to bottom of waste
   r_edge = r_edge_def, // radius of cylinder cut into waste edges
   inner = false, // true for waste at bottom
@@ -86,13 +85,22 @@ module joint(
   assert(a4 < 90 && a4 > -90);
   assert(len(ratios) > 0);
 
-  waste = skewed_rect(
+  abcd = skewed_rect(
     y=w,
-    d1=(l + l_gap) / 2,
-    d2=(l + l_gap) / 2,
+    d1=l / 2 + l_gap,
+    d2=l / 2 + l_gap,
     a1=a1,
     a2=a2,
   );
+
+  Ax = abcd[0][0];
+  Ay = abcd[0][1];
+  Bx = abcd[1][0];
+  By = abcd[1][1];
+  Cx = abcd[2][0];
+  Cy = abcd[2][1];
+  Dx = abcd[3][0];
+  Dy = abcd[3][1];
 
   // when not l1 or l2, body extends to the side of the joint, without l_gap
   body = skewed_rect(
@@ -103,10 +111,6 @@ module joint(
     a2=l2 ? 0 : a2,
   );
 
-  Bx = waste[1][0];
-  By = waste[1][1];
-  Cx = waste[2][0];
-  Cy = waste[2][1];
   waste_top =
     !a3 ? undef
     : [
@@ -117,10 +121,6 @@ module joint(
       [Cx, Cy],
     ];
 
-  Ax = waste[0][0];
-  Ay = waste[0][1];
-  Dx = waste[3][0];
-  Dy = waste[3][1];
   waste_bottom =
     !a4 ? undef
     : [
@@ -131,12 +131,59 @@ module joint(
       [Dx, Dy],
     ];
 
-  edges = [
-    a4 < 0 ? waste_bottom[1] : waste[0],
-    a3 > 0 ? waste_top[1] : waste[1],
-    a3 < 0 ? waste_top[1] : waste[2],
-    a4 > 0 ? waste_bottom[1] : waste[3],
+  waste = [
+    a4 < 0 ? waste_bottom[1] : abcd[0],
+    a3 > 0 ? waste_top[1] : abcd[1],
+    a3 < 0 ? waste_top[1] : abcd[2],
+    a4 > 0 ? waste_bottom[1] : abcd[3],
   ];
+
+  if (debug) {
+    color(c="red")
+      translate(v=[0, 0, d - 2])
+        linear_extrude(h=1)
+          polygon(abcd);
+
+    color(c="orange")
+      translate(v=[0, 0, d])
+        linear_extrude(h=1)
+          polygon(waste);
+
+    color(c="green") if (waste_top)
+      translate(v=[0, 0, d + 2])
+        linear_extrude(h=1)
+          polygon(waste_top);
+
+    color(c="blue") if (waste_bottom)
+      translate(v=[0, 0, d + 2])
+        linear_extrude(h=1)
+          polygon(waste_bottom);
+  }
+
+  joint_render(
+    d=d,
+    body=body,
+    waste=waste,
+    waste_top=waste_top,
+    waste_bottom=waste_bottom,
+    ratios=ratios,
+    d_gap=d_gap,
+    r_edge=r_edge,
+    inner=inner,
+  );
+}
+
+module joint_render(
+  d,
+  body,
+  waste,
+  waste_top,
+  waste_bottom,
+  ratios,
+  d_gap,
+  r_edge,
+  inner,
+) {
 
   // material/waste bottom up from origin
   // bottom and top extend to prevent any rounding errors when waste at bottom or top
@@ -166,7 +213,7 @@ module joint(
         }
 
     for (i = [0:1:len(zs) - 1]) {
-      // remove waste
+      // remove joint waste
       if (inner && (i % 2 == 0) || !inner && (i % 2 == 1)) {
         translate(v=[0, 0, dzs[i]])
           linear_extrude(h=zs[i], center=false)
@@ -179,22 +226,19 @@ module joint(
         // cut out a cylinder and cap with spheres
         if (i > 0) {
           translate(v=[0, 0, dzs[i]]) {
-            if (l1) {
-              extrude_from_to(pt1=edges[0], pt2=edges[1])
-                circle(r=r_edge);
-              translate(v=edges[0])
-                sphere(r=r_edge);
-              translate(v=edges[1])
-                sphere(r=r_edge);
-            }
-            if (l2) {
-              extrude_from_to(pt1=edges[2], pt2=edges[3])
-                circle(r=r_edge);
-              translate(v=edges[2])
-                sphere(r=r_edge);
-              translate(v=edges[3])
-                sphere(r=r_edge);
-            }
+            extrude_from_to(pt1=waste[0], pt2=waste[1])
+              circle(r=r_edge);
+            translate(v=waste[0])
+              sphere(r=r_edge);
+            translate(v=waste[1])
+              sphere(r=r_edge);
+
+            extrude_from_to(pt1=waste[2], pt2=waste[3])
+              circle(r=r_edge);
+            translate(v=waste[2])
+              sphere(r=r_edge);
+            translate(v=waste[3])
+              sphere(r=r_edge);
           }
         }
 
@@ -202,18 +246,18 @@ module joint(
         // these will intersect with the spheres from the horizontals
         if (inner && (i % 2 == 1) || !inner && (i % 2 == 0)) {
           translate(v=[0, 0, dzs[i]]) {
-            if (a4 < 0 && l1)
-              translate(v=edges[0])
+            if (waste_bottom) {
+              translate(v=waste[0])
                 cylinder(r=r_edge, h=zs[i]);
-            if (a3 > 0 && l1)
-              translate(v=edges[1])
+              translate(v=waste[3])
                 cylinder(r=r_edge, h=zs[i]);
-            if (a3 < 0 && l2)
-              translate(v=edges[2])
+            }
+            if (waste_top) {
+              translate(v=waste[1])
                 cylinder(r=r_edge, h=zs[i]);
-            if (a4 > 0 && l2)
-              translate(v=edges[3])
+              translate(v=waste[2])
                 cylinder(r=r_edge, h=zs[i]);
+            }
           }
         }
       }
@@ -395,9 +439,9 @@ module dovetail_tail(
   a3 = a_def_dovetail,
   a4 = -a_def_dovetail,
   ratio = 1 / 2,
-  l_gap = 0.030 * 2, // TODO this needs to be doubled in the a3/a4 case
+  l_gap = 0.030,
   d_gap = 0.040,
-  r_edge = 0.030,
+  r_edge = 0.30,
   inner = true,
 ) {
   joint(
@@ -421,7 +465,7 @@ module dovetail_socket(
   ratio = 1 / 2,
   l_gap = 0.030,
   d_gap = 0.040,
-  r_edge = 0.030,
+  r_edge = 0.30,
   inner = false,
 ) {
   joint(
@@ -434,14 +478,21 @@ module dovetail_socket(
 
 render() {
   // stool();
-  // mt_test();
-  dov_test();
+  mt_test();
+  // dov_test();
 }
 
 module dov_test() {
+  l_gap = 0.5;
+  d_gap = 0.5;
+  r_edge = 0.5;
+
   union() {
     color(c="tan")
       dovetail_socket(
+        l_gap=l_gap,
+        d_gap=d_gap,
+        r_edge=r_edge,
         l1=20,
         l2=20,
       );
@@ -449,8 +500,11 @@ module dov_test() {
     rotate(a=-90)
       color(c="chocolate")
         dovetail_tail(
+          l_gap=l_gap,
+          d_gap=d_gap,
+          r_edge=r_edge,
           l1=30,
-          w=w_def + 5.725, // TODO formulate this
+          w=w_def + 5.725,
         );
   }
 }
@@ -464,20 +518,24 @@ module mt_test() {
   l_leg = w_tenon;
   l1_leg = 25;
 
+  l_gap = 0.5;
+  d_gap = 0.5;
+  r_edge = 0.5;
+
   a = 8;
 
   color(c="sienna")
-    tenon(a1=-a, a2=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=0);
+    tenon(a1=-a, a2=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
   color(c="orange")
     rotate(a=90 + a)
-      mortise(a1=a, a2=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=l1_leg);
+      mortise(a1=a, a2=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=l1_leg, l_gap=1, d_gap=1, r_edge=r_edge);
 
   translate(v=[70, 0, 0]) {
-    color(c="sienna")
-      tenon(a1=-a, a2=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=l12_tenon);
-    color(c="orange")
+    color(c="tan")
+      tenon(a1=-a, a2=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=l12_tenon, l_gap=1, d_gap=1, r_edge=r_edge);
+    color(c="chocolate")
       rotate(a=90 + a)
-        mortise(a1=a, a2=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=0);
+        mortise(a1=a, a2=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
   }
 }
 
