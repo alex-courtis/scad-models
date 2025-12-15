@@ -491,90 +491,98 @@ module plate() {
 }
 
 module slide() {
-  d_pin_slide = 4;
-  d_pin_tray = 3.7;
+  d_pin_shuttle = 4;
+  d_pin_tray = 3.9;
   l_pin = 70;
 
   d_thread = 4.1;
-  d_thread_cutout = d_thread - 0.35;
+  d_thread_cutout = d_thread - 0.1;
 
-  h_head = 2;
-  d_head = 7.3;
-  d_head_cutout = d_head - 0.2;
+  h_head = 3.0;
+  d_head = 8.5;
+  d_head_cutout = d_head - 0.1;
 
-  h_nut = 4.9;
-  ds_nut = 6.85;
+  h_nut = 6.0;
+  ds_nut = 7.8;
   d_nut = ds_nut * 2 / sqrt(3);
 
   w_screw_captive = 10;
   l_screw_captive = 15;
 
-  t_slide = 8.0;
-  t_lower = 2.0;
+  t_slide = 9.0;
+  t_lower = 2.5;
 
   // gaps are removed from tray
   x_gap = 0.25;
-  y_wall = 4.6;
+  y_wall = 5.0;
   z_gap = 1;
-  z_wall = 3.6;
+  z_wall = 5.0;
 
-  w_slide_outer = l_pin - 2;
-  w_slide_inner = 30;
+  w_tray = l_pin - 2.5;
+  w_shuttle = 30;
 
-  // l_slide_outer = l_surf + l_arm * 2;
-  l_slide_outer = 70;
-  l_slide_inner = l_slide_outer - 2 * z_wall - 2 * z_gap;
-
-  xs = t_slide;
-  ys = w_slide_inner;
-  dys = ys / 2;
-  zs = l_slide_inner;
-  dzs = z_wall + z_gap;
+  // l_tray = l_surf + l_arm * 2;
+  l_tray = 70;
+  l_shuttle = l_tray - 2 * z_wall - 2 * z_gap;
 
   xo = t_slide + t_lower;
-  yo = w_slide_outer;
-  zo = l_slide_outer;
+  yo = w_tray;
+  zo = l_tray;
 
-  xi = xs + x_gap;
-  yi = w_slide_outer - y_wall * 2;
+  xi = t_slide + x_gap;
+  yi = w_tray - y_wall * 2;
   dyi = y_wall;
-  zi = l_slide_outer - z_wall * 2 + z_gap * 2;
+  zi = l_tray - z_wall * 2 + z_gap * 2;
   dzi = (zo - zi) / 2;
 
   module slide_pins() {
-    translate(v=[xs / 2, 0, 0]) {
+    translate(v=[t_slide / 2, 0, 0]) {
       rotate(a=-90, v=[1, 0, 0])
         cylinder(d=d_pin_tray, h=yo - y_wall / 3, center=false);
 
-      translate(v=[0, dys, 0])
+      translate(v=[0, w_shuttle / 2, 0])
         rotate(a=-90, v=[1, 0, 0])
-          cylinder(d=d_pin_slide, h=w_slide_inner, center=false);
+          cylinder(d=d_pin_shuttle, h=w_shuttle, center=false);
+    }
+  }
+
+  module shuttle_half() {
+
+    x = t_slide;
+    y = w_shuttle;
+    z = l_shuttle / 2;
+
+    difference() {
+
+      // body
+      cube(size=[x, y, z]);
+
+      // slide screw
+      translate(v=[x / 2, 0, 0])
+        rotate(a=-90, v=[1, 0, 0])
+          cylinder(d=d_thread, h=y, center=false);
+
+      // nut
+      translate(v=[x / 2, y / 2 - h_nut / 2, 0])
+        rotate(a=-90, v=[1, 0, 0])
+          cylinder(d=d_nut, h=h_nut, center=false, $fn=6);
+
+      // nut cutout
+      translate(v=[0, y / 2 - h_nut / 2, -ds_nut / 2])
+        cube(size=[x / 2, h_nut, ds_nut], center=false);
     }
   }
 
   difference() {
     union() {
       color(c="yellow") {
-        difference() {
-          translate(v=[0, dys, dzs])
-            cube(size=[xs, ys, zs], center=false);
-
-          // slide screw
-          translate(v=[xs / 2, dys, zo / 2])
-            rotate(a=-90, v=[1, 0, 0])
-              cylinder(d=d_thread, h=ys, center=false);
-
-          // nut
-          translate(v=[xs / 2, dys + ys / 2 - h_nut / 2, zo / 2])
-            rotate(a=-90, v=[1, 0, 0])
-              cylinder(d=d_nut, h=h_nut, center=false, $fn=6);
-
-          // nut cutout
-          translate(v=[0, dys + ys / 2 - h_nut / 2, zo / 2 - ds_nut / 2])
-            cube(size=[xs / 2, h_nut, ds_nut], center=false);
+        translate(v=[0, w_shuttle / 2, zo / 2]) {
+          shuttle_half();
+          zflip() shuttle_half();
         }
       }
 
+      // TODO tray_half and simplify
       color(c="orange") {
         difference() {
           union() {
@@ -586,15 +594,15 @@ module slide() {
             cube(size=[xi, yi, zi], center=false);
 
           // slide screw
-          translate(v=[xs / 2, -w_screw_captive, zo / 2]) {
+          translate(v=[t_slide / 2, -w_screw_captive, zo / 2]) {
 
             // bolt shaft
             rotate(a=-90, v=[1, 0, 0])
               cylinder(d=d_thread, h=y_wall + w_screw_captive, center=false);
 
             // shaft cutout
-            translate(v=[-d_thread, 0, -d_thread_cutout / 2])
-              cube(size=[d_thread, y_wall + w_screw_captive, d_thread_cutout], center=false);
+            translate(v=[-d_thread * 2, 0, -d_thread_cutout / 2])
+              cube(size=[d_thread * 2, y_wall + w_screw_captive, d_thread_cutout], center=false);
 
             // bolt head
             translate(v=[-d_head, w_screw_captive / 2, -d_head_cutout / 2])
@@ -609,9 +617,11 @@ module slide() {
       }
     }
 
-    translate(v=[0, 0, dzs + d_pin_tray])
+    translate(v=[0, 0, z_wall + z_gap + d_pin_shuttle])
       slide_pins();
-    translate(v=[0, 0, l_slide_outer - (dzs + d_pin_tray)])
+	
+	// TODO remove once we are using halves
+    translate(v=[0, 0, l_tray - (z_wall + z_gap + d_pin_shuttle)])
       slide_pins();
   }
 }
