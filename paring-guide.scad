@@ -121,11 +121,12 @@ a_display = -20; // [-45:1:45]
 
 explode = 0; // [0:1:100]
 halves = false;
-show_plate = true;
-show_arms = true;
-show_surf = true;
-show_fitting_lower = true;
-show_fitting_upper = true;
+show_plate = false;
+show_arms = false;
+show_surf = false;
+show_fitting_lower = false;
+show_fitting_upper = false;
+show_slide = true;
 
 $fn = 200; // [40:1:1000]
 
@@ -489,6 +490,132 @@ module plate() {
     zflip() plate_half();
 }
 
+module slide() {
+  d_pin_slide = 4;
+  d_pin_tray = 3.7;
+  l_pin = 70;
+
+  d_thread = 4.1;
+  d_thread_cutout = d_thread - 0.35;
+
+  h_head = 2;
+  d_head = 7.3;
+  d_head_cutout = d_head - 0.2;
+
+  h_nut = 4.9;
+  ds_nut = 6.85;
+  d_nut = ds_nut * 2 / sqrt(3);
+
+  w_screw_captive = 10;
+  l_screw_captive = 15;
+
+  t_slide = 8.0;
+  t_lower = 2.0;
+
+  // gaps are removed from tray
+  x_gap = 0.25;
+  y_wall = 4.6;
+  z_gap = 1;
+  z_wall = 3.6;
+
+  w_slide_outer = l_pin - 2;
+  w_slide_inner = 30;
+
+  // l_slide_outer = l_surf + l_arm * 2;
+  l_slide_outer = 70;
+  l_slide_inner = l_slide_outer - 2 * z_wall - 2 * z_gap;
+
+  xs = t_slide;
+  ys = w_slide_inner;
+  dys = ys / 2;
+  zs = l_slide_inner;
+  dzs = z_wall + z_gap;
+
+  xo = t_slide + t_lower;
+  yo = w_slide_outer;
+  zo = l_slide_outer;
+
+  xi = xs + x_gap;
+  yi = w_slide_outer - y_wall * 2;
+  dyi = y_wall;
+  zi = l_slide_outer - z_wall * 2 + z_gap * 2;
+  dzi = (zo - zi) / 2;
+
+  module slide_pins() {
+    translate(v=[xs / 2, 0, 0]) {
+      rotate(a=-90, v=[1, 0, 0])
+        cylinder(d=d_pin_tray, h=yo - y_wall / 3, center=false);
+
+      translate(v=[0, dys, 0])
+        rotate(a=-90, v=[1, 0, 0])
+          cylinder(d=d_pin_slide, h=w_slide_inner, center=false);
+    }
+  }
+
+  difference() {
+    union() {
+      color(c="yellow") {
+        difference() {
+          translate(v=[0, dys, dzs])
+            cube(size=[xs, ys, zs], center=false);
+
+          // slide screw
+          translate(v=[xs / 2, dys, zo / 2])
+            rotate(a=-90, v=[1, 0, 0])
+              cylinder(d=d_thread, h=ys, center=false);
+
+          // nut
+          translate(v=[xs / 2, dys + ys / 2 - h_nut / 2, zo / 2])
+            rotate(a=-90, v=[1, 0, 0])
+              cylinder(d=d_nut, h=h_nut, center=false, $fn=6);
+
+          // nut cutout
+          translate(v=[0, dys + ys / 2 - h_nut / 2, zo / 2 - ds_nut / 2])
+            cube(size=[xs / 2, h_nut, ds_nut], center=false);
+        }
+      }
+
+      color(c="orange") {
+        difference() {
+          union() {
+            cube(size=[xo, yo, zo], center=false);
+            translate(v=[0, -w_screw_captive, (zo - l_screw_captive) / 2])
+              cube(size=[xo, w_screw_captive, l_screw_captive], center=false);
+          }
+          translate(v=[0, dyi, dzi])
+            cube(size=[xi, yi, zi], center=false);
+
+          // slide screw
+          translate(v=[xs / 2, -w_screw_captive, zo / 2]) {
+
+            // bolt shaft
+            rotate(a=-90, v=[1, 0, 0])
+              cylinder(d=d_thread, h=y_wall + w_screw_captive, center=false);
+
+            // shaft cutout
+            translate(v=[-d_thread, 0, -d_thread_cutout / 2])
+              cube(size=[d_thread, y_wall + w_screw_captive, d_thread_cutout], center=false);
+
+            // bolt head
+            translate(v=[-d_head, w_screw_captive / 2, -d_head_cutout / 2])
+              cube(size=[d_head_cutout, h_head, d_head_cutout], center=false);
+
+            // head cutout
+            translate(v=[0, w_screw_captive / 2, 0])
+              rotate(a=-90, v=[1, 0, 0])
+                cylinder(d=d_head, h=h_head, center=false);
+          }
+        }
+      }
+    }
+
+    translate(v=[0, 0, dzs + d_pin_tray])
+      slide_pins();
+    translate(v=[0, 0, l_slide_outer - (dzs + d_pin_tray)])
+      slide_pins();
+  }
+}
+
 module assemble() {
   a = min(max(a_display, -a_range), a_range) + a_range;
 
@@ -497,6 +624,7 @@ module assemble() {
   translate(v=[0, explode, 0]) rotate(a=a) if (show_arms) arms();
   translate(v=[0, -explode, 0]) if (show_fitting_upper) fitting_upper();
   translate(v=[0, -explode, 0]) if (show_fitting_lower) fitting_lower();
+  if (show_slide) slide();
 }
 
 render() assemble();
