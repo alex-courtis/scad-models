@@ -491,16 +491,15 @@ module plate() {
 }
 
 module slide() {
-  d_pin_shuttle = 4;
+  d_pin_shuttle = 4.1;
   d_pin_tray = 3.95;
   l_pin = 75;
 
-  d_thread = 4.25;
-  d_thread_cutout = d_thread - 0.25;
+  d_thread = 4.60;
+  d_thread_cutout = 4.00;
 
-  h_head = 3.25;
-  d_head = 9.75;
-  d_head_cutout = d_head - 0.1;
+  h_head = 3.55;
+  d_head = 9.65;
 
   h_nut = 5.5;
   ds_nut = 7.3;
@@ -546,16 +545,47 @@ module slide() {
     }
   }
 
-  module shuttle_half() {
+  module shuttle_half(inner) {
 
     x = t_slide;
     y = w_shuttle;
     z = l_shuttle / 2;
 
+    d_hinge_pin = 2.1;
+    t_hinge_knuckle = 1.5;
+    d_knuckle = d_hinge_pin + t_hinge_knuckle * 2;
+
+    module hinge() {
+      knuckle_hinge(
+        length=z,
+        segs=3,
+        offset=d_knuckle / 2,
+        arm_height=0,
+        arm_angle=90,
+        gap=gap_hinge_knuckle,
+        knuckle_diam=d_knuckle,
+        pin_diam=d_hinge_pin,
+        clear_top=false,
+        teardrop=BACK,
+        spin=0,
+        inner=inner,
+        anchor=CENTER,
+        orient=LEFT,
+        clearance=0,
+      );
+    }
+
     difference() {
 
-      // body
-      cube(size=[x, y, z]);
+      union() {
+
+        // body
+        cube(size=[x, y, z]);
+
+        // hinge
+        translate(v=[-d_knuckle / 2, d_knuckle / 2, z / 2])
+          hinge();
+      }
 
       // slide screw
       translate(v=[x / 2, 0, 0])
@@ -571,14 +601,23 @@ module slide() {
       translate(v=[0, y / 2 - h_nut / 2, -ds_nut / 2])
         cube(size=[x / 2, h_nut, ds_nut], center=false);
     }
+
+    // temporary hinge for demo
+    translate(v=[0, 100, 0]) {
+      cube(size=[d_knuckle, y, z]);
+      translate(v=[d_knuckle / 2, -d_knuckle / 2, z / 2]) {
+        rotate(a=90)
+          hinge();
+      }
+    }
   }
 
   difference() {
     union() {
       color(c="yellow") {
         translate(v=[0, w_shuttle / 2, zo / 2]) {
-          shuttle_half();
-          zflip() shuttle_half();
+          shuttle_half(inner=true);
+          zflip() shuttle_half(inner=false);
         }
       }
 
@@ -606,7 +645,7 @@ module slide() {
 
             // bolt head cutout
             translate(v=[0, w_screw_captive - h_head / 2, 0])
-              #cube(size=[d_head_cutout, h_head, d_head_cutout], center=true);
+              cube(size=[d_head, h_head, d_head], center=true);
           }
         }
       }
