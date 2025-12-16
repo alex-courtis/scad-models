@@ -492,33 +492,33 @@ module plate() {
 
 module slide() {
   d_pin_shuttle = 4;
-  d_pin_tray = 3.9;
-  l_pin = 70;
+  d_pin_tray = 3.95;
+  l_pin = 75;
 
-  d_thread = 4.1;
-  d_thread_cutout = d_thread - 0.1;
+  d_thread = 4.25;
+  d_thread_cutout = d_thread - 0.25;
 
-  h_head = 3.0;
-  d_head = 8.5;
+  h_head = 3.25;
+  d_head = 9.75;
   d_head_cutout = d_head - 0.1;
 
-  h_nut = 6.0;
-  ds_nut = 7.8;
+  h_nut = 5.5;
+  ds_nut = 7.3;
   d_nut = ds_nut * 2 / sqrt(3);
 
-  w_screw_captive = 10;
+  w_screw_captive = 6.0;
   l_screw_captive = 15;
 
   t_slide = 9.0;
-  t_lower = 2.5;
+  t_lower = 1.6;
 
   // gaps are removed from tray
-  x_gap = 0.25;
-  y_wall = 5.0;
+  x_gap = 0.125;
+  y_wall = 4.0;
   z_gap = 1;
-  z_wall = 5.0;
+  z_wall = 3.6;
 
-  w_tray = l_pin - 2.5;
+  w_tray = l_pin;
   w_shuttle = 30;
 
   // l_tray = l_surf + l_arm * 2;
@@ -538,7 +538,7 @@ module slide() {
   module slide_pins() {
     translate(v=[t_slide / 2, 0, 0]) {
       rotate(a=-90, v=[1, 0, 0])
-        cylinder(d=d_pin_tray, h=yo - y_wall / 3, center=false);
+        cylinder(d=d_pin_tray, h=yo, center=false);
 
       translate(v=[0, w_shuttle / 2, 0])
         rotate(a=-90, v=[1, 0, 0])
@@ -604,14 +604,9 @@ module slide() {
             translate(v=[-d_thread * 2, 0, -d_thread_cutout / 2])
               cube(size=[d_thread * 2, y_wall + w_screw_captive, d_thread_cutout], center=false);
 
-            // bolt head
-            translate(v=[-d_head, w_screw_captive / 2, -d_head_cutout / 2])
-              cube(size=[d_head_cutout, h_head, d_head_cutout], center=false);
-
-            // head cutout
-            translate(v=[0, w_screw_captive / 2, 0])
-              rotate(a=-90, v=[1, 0, 0])
-                cylinder(d=d_head, h=h_head, center=false);
+            // bolt head cutout
+            translate(v=[0, w_screw_captive - h_head / 2, 0])
+              #cube(size=[d_head_cutout, h_head, d_head_cutout], center=true);
           }
         }
       }
@@ -619,8 +614,8 @@ module slide() {
 
     translate(v=[0, 0, z_wall + z_gap + d_pin_shuttle])
       slide_pins();
-	
-	// TODO remove once we are using halves
+
+    // TODO remove once we are using halves
     translate(v=[0, 0, l_tray - (z_wall + z_gap + d_pin_shuttle)])
       slide_pins();
   }
