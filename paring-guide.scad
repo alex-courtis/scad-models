@@ -555,10 +555,10 @@ module slide() {
     t_hinge_knuckle = 1.5;
     d_knuckle = d_hinge_pin + t_hinge_knuckle * 2;
 
-    module hinge() {
+    module hinge(inner=inner) {
       knuckle_hinge(
         length=z,
-        segs=3,
+        segs=5,
         offset=d_knuckle / 2,
         arm_height=0,
         arm_angle=90,
@@ -583,7 +583,7 @@ module slide() {
         cube(size=[x, y, z]);
 
         // hinge
-        translate(v=[-d_knuckle / 2, d_knuckle / 2, z / 2])
+        translate(v=[-d_knuckle / 2,  y / 2, z / 2])
           hinge();
       }
 
@@ -607,7 +607,7 @@ module slide() {
       cube(size=[d_knuckle, y, z]);
       translate(v=[d_knuckle / 2, -d_knuckle / 2, z / 2]) {
         rotate(a=90)
-          hinge();
+          hinge(inner=false);
       }
     }
   }
@@ -617,7 +617,7 @@ module slide() {
       color(c="yellow") {
         translate(v=[0, w_shuttle / 2, zo / 2]) {
           shuttle_half(inner=true);
-          zflip() shuttle_half(inner=false);
+          zflip() shuttle_half(inner=true);
         }
       }
 
