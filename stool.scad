@@ -204,13 +204,7 @@ module joint_render(
     // entire body
     translate(v=[0, 0, -d / 2])
       linear_extrude(h=d, center=false)
-        difference() {
-          polygon(body);
-          if (waste_top)
-            polygon(waste_top);
-          if (waste_bottom)
-            polygon(waste_bottom);
-        }
+        polygon(body);
 
     for (i = [0:1:len(zs) - 1]) {
       // remove joint waste
@@ -262,6 +256,14 @@ module joint_render(
         }
       }
     }
+
+    translate(v=[0, 0, -d / 2])
+      linear_extrude(h=d, center=false) {
+        if (waste_top)
+          polygon(waste_top);
+        if (waste_bottom)
+          polygon(waste_bottom);
+      }
   }
 }
 
@@ -384,20 +386,38 @@ module tenon(
   l2 = 0,
   w = w_def,
   d = d_def,
-  a1 = a_def_tenon,
-  a2 = a_def_tenon,
-  a3 = 0,
-  a4 = 0,
+  a = a_def_tenon,
   ratio = 1 / 3, // of the tenon, centred
   l_gap = 0.140,
   d_gap = 0.015,
   r_edge = 0.3,
   inner = true,
 ) {
-  joint(
-    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2, a3=a3, a4=a4,
+
+  // when not l1 or l2, body extends to the side of the joint, without l_gap
+  body = skewed_rect(
+    y=w,
+    d1=l1 ? (l / 2 + l1) : l / 2,
+    d2=l2 ? (l / 2 + l2) : l / 2,
+    a1=l1 ? 0 : a,
+    a2=l2 ? 0 : a,
+  );
+
+  waste = skewed_rect(
+    y=w,
+    d1=l / 2 + l_gap,
+    d2=l / 2 + l_gap,
+    a1=a,
+    a2=a,
+  );
+
+  joint_render(
+    d=d,
+    body=body,
+    waste=waste,
     ratios=[(1 - ratio) / 2, (1 + ratio) / 2],
-    l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
+    d_gap=d_gap,
+    r_edge=r_edge,
     inner=inner,
   );
 }
@@ -410,20 +430,37 @@ module mortise(
   l2 = l2_def,
   w = w_def,
   d = d_def,
-  a1 = a_def_mortise,
-  a2 = a_def_mortise,
-  a3 = 0,
-  a4 = 0,
+  a = a_def_mortise,
   ratio = 1 / 3, // of the slot, centred
   l_gap = 0.140,
   d_gap = 0.015,
   r_edge = 0.3,
   inner = false,
 ) {
-  joint(
-    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2, a3=a3, a4=a4,
+  // when not l1 or l2, body extends to the side of the joint, without l_gap
+  body = skewed_rect(
+    y=w,
+    d1=l1 ? (l / 2 + l1) : l / 2,
+    d2=l2 ? (l / 2 + l2) : l / 2,
+    a1=l1 ? 0 : a,
+    a2=l2 ? 0 : a,
+  );
+
+  waste = skewed_rect(
+    y=w,
+    d1=l / 2 + l_gap,
+    d2=l / 2 + l_gap,
+    a1=a,
+    a2=a,
+  );
+
+  joint_render(
+    d=d,
+    body=body,
+    waste=waste,
     ratios=[(1 - ratio) / 2, (1 + ratio) / 2],
-    l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
+    d_gap=d_gap,
+    r_edge=r_edge,
     inner=inner,
   );
 }
@@ -525,17 +562,17 @@ module mt_test() {
   a = 8;
 
   color(c="sienna")
-    tenon(a1=-a, a2=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
+    tenon(a=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
   color(c="orange")
     rotate(a=90 + a)
-      mortise(a1=a, a2=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=l1_leg, l_gap=1, d_gap=1, r_edge=r_edge);
+      mortise(a=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=l1_leg, l_gap=1, d_gap=1, r_edge=r_edge);
 
   translate(v=[70, 0, 0]) {
     color(c="tan")
-      tenon(a1=-a, a2=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=l12_tenon, l_gap=1, d_gap=1, r_edge=r_edge);
+      tenon(a=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=l12_tenon, l_gap=1, d_gap=1, r_edge=r_edge);
     color(c="chocolate")
       rotate(a=90 + a)
-        mortise(a1=a, a2=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
+        mortise(a=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
   }
 }
 
@@ -570,7 +607,7 @@ module stool() {
     l = 120;
 
     rotate(90 + a) {
-      mortise(a1=a, a2=a, w=w_leg, d=d_cross, l=l_leg, l1=l1_leg, l2=0);
+      mortise(a=a, w=w_leg, d=d_cross, l=l_leg, l1=l1_leg, l2=0);
 
       translate(v=[-l_leg / 2 - l1_leg, 0, 0]) {
         p = skewed_rect(y=w_leg, d1=l - l1_leg, d2=0, a1=a, a2=0);
@@ -589,7 +626,7 @@ module stool() {
     // oblique leg
     translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg * 0.75, 0, 0]) {
       color(c="chocolate")
-        tenon(a1=-a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=l12_tenon, l2=0);
+        tenon(a=-a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=l12_tenon, l2=0);
 
       if (show_leg)
         color(c="orange")
@@ -600,7 +637,7 @@ module stool() {
     // straight leg
     translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
       color(c="saddlebrown")
-        tenon(a1=0, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
+        tenon(a=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
 
       if (show_leg)
         color(c="orange")
@@ -618,7 +655,7 @@ module stool() {
     // flush leg
     translate(v=[d_cross / 2 + l12_halving + l12_tenon + w_leg / 2, 0, 0]) {
       color(c="sienna")
-        tenon(a1=-a_tenon, a2=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l12_tenon, l2=0);
+        tenon(a=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l12_tenon, l2=0);
 
       if (show_leg)
         color(c="orange")
@@ -628,7 +665,7 @@ module stool() {
     // parallel leg
     translate(v=[-d_cross / 2 - l12_halving - l12_tenon - w_leg * 0.75, 0, 0]) {
       color(c="rosybrown")
-        tenon(a1=a_tenon, a2=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
+        tenon(a=a_tenon, w=w_cross, d=d_cross, l=w_leg * 1.5, l1=0, l2=l12_tenon);
 
       if (show_leg)
         color(c="orange")
