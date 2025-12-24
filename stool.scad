@@ -1,9 +1,5 @@
 include <BOSL2/std.scad>
 
-// TODO
-// move calculations to each joint
-// keep_top as per waste_top
-
 $fn = 200;
 
 w_def = 30;
@@ -22,9 +18,13 @@ a_def_dovetail = 10;
 
 ratios_def = [1 / 4, 3 / 5, 4 / 5];
 
-l_gap_def = 0.025;
-d_gap_def = 0.020;
-r_edge_def = 0.2;
+// l_gap_def = 0.025;
+// d_gap_def = 0.020;
+// r_edge_def = 0.2;
+
+l_gap_def = 1;
+d_gap_def = 1;
+r_edge_def = 0.5;
 
 debug = false;
 
@@ -177,21 +177,37 @@ module joint_render(
   d,
   body,
   waste,
-  waste_top,
-  waste_bottom,
   ratios,
+  inner, // true for waste at bottom
   d_gap,
   r_edge,
-  inner,
+  edge_lines_h, // horizontal line segments to remove r_edge
+  edge_points_v, // vertical points to remove r_edge
 ) {
 
+  if (debug) {
+    color(c="orange")
+      translate(v=[0, 0, d])
+        linear_extrude(h=1)
+          polygon(waste);
+
+    color(c="green") if (waste_top)
+      translate(v=[0, 0, d + 2])
+        linear_extrude(h=1)
+          polygon(waste_top);
+
+    color(c="blue") if (waste_bottom)
+      translate(v=[0, 0, d + 2])
+        linear_extrude(h=1)
+          polygon(waste_bottom);
+  }
+
   // material/waste bottom up from origin
-  // bottom and top extend to prevent any rounding errors when waste at bottom or top
   im = inner ? 1 : -1;
   dzs = [
-    -d,
+    -d / 2,
     for (i = [0:1:len(ratios) - 1]) -d / 2 + ratios[i] * d + (i % 2 == 0 ? im : -im) * d_gap / 2,
-    d,
+    d / 2,
   ];
 
   // material/waste heights
@@ -206,63 +222,42 @@ module joint_render(
       linear_extrude(h=d, center=false)
         polygon(body);
 
-    for (i = [0:1:len(zs) - 1]) {
-      // remove joint waste
-      if (inner && (i % 2 == 0) || !inner && (i % 2 == 1)) {
-        translate(v=[0, 0, dzs[i]])
+    for (i = [0:1:len(zs) - 1])
+      translate(v=[0, 0, dzs[i]]) {
+
+        wasting = inner && (i % 2 == 0) || !inner && (i % 2 == 1);
+
+        // remove joint waste
+        if (wasting)
           linear_extrude(h=zs[i], center=false)
             polygon(waste);
-      }
-
-      if (r_edge) {
 
         // remove inner horizontal edges
         // cut out a cylinder and cap with spheres
-        if (i > 0) {
-          translate(v=[0, 0, dzs[i]]) {
-            extrude_from_to(pt1=waste[0], pt2=waste[1])
-              circle(r=r_edge);
-            translate(v=waste[0])
-              sphere(r=r_edge);
-            translate(v=waste[1])
-              sphere(r=r_edge);
-
-            extrude_from_to(pt1=waste[2], pt2=waste[3])
-              circle(r=r_edge);
-            translate(v=waste[2])
-              sphere(r=r_edge);
-            translate(v=waste[3])
-              sphere(r=r_edge);
-          }
-        }
+        if (r_edge && edge_lines_h && i > 0)
+          for (l = edge_lines_h)
+            if (l[0] && l[1]) {
+              extrude_from_to(pt1=l[0], pt2=l[1])
+                circle(r=r_edge);
+              translate(v=l[0])
+                sphere(r=r_edge);
+              translate(v=l[1])
+                sphere(r=r_edge);
+            }
 
         // remove inner vertical edges
         // these will intersect with the spheres from the horizontals
-        if (inner && (i % 2 == 1) || !inner && (i % 2 == 0)) {
-          translate(v=[0, 0, dzs[i]]) {
-            if (waste_bottom) {
-              translate(v=waste[0])
+        if (r_edge && edge_points_v && wasting)
+          for (p = edge_points_v)
+            if (p) {
+              translate(v=p)
                 cylinder(r=r_edge, h=zs[i]);
-              translate(v=waste[3])
-                cylinder(r=r_edge, h=zs[i]);
+              translate(v=p)
+                sphere(r=r_edge);
+              translate(v=[0, 0, zs[i]])
+                translate(v=p)
+                  sphere(r=r_edge);
             }
-            if (waste_top) {
-              translate(v=waste[1])
-                cylinder(r=r_edge, h=zs[i]);
-              translate(v=waste[2])
-                cylinder(r=r_edge, h=zs[i]);
-            }
-          }
-        }
-      }
-    }
-
-    translate(v=[0, 0, -d / 2])
-      linear_extrude(h=d, center=false) {
-        if (waste_top)
-          polygon(waste_top);
-        if (waste_bottom)
-          polygon(waste_bottom);
       }
   }
 }
@@ -286,7 +281,7 @@ module joint_render(
   |/               |      |/            |
   A-----------------------D             -
 */
-function skewed_rect(y, d1, d2, a1, a2) =
+function skewed_rect(y, dy = 0, d1, d2, a1, a2) =
   assert(y > 0)
 
   assert(is_num(d1))
@@ -312,10 +307,10 @@ function skewed_rect(y, d1, d2, a1, a2) =
     Dx = Nx - dx2,
   ) Bx < Cx && Ax < Dx ?
     [
-      [Ax, -y / 2],
-      [Bx, y / 2],
-      [Cx, y / 2],
-      [Dx, -y / 2],
+      [Ax, -y / 2 + dy],
+      [Bx, y / 2 + dy],
+      [Cx, y / 2 + dy],
+      [Dx, -y / 2 + dy],
     ]
   : undef;
 
@@ -422,7 +417,7 @@ module tenon(
   );
 }
 
-// print with vertical slot, default gaps are for 0.6
+// print with vertical slot
 // remove l1 or l2 for a corner bridle
 module mortise(
   l = w_def, // width of the tenon
@@ -431,12 +426,14 @@ module mortise(
   w = w_def,
   d = d_def,
   a = a_def_mortise,
+  l_tenon = w_def, // length of the tenon, set to less than w for blind
   ratio = 1 / 3, // of the slot, centred
-  l_gap = 0.140,
-  d_gap = 0.015,
-  r_edge = 0.3,
+  l_gap = l_gap_def,
+  d_gap = d_gap_def,
+  r_edge = r_edge_def,
   inner = false,
 ) {
+
   // when not l1 or l2, body extends to the side of the joint, without l_gap
   body = skewed_rect(
     y=w,
@@ -446,22 +443,41 @@ module mortise(
     a2=l2 ? 0 : a,
   );
 
+  blind = l_tenon < w;
+  y = blind ? l_tenon + l_gap / 2 : w;
+  dy = blind ? (w - y) / 2 : 0;
+
   waste = skewed_rect(
-    y=w,
-    d1=l / 2 + l_gap,
-    d2=l / 2 + l_gap,
+    y=y,
+    dy=dy,
+    d1=l / 2 + l_gap / 2,
+    d2=l / 2 + l_gap / 2,
     a1=a,
     a2=a,
   );
+
+  edge_lines_h = [
+    [waste[0], waste[1]],
+    [waste[2], waste[3]],
+    blind ? [waste[0], waste[3]] : undef,
+  ];
+
+  edge_points_v = [
+    blind ? waste[0] : undef,
+    blind ? waste[3] : undef,
+  ];
 
   joint_render(
     d=d,
     body=body,
     waste=waste,
     ratios=[(1 - ratio) / 2, (1 + ratio) / 2],
+    // ratios=[0.2, 0.4, 0.6, 0.8],
     d_gap=d_gap,
     r_edge=r_edge,
     inner=inner,
+    edge_lines_h=edge_lines_h,
+    edge_points_v=edge_points_v,
   );
 }
 
@@ -561,19 +577,28 @@ module mt_test() {
 
   a = 8;
 
-  color(c="sienna")
-    tenon(a=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
-  color(c="orange")
-    rotate(a=90 + a)
-      mortise(a=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=l1_leg, l_gap=1, d_gap=1, r_edge=r_edge);
+  tenon(
+  );
 
-  translate(v=[70, 0, 0]) {
-    color(c="tan")
-      tenon(a=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=l12_tenon, l_gap=1, d_gap=1, r_edge=r_edge);
-    color(c="chocolate")
-      rotate(a=90 + a)
-        mortise(a=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
-  }
+  translate(v=[100, 0, 0])
+    rotate(a=90 + a_def_mortise)
+      mortise(
+        l_tenon=w_def / 2
+      );
+
+  // color(c="sienna")
+  //   tenon(a=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
+  // color(c="orange")
+  //   rotate(a=90 + a)
+  //     mortise(a=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=l1_leg, l_gap=1, d_gap=1, r_edge=r_edge);
+  //
+  // translate(v=[70, 0, 0]) {
+  //   color(c="tan")
+  //     tenon(a=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=l12_tenon, l_gap=1, d_gap=1, r_edge=r_edge);
+  //   color(c="chocolate")
+  //     rotate(a=90 + a)
+  //       mortise(a=a, w=w_leg, d=d_tenon, l=l_leg, l1=l1_leg, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
+  // }
 }
 
 module stool() {
