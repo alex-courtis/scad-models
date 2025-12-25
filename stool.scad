@@ -22,11 +22,12 @@ ratios_def = [1 / 4, 3 / 5, 4 / 5];
 // d_gap_def = 0.020;
 // r_edge_def = 0.2;
 
+// TODO rename this lw_gap
 l_gap_def = 1;
 d_gap_def = 1;
-r_edge_def = 0.5;
+r_edge_def = 1.0;
 
-debug = false;
+debug = true;
 
 /**
 Generic joint centred at the origin, shoulders along the y axis, length along the x axis measured to the midpoints of the shoulders.
@@ -186,20 +187,14 @@ module joint_render(
 ) {
 
   if (debug) {
-    color(c="orange")
-      translate(v=[0, 0, d])
-        linear_extrude(h=1)
+    color(c="red")
+      linear_extrude(h=1, center=true)
+        polygon(waste);
+
+    color(c="red")
+      translate(v=[0, 0, d / 2])
+        linear_extrude(h=1, center=true)
           polygon(waste);
-
-    color(c="green") if (waste_top)
-      translate(v=[0, 0, d + 2])
-        linear_extrude(h=1)
-          polygon(waste_top);
-
-    color(c="blue") if (waste_bottom)
-      translate(v=[0, 0, d + 2])
-        linear_extrude(h=1)
-          polygon(waste_bottom);
   }
 
   // material/waste bottom up from origin
@@ -234,30 +229,28 @@ module joint_render(
 
         // remove inner horizontal edges
         // cut out a cylinder and cap with spheres
-        if (r_edge && edge_lines_h && i > 0)
-          for (l = edge_lines_h)
-            if (l[0] && l[1]) {
-              extrude_from_to(pt1=l[0], pt2=l[1])
-                circle(r=r_edge);
-              translate(v=l[0])
-                sphere(r=r_edge);
-              translate(v=l[1])
-                sphere(r=r_edge);
-            }
+        #if(r_edge && edge_lines_h && i > 0)for (l = edge_lines_h)
+          if (l[0] && l[1]) {
+            extrude_from_to(pt1=l[0], pt2=l[1])
+              circle(r=r_edge);
+            translate(v=l[0])
+              sphere(r=r_edge);
+            translate(v=l[1])
+              sphere(r=r_edge);
+          }
 
         // remove inner vertical edges
         // these will intersect with the spheres from the horizontals
-        if (r_edge && edge_points_v && wasting)
-          for (p = edge_points_v)
-            if (p) {
-              translate(v=p)
-                cylinder(r=r_edge, h=zs[i]);
+        #if(r_edge && edge_points_v && wasting)for (p = edge_points_v)
+          if (p) {
+            translate(v=p)
+              cylinder(r=r_edge, h=zs[i]);
+            translate(v=p)
+              sphere(r=r_edge);
+            translate(v=[0, 0, zs[i]])
               translate(v=p)
                 sphere(r=r_edge);
-              translate(v=[0, 0, zs[i]])
-                translate(v=p)
-                  sphere(r=r_edge);
-            }
+          }
       }
   }
 }
@@ -272,17 +265,18 @@ module joint_render(
             B-----------------------C   ^
            /       |               /    |
           /        |              /     |
-         /         |             /      |
+         /         |             /      y1
         /          |            /       |
-       M-----------O-----------N        y
+       M-----------O-----------N       ---
       /            |          /         |
-  |a1/             |      |a2/          |
+  |a1/             |      |a2/          y2
   | /              |      | /           |
   |/               |      |/            |
   A-----------------------D             -
 */
-function skewed_rect(y, dy = 0, d1, d2, a1, a2) =
-  assert(y > 0)
+function skewed_rect(y1, y2, d1, d2, a1, a2) =
+  assert(is_num(y1))
+  assert(is_num(y2))
 
   assert(is_num(d1))
   assert(d1 >= 0)
@@ -297,20 +291,22 @@ function skewed_rect(y, dy = 0, d1, d2, a1, a2) =
   assert(a2 < 90 && a2 > -90)
 
   let (
-    dx1 = y / 2 * tan(a1),
-    dx2 = y / 2 * tan(a2),
+    dxA = y2 * tan(a1),
+    dxB = y1 * tan(a1),
+    dxC = y1 * tan(a2),
+    dxD = y2 * tan(a2),
     Mx = d1 / cos(a1),
     Nx = d2 / cos(a2),
-    Ax = -Mx - dx1,
-    Bx = -Mx + dx1,
-    Cx = Nx + dx2,
-    Dx = Nx - dx2,
+    Ax = -Mx - dxA,
+    Bx = -Mx + dxB,
+    Cx = Nx + dxC,
+    Dx = Nx - dxD,
   ) Bx < Cx && Ax < Dx ?
     [
-      [Ax, -y / 2 + dy],
-      [Bx, y / 2 + dy],
-      [Cx, y / 2 + dy],
-      [Dx, -y / 2 + dy],
+      [Ax, -y2],
+      [Bx, y1],
+      [Cx, y1],
+      [Dx, -y2],
     ]
   : undef;
 
@@ -373,25 +369,30 @@ module halving(
   );
 }
 
-// print with vertical cheeks, default gaps are for 0.6
+// print with vertical cheeks
 // set l2 for a tee bridle
 module tenon(
-  l = w_def, // width of the slot
+  l = w_def, // depth of the slot
   l1 = l1_def,
   l2 = 0,
   w = w_def,
   d = d_def,
   a = a_def_tenon,
+  l_tenon = undef, // length of the tenon, set to less than w for blind
   ratio = 1 / 3, // of the tenon, centred
-  l_gap = 0.140,
-  d_gap = 0.015,
-  r_edge = 0.3,
+  l_gap = l_gap_def,
+  d_gap = d_gap_def,
+  r_edge = r_edge_def,
   inner = true,
 ) {
+  blind = l_tenon && l_tenon < w;
+
+  // TODO apply blind to l
 
   // when not l1 or l2, body extends to the side of the joint, without l_gap
   body = skewed_rect(
-    y=w,
+    y1=w / 2,
+    y2=w / 2,
     d1=l1 ? (l / 2 + l1) : l / 2,
     d2=l2 ? (l / 2 + l2) : l / 2,
     a1=l1 ? 0 : a,
@@ -399,9 +400,10 @@ module tenon(
   );
 
   waste = skewed_rect(
-    y=w,
-    d1=l / 2 + l_gap,
-    d2=l / 2 + l_gap,
+    y1=w / 2,
+    y2=w / 2,
+    d1=l / 2 + l_gap / 2,
+    d2=l / 2 + l_gap / 2,
     a1=a,
     a2=a,
   );
@@ -426,32 +428,31 @@ module mortise(
   w = w_def,
   d = d_def,
   a = a_def_mortise,
-  l_tenon = w_def, // length of the tenon, set to less than w for blind
+  l_tenon = undef, // length of the tenon, set to less than w for blind
   ratio = 1 / 3, // of the slot, centred
-  l_gap = l_gap_def,
+  l_gap = l_gap_def, // added to each shoulder
   d_gap = d_gap_def,
   r_edge = r_edge_def,
   inner = false,
 ) {
+  blind = l_tenon && l_tenon < w;
 
   // when not l1 or l2, body extends to the side of the joint, without l_gap
   body = skewed_rect(
-    y=w,
+    y1=w / 2,
+    y2=w / 2,
     d1=l1 ? (l / 2 + l1) : l / 2,
     d2=l2 ? (l / 2 + l2) : l / 2,
     a1=l1 ? 0 : a,
     a2=l2 ? 0 : a,
   );
 
-  blind = l_tenon < w;
-  y = blind ? l_tenon + l_gap / 2 : w;
-  dy = blind ? (w - y) / 2 : 0;
-
+  // l_gap on all sides
   waste = skewed_rect(
-    y=y,
-    dy=dy,
-    d1=l / 2 + l_gap / 2,
-    d2=l / 2 + l_gap / 2,
+    y1=w / 2,
+    y2=blind ? l_tenon - w / 2 : w / 2,
+    d1=l / 2 + l_gap,
+    d2=l / 2 + l_gap,
     a1=a,
     a2=a,
   );
@@ -472,7 +473,6 @@ module mortise(
     body=body,
     waste=waste,
     ratios=[(1 - ratio) / 2, (1 + ratio) / 2],
-    // ratios=[0.2, 0.4, 0.6, 0.8],
     d_gap=d_gap,
     r_edge=r_edge,
     inner=inner,
@@ -578,13 +578,20 @@ module mt_test() {
   a = 8;
 
   tenon(
+    l=w_def * 0.7,
+    // l2=l2_def,
+    l_tenon=w_def * 0.6,
   );
 
-  translate(v=[100, 0, 0])
-    rotate(a=90 + a_def_mortise)
-      mortise(
-        l_tenon=w_def / 2
-      );
+  // translate(v=[100, 0, 0])
+  // rotate(a=90 + a_def_mortise)
+  // mortise(
+  //   // l_tenon=25,
+  //   l1=0,
+  //   // // l2=30,
+  //   // a=20,
+  //   // l_gap=0,
+  // );
 
   // color(c="sienna")
   //   tenon(a=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
