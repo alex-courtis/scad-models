@@ -25,9 +25,9 @@ ratios_def = [1 / 4, 3 / 5, 4 / 5];
 // TODO rename this lw_gap
 l_gap_def = 1;
 d_gap_def = 1;
-r_edge_def = 1.0;
+r_edge_def = 1.5;
 
-debug = true;
+debug = false;
 
 /**
 Generic joint centred at the origin, shoulders along the y axis, length along the x axis measured to the midpoints of the shoulders.
@@ -229,28 +229,30 @@ module joint_render(
 
         // remove inner horizontal edges
         // cut out a cylinder and cap with spheres
-        #if(r_edge && edge_lines_h && i > 0)for (l = edge_lines_h)
-          if (l[0] && l[1]) {
-            extrude_from_to(pt1=l[0], pt2=l[1])
-              circle(r=r_edge);
-            translate(v=l[0])
-              sphere(r=r_edge);
-            translate(v=l[1])
-              sphere(r=r_edge);
-          }
+        if (r_edge && edge_lines_h && i > 0)
+          for (l = edge_lines_h)
+            if (l[0] && l[1]) {
+              extrude_from_to(pt1=l[0], pt2=l[1])
+                circle(r=r_edge);
+              translate(v=l[0])
+                sphere(r=r_edge);
+              translate(v=l[1])
+                sphere(r=r_edge);
+            }
 
         // remove inner vertical edges
         // these will intersect with the spheres from the horizontals
-        #if(r_edge && edge_points_v && wasting)for (p = edge_points_v)
-          if (p) {
-            translate(v=p)
-              cylinder(r=r_edge, h=zs[i]);
-            translate(v=p)
-              sphere(r=r_edge);
-            translate(v=[0, 0, zs[i]])
+        if (r_edge && edge_points_v && wasting)
+          for (p = edge_points_v)
+            if (p) {
+              translate(v=p)
+                cylinder(r=r_edge, h=zs[i]);
               translate(v=p)
                 sphere(r=r_edge);
-          }
+              translate(v=[0, 0, zs[i]])
+                translate(v=p)
+                  sphere(r=r_edge);
+            }
       }
   }
 }
@@ -277,12 +279,8 @@ module joint_render(
 function skewed_rect(y1, y2, d1, d2, a1, a2) =
   assert(is_num(y1))
   assert(is_num(y2))
-
   assert(is_num(d1))
-  assert(d1 >= 0)
-
   assert(is_num(d2))
-  assert(d2 >= 0)
 
   assert(is_num(a1))
   assert(a1 < 90 && a1 > -90)
@@ -378,35 +376,44 @@ module tenon(
   w = w_def,
   d = d_def,
   a = a_def_tenon,
-  l_tenon = undef, // length of the tenon, set to less than w for blind
+  l_tenon = undef, // length of the tenon, set to less than w for blind, overrides l2
   ratio = 1 / 3, // of the tenon, centred
-  l_gap = l_gap_def,
+  l_gap = l_gap_def, // one to each shoulder, half to blind end
   d_gap = d_gap_def,
   r_edge = r_edge_def,
   inner = true,
 ) {
   blind = l_tenon && l_tenon < w;
 
-  // TODO apply blind to l
-
   // when not l1 or l2, body extends to the side of the joint, without l_gap
+  d2 =
+    blind ?
+      l_tenon - l / 2 - l_gap / 2
+    : l2 ?
+      (l / 2 + l1)
+    : l / 2;
   body = skewed_rect(
     y1=w / 2,
     y2=w / 2,
     d1=l1 ? (l / 2 + l1) : l / 2,
-    d2=l2 ? (l / 2 + l2) : l / 2,
+    d2=d2,
     a1=l1 ? 0 : a,
-    a2=l2 ? 0 : a,
+    a2=(blind || !l2) ? a : 0,
   );
 
   waste = skewed_rect(
     y1=w / 2,
     y2=w / 2,
-    d1=l / 2 + l_gap / 2,
-    d2=l / 2 + l_gap / 2,
+    d1=l / 2 + l_gap,
+    d2=l / 2 + l_gap,
     a1=a,
     a2=a,
   );
+
+  edge_lines_h = [
+    [waste[0], waste[1]],
+    l2 ? [waste[2], waste[3]] : undef,
+  ];
 
   joint_render(
     d=d,
@@ -416,6 +423,7 @@ module tenon(
     d_gap=d_gap,
     r_edge=r_edge,
     inner=inner,
+    edge_lines_h=edge_lines_h,
   );
 }
 
@@ -430,7 +438,7 @@ module mortise(
   a = a_def_mortise,
   l_tenon = undef, // length of the tenon, set to less than w for blind
   ratio = 1 / 3, // of the slot, centred
-  l_gap = l_gap_def, // added to each shoulder
+  l_gap = l_gap_def, // one to each shoulder, half to blind
   d_gap = d_gap_def,
   r_edge = r_edge_def,
   inner = false,
@@ -447,10 +455,10 @@ module mortise(
     a2=l2 ? 0 : a,
   );
 
-  // l_gap on all sides
+  // full l_gap on shoulders, half on blind
   waste = skewed_rect(
     y1=w / 2,
-    y2=blind ? l_tenon - w / 2 : w / 2,
+    y2=blind ? l_tenon - w / 2 + l_gap / 2 : w / 2,
     d1=l / 2 + l_gap,
     d2=l / 2 + l_gap,
     a1=a,
@@ -458,8 +466,8 @@ module mortise(
   );
 
   edge_lines_h = [
-    [waste[0], waste[1]],
-    [waste[2], waste[3]],
+    l1 ? [waste[0], waste[1]] : undef,
+    l2 ? [waste[2], waste[3]] : undef,
     blind ? [waste[0], waste[3]] : undef,
   ];
 
@@ -578,20 +586,21 @@ module mt_test() {
   a = 8;
 
   tenon(
-    l=w_def * 0.7,
-    // l2=l2_def,
-    l_tenon=w_def * 0.6,
+    l_tenon=25,
+    l2=l2_def,
+    // l1=0,
   );
 
   // translate(v=[100, 0, 0])
-  // rotate(a=90 + a_def_mortise)
-  // mortise(
-  //   // l_tenon=25,
-  //   l1=0,
-  //   // // l2=30,
-  //   // a=20,
-  //   // l_gap=0,
-  // );
+  rotate(a=90 + a_def_mortise)
+    mortise(
+      l_tenon=25,
+      // l1=0,
+      // l2=0,
+      // // l2=30,
+      // a=20,
+      // l_gap=0,
+    );
 
   // color(c="sienna")
   //   tenon(a=-a, w=w_tenon, d=d_tenon, l=w_leg, l1=l12_tenon, l2=0, l_gap=1, d_gap=1, r_edge=r_edge);
