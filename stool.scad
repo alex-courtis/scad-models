@@ -343,27 +343,53 @@ function line_intersect(x1, y1, a1, x2, y2, a2) =
       y,
   ];
 
-// print with cheek facing up, default gaps are for 0.6
+// print with cheek facing up
 module halving(
   l = w_def,
   l1 = l1_def,
   l2 = l2_def,
   w = w_def,
   d = d_def,
-  a1 = 0,
-  a2 = 0,
-  a3 = 0,
-  a4 = 0,
-  l_gap = 0.002,
-  d_gap = 0.045,
-  r_edge = 0.010,
+  a = 0,
+  l_gap = l_gap_def, // one to each shoulder
+  d_gap = d_gap_def, // half to each cheek
+  r_edge = r_edge_def,
   inner = false,
 ) {
-  joint(
-    l=l, l1=l1, l2=l2, w=w, d=d, a1=a1, a2=a2, a3=a3, a4=a4,
+
+  // when not l1 or l2, body extends to the side of the joint, without l_gap
+  body = skewed_rect(
+    y1=w / 2,
+    y2=w / 2,
+    d1=l1 ? (l / 2 + l1) : l / 2,
+    d2=l2 ? (l / 2 + l2) : l / 2,
+    a1=l1 ? 0 : a,
+    a2=l2 ? 0 : a,
+  );
+
+  waste = skewed_rect(
+    y1=w / 2,
+    y2=w / 2,
+    d1=l / 2 + l_gap,
+    d2=l / 2 + l_gap,
+    a1=a,
+    a2=a,
+  );
+
+  edge_lines_h = [
+    l1 ? [waste[0], waste[1]] : undef,
+    l2 ? [waste[2], waste[3]] : undef,
+  ];
+
+  joint_render(
+    d=d,
+    body=body,
+    waste=waste,
     ratios=[1 / 2],
-    l_gap=l_gap, d_gap=d_gap, r_edge=r_edge,
+    d_gap=d_gap,
+    r_edge=r_edge,
     inner=inner,
+    edge_lines_h=edge_lines_h,
   );
 }
 
@@ -379,7 +405,7 @@ module tenon(
   l_tenon = undef, // length of the tenon, set to less than w for blind, overrides l2
   ratio = 1 / 3, // of the tenon, centred
   l_gap = l_gap_def, // one to each shoulder, half to blind end
-  d_gap = d_gap_def,
+  d_gap = d_gap_def, // half to each cheek
   r_edge = r_edge_def,
   inner = true,
 ) {
@@ -439,7 +465,7 @@ module mortise(
   l_tenon = undef, // length of the tenon, set to less than w for blind
   ratio = 1 / 3, // of the slot, centred
   l_gap = l_gap_def, // one to each shoulder, half to blind
-  d_gap = d_gap_def,
+  d_gap = d_gap_def, // half to each cheek
   r_edge = r_edge_def,
   inner = false,
 ) {
@@ -539,8 +565,9 @@ module dovetail_socket(
 
 render() {
   // stool();
-  mt_test();
+  // mt_test();
   // dov_test();
+  halving_test();
 }
 
 module dov_test() {
@@ -568,6 +595,20 @@ module dov_test() {
           w=w_def + 5.725,
         );
   }
+}
+
+module halving_test() {
+  a = 8;
+  halving(
+    a=a,
+    l1=0,
+  );
+  rotate(a=90 - a)
+    halving(
+      a=-a,
+      inner=true,
+	  l2=0,
+    );
 }
 
 module mt_test() {
