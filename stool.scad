@@ -27,7 +27,6 @@ gap_cheek_mortise_def = 0.1;
 gap_shoulder_tenon_def = 0.1;
 gap_cheek_tenon_def = 0.1;
 
-// TODO < stool 0.4 results in rogue objects
 r_edge_def = 0.20;
 
 d_pin_def = 2.10;
@@ -121,15 +120,16 @@ module joint_render(
 
         // remove inner horizontal edges
         // cut out a cylinder and cap with spheres
+        // accept that a small epsilon is needed to ensure the sphere intersects with the cylinder cleanly
         if (r_edge && edge_lines_h && i > 0)
           for (l = edge_lines_h)
             if (l[0] && l[1]) {
               extrude_from_to(pt1=l[0], pt2=l[1])
                 circle(r=r_edge);
               translate(v=l[0])
-                sphere(r=r_edge);
+                sphere(r=r_edge * 1.005);
               translate(v=l[1])
-                sphere(r=r_edge);
+                sphere(r=r_edge * 1.005);
             }
 
         // remove inner vertical edges
@@ -678,7 +678,7 @@ module stool() {
       // top
       if (show_top) {
         color(c="wheat")
-          translate(v=[0, (w_cross + h_top) / 2 + d_gap_def, 0])
+          translate(v=[0, (w_cross + h_top) / 2 + gap_cheek_halving_def, 0])
             rotate(a=90, v=[1, 0, 0])
               cylinder(d=d_top, h=h_top, center=true);
       }
