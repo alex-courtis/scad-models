@@ -1,40 +1,7 @@
 include <BOSL2/std.scad>
 
-$fn = 200;
-
-w_def = 30;
-d_def = 20;
-l1_def = 40;
-l2_def = 40;
-
-a1_def = 10;
-a2_def = -6;
-a3_def = 4;
-a4_def = -3;
-
-a_def_tenon = 8;
-a_def_mortise = -8;
-a_def_dovetail = 10;
-
-ratios_def = [1 / 4, 3 / 5, 4 / 5];
-
-gap_shoulder_halving_def = 0.025;
-gap_cheek_halving_def = 0.1;
-
-gap_shoulder_mortise_def = 0.1;
-gap_cheek_mortise_def = 0.1;
-
-gap_shoulder_tenon_def = 0.1;
-gap_cheek_tenon_def = 0.1;
-
-r_edge_def = 0.20;
-
-d_pin_def = 2.10;
-
-debug = false;
-
 /**
-Generic joint centred at the origin, shoulders along the y axis, length along the x axis measured to the midpoints of the shoulders.
+Joints centred at the origin, shoulders along the y axis, length along the x axis measured to the midpoints of the shoulders.
 
 |<------l1-------->|                       |<------l2-------->|
 .                  .                       .                  .
@@ -51,7 +18,7 @@ Generic joint centred at the origin, shoulders along the y axis, length along th
 |             |/                      |/                      |     |
 --------------A-----------------------D------------------------     -
 
-l is the sum of the (even) perpendiculars from AB to O and from CD to O. l_gap is added to each perpendicular.
+l is the sum of the (even) perpendiculars from AB to O and from CD to O.
 
 a1 and a2 may be negative, with size less than 90.
 
@@ -59,11 +26,53 @@ When l1|l2 == 0, joint terminates at AB|CD, with no l_gap added.
 
 Joint is cut at ratios from -z to +z, starting with waste when inner is set.
 
-gap_cheek/2 is added to waste and should be applied to the other joint.
+gap_cheek / 2 is added to z waste and should be applied to the other joint.
 
-r_edge is a cylinder cut into all inner edges.
+gap_shoulder is usually applied to shoulders AB CD, with half applied to inner shoulders.
+
+r_edge is a sphere capped cylinder usually cut into all concave edges along xy and z.
+
+d_pin may be cut through the joint at origin.
 */
 
+$fn = 200;
+
+w_def = 30;
+d_def = 20;
+l1_def = 40;
+l2_def = 40;
+
+a_def_tenon = 8;
+a_def_mortise = -8;
+a_def_dovetail = 30;
+a_dov_def = 10;
+
+ratios_def = [1 / 4, 3 / 5, 4 / 5];
+
+gap_shoulder_halving_def = 0.025;
+gap_cheek_halving_def = 0.1;
+
+gap_shoulder_mortise_def = 0.1;
+gap_cheek_mortise_def = 0.1;
+
+gap_shoulder_tenon_def = 0.1;
+gap_cheek_tenon_def = 0.1;
+
+gap_shoulder_dove_def = 2;
+gap_cheek_dove_def = 2;
+
+r_edge_def = 0.20;
+
+d_pin_def = 2.10;
+
+debug = false;
+
+/**
+Render a generic joint centred at origin.
+Entire body is z extruded and wasted out.
+xy line segments capped with spheres specified by edge_lines_h are removed from each layer
+z cylinders capped with spheres specified by edge_points_v are removed from waste and body layers
+*/
 module joint_render(
   d,
   body,
@@ -73,9 +82,38 @@ module joint_render(
   gap_cheek,
   r_edge,
   d_pin,
-  edge_lines_h, // horizontal line segments to remove r_edge
-  edge_points_v, // vertical points to remove r_edge
+  edge_lines_h,
+  edge_points_v_body,
+  edge_points_v_waste,
 ) {
+
+  // remove inner horizontal edges
+  // cut out a cylinder and cap with spheres
+  // accept that a small epsilon is needed to ensure the sphere intersects with the cylinder cleanly
+  module edge_line(l) {
+    #if (l[0] && l[1]) {
+      extrude_from_to(pt1=l[0], pt2=l[1])
+        circle(r=r_edge);
+      translate(v=l[0])
+        sphere(r=r_edge * 1.005);
+      translate(v=l[1])
+        sphere(r=r_edge * 1.005);
+    }
+  }
+
+  // remove inner vertical edges
+  // these will intersect with the spheres from the horizontals
+  module edge_point(p, h) {
+    #if(p) {
+      translate(v=p)
+        cylinder(r=r_edge, h=h);
+      translate(v=p)
+        sphere(r=r_edge);
+      translate(v=[0, 0, h])
+        translate(v=p)
+          sphere(r=r_edge);
+    }
+  }
 
   if (debug) {
     color(c="red")
@@ -118,33 +156,17 @@ module joint_render(
           linear_extrude(h=zs[i], center=false)
             polygon(waste);
 
-        // remove inner horizontal edges
-        // cut out a cylinder and cap with spheres
-        // accept that a small epsilon is needed to ensure the sphere intersects with the cylinder cleanly
         if (r_edge && edge_lines_h && i > 0)
           for (l = edge_lines_h)
-            if (l[0] && l[1]) {
-              extrude_from_to(pt1=l[0], pt2=l[1])
-                circle(r=r_edge);
-              translate(v=l[0])
-                sphere(r=r_edge * 1.005);
-              translate(v=l[1])
-                sphere(r=r_edge * 1.005);
-            }
+            edge_line(l=l);
 
-        // remove inner vertical edges
-        // these will intersect with the spheres from the horizontals
-        if (r_edge && edge_points_v && wasting)
-          for (p = edge_points_v)
-            if (p) {
-              translate(v=p)
-                cylinder(r=r_edge, h=zs[i]);
-              translate(v=p)
-                sphere(r=r_edge);
-              translate(v=[0, 0, zs[i]])
-                translate(v=p)
-                  sphere(r=r_edge);
-            }
+        if (r_edge && edge_points_v_waste && wasting)
+          for (p = edge_points_v_waste)
+            edge_point(p=p, h=zs[i]);
+
+        if (r_edge && edge_points_v_body && !wasting)
+          for (p = edge_points_v_body)
+            edge_point(p=p, h=zs[i]);
       }
 
     // centred pin
@@ -248,7 +270,7 @@ module halving(
   w = w_def,
   d = d_def,
   a = 0,
-  ratio = 1 / 2, // of the tenon, centred
+  ratio = 1 / 2,
   ratios = undef, // overrides ratio
   gap_shoulder = gap_shoulder_halving_def, // one to each shoulder
   gap_cheek = gap_cheek_halving_def, // half to each cheek
@@ -404,7 +426,7 @@ module mortise(
     blind ? [waste[0], waste[3]] : undef,
   ];
 
-  edge_points_v = [
+  edge_points_v_waste = [
     (blind && l1) ? waste[0] : undef,
     (blind && l2) ? waste[3] : undef,
   ];
@@ -419,14 +441,122 @@ module mortise(
     d_pin=d_pin,
     inner=inner,
     edge_lines_h=edge_lines_h,
-    edge_points_v=edge_points_v,
+    edge_points_v_waste=edge_points_v_waste,
+  );
+}
+
+/**
+|<-------l1-------->|
+.                   .   
+.                   .   
+R---------------------------B                            ---------C   ^
+|                   .      /                     -------/        /    |
+|                   .     /              -------/               /     |
+|                   .    /       -------/                      /      |
+|                   .   S-------/                             /       |
+|                   .  /                                     /        |
+|                   . /                                     /         |
+|                   ./                                     /          |
+|                   -                  O                  /           w
+|                  /                                     /            |
+|                 /                                     /             |
+|                /                                     /              |
+|               T-----\                               /               |
+|              /       ------\                       /                |
+|           |a/               ------\               /                 |
+|           |/                       ------\       /                  |
+Q-----------A                               ------D                   -
+
+a_dov is BCS and TDA
+gap_shoulder AB, CD when blind 
+*/
+module dove_tail(
+  l = w_def, // depth of the socket
+  l1 = l1_def,
+  w = w_def,
+  d = d_def,
+  a = a_def_dovetail,
+  a_dov = a_dov_def,
+  l_tail = undef, // length of the tail
+  ratio = 1 / 2,
+  gap_shoulder = gap_shoulder_dove_def, // one to each shoulder, half to blind end
+  gap_cheek = gap_cheek_dove_def, // half to each cheek
+  r_edge = r_edge_def,
+  d_pin = d_pin_def,
+  inner = true,
+) {
+
+  // TODO blind
+  blind = l_tail && l_tail < w;
+
+  QRBA = skewed_rect(
+    y1=w / 2,
+    y2=w / 2,
+    d1=l / 2 + l1,
+    d2=-l / 2 - gap_shoulder,
+    a1=0,
+    a2=a,
+  );
+
+  ABCD = skewed_rect(
+    y1=w / 2,
+    y2=w / 2,
+    d1=l / 2 + gap_shoulder,
+    d2=l / 2,
+    a1=a,
+    a2=a,
+  );
+
+  // A <-> D
+  T = line_intersect(ABCD[0][0], ABCD[0][1], 90 - a, ABCD[3][0], ABCD[3][1], -a_dov);
+  // B <-> C
+  S = line_intersect(ABCD[1][0], ABCD[1][1], 90 - a, ABCD[2][0], ABCD[2][1], a_dov);
+
+  // tail is cut out
+  body = [
+    QRBA[0],
+    QRBA[1],
+    QRBA[2],
+    S,
+    ABCD[2],
+    ABCD[3],
+    T,
+    QRBA[3],
+  ];
+
+  waste = skewed_rect(
+    y1=w / 2,
+    y2=w / 2,
+    d1=l / 2 + gap_shoulder,
+    d2=l / 2 + gap_shoulder,
+    a1=a,
+    a2=a,
+  );
+
+  joint_render(
+    d=d,
+    body=body,
+    waste=waste,
+    [ratio],
+    gap_cheek=gap_cheek,
+    r_edge=r_edge,
+    d_pin=d_pin,
+    inner=inner,
+    edge_lines_h=[[S, T]],
+    edge_points_v_body=[S, T],
   );
 }
 
 render() {
-  stool();
+  // stool();
+  dove_test();
   // mt_test();
   // halving_test();
+}
+
+module dove_test() {
+  dove_tail();
+  // halving();
 }
 
 module halving_test() {
@@ -653,7 +783,6 @@ module stool() {
     }
 
     // double tenon leg
-    // TODO
     translate(v=[-dx, 0, 0]) {
       color(c="rosybrown")
         mirror(v=[1, 0, 0])
