@@ -41,11 +41,9 @@ test = "dovetail"; // ["mt", "halving", "dovetail", "stool"]
 
 debug = false;
 
-ratios_def = [1 / 4, 3 / 5, 4 / 5];
+r_edge = 0.20; // [0:0.001:2]
 
-r_edge_def = 0.20; // [0:0.001:2]
-
-d_pin_def = 2.10; // [0:0.05:2]
+d_pin = 2.10; // [0:0.05:2]
 
 w = 30; // [0:1:500]
 d = 20; // [0:1:500]
@@ -61,7 +59,7 @@ a_tenon = 8; // [-50:1:50]
 g_shoulder_mt = 0.1; // [0:0.001:2]
 g_cheek_mt = 0.1; // [0:0.001:2]
 
-a_dt = 30; // [-50:1:50]
+a_dt = 0; // [-50:1:50]
 a_tail = 10; // [-50:1:50]
 g_shoulder_dt = 0.1; // [0:0.001:2]
 g_cheek_dt = 0.1; // [0:0.001:2]
@@ -277,8 +275,8 @@ module halving(
   ratios = undef, // overrides ratio
   g_shoulder = g_shoulder_halving, // one to each shoulder
   g_cheek = g_cheek_halving, // half to each cheek
-  r_edge = r_edge_def,
-  d_pin = d_pin_def,
+  r_edge = r_edge,
+  d_pin = d_pin,
   inner = false,
 ) {
 
@@ -334,8 +332,8 @@ module tenon(
   ratios = undef, // overrides ratio
   g_shoulder = g_shoulder_mt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_mt, // half to each cheek
-  r_edge = r_edge_def,
-  d_pin = d_pin_def,
+  r_edge = r_edge,
+  d_pin = d_pin,
   inner = true,
 ) {
   blind = l_tenon && l_tenon < w;
@@ -397,8 +395,8 @@ module mortise(
   ratios = undef, // overrides ratio
   g_shoulder = g_shoulder_mt, // one to each shoulder, half to blind
   g_cheek = g_cheek_mt, // half to each cheek
-  r_edge = r_edge_def,
-  d_pin = d_pin_def,
+  r_edge = r_edge,
+  d_pin = d_pin,
   inner = false,
 ) {
   blind = l_tenon && l_tenon < w;
@@ -484,8 +482,8 @@ module dove_tail(
   ratio = ratio_dt, // undef or 0 for no vertical waste
   g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_dt, // half to each cheek
-  r_edge = r_edge_def,
-  d_pin = d_pin_def,
+  r_edge = r_edge,
+  d_pin = d_pin,
   inner = true,
 ) {
 
@@ -550,6 +548,80 @@ module dove_tail(
   );
 }
 
+/**
+|<------l1--->|                                 |<----l2----->|
+.             .                                 .             .
+.             .                                 .             .
+B-------------C---------------------------------D-------------E     ^
+|              \                               /              |     |
+|               \                             /               |     |
+|                \                           /                |     |
+|                 \                         /                 |     |
+|                  \           O           /                  |     w
+|                   \                     /                   |     |
+|                    \at|                V                    |     |
+|                     \ |               /                     |     |
+|                      \|              /                      |     |
+A-------------R---------S-------------T---------U-------------F     -
+*/
+module dove_socket(
+  l = w,
+  l1 = l1, // l1 and l2 must be nonzero
+  l2 = l2,
+  w = w,
+  d = d,
+  a = 0, // only 0 for now
+  a_tail = a_tail,
+  l_tail = undef, // length of the tail
+  ratio = ratio_dt, // undef or 0 for no vertical waste
+  g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
+  g_cheek = g_cheek_dt, // half to each cheek
+  r_edge = r_edge,
+  d_pin = d_pin,
+  inner = false,
+) {
+
+  body = [
+    [-l / 2 - l1, -w / 2],
+    [-l / 2 - l1, w / 2],
+    [l / 2 + l2, w / 2],
+    [l / 2 + l2, -w / 2],
+  ];
+
+  // D <-> O
+  V = line_intersect(l / 2, w / 2, 90 - a_tail, 0, 0, -a_tail);
+
+  // OV
+  d12 = sqrt(V[0] ^ 2 + V[1] ^ 2) + g_shoulder;
+
+  SCDT = skewed_rect(
+    y1=w / 2,
+    y2=w / 2,
+    d1=d12,
+    d2=d12,
+    a1=-a_tail,
+    a2=a_tail,
+  );
+  waste = SCDT;
+
+  edge_lines_h = [
+    [SCDT[0], SCDT[1]], // CS
+    [SCDT[2], SCDT[3]], // DT
+  ];
+
+  joint_render(
+    d=d,
+    body=body,
+    waste=waste,
+    ratios=is_num(ratio) && ratio != 0 ? [ratio] : [],
+    g_cheek=g_cheek,
+    r_edge=r_edge,
+    d_pin=d_pin,
+    inner=inner,
+    edge_lines_h=edge_lines_h,
+  );
+}
+
 render() {
   if (test == "halving") {
     halving_test();
@@ -563,11 +635,14 @@ render() {
 }
 
 module dove_test() {
-  color(c="peru")
-    dove_tail();
-  color(c="sienna")
-    rotate(a=90 - a_dt)
-      halving(a=-a_dt);
+  // intersection()
+  {
+    color(c="peru")
+      rotate(a=90 - a_dt)
+        dove_tail();
+    color(c="sienna")
+      dove_socket();
+  }
 }
 
 module halving_test() {
@@ -658,7 +733,7 @@ module stool() {
   d_top = 125;
   h_top = 2.6;
 
-  d_pin = d_pin_def;
+  d_pin = d_pin;
 
   show_leg = true;
   show_top = true;
