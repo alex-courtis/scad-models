@@ -47,30 +47,25 @@ r_edge_def = 0.20; // [0:0.001:2]
 
 d_pin_def = 2.10; // [0:0.05:2]
 
-w_def = 30; // [0:1:500]
-d_def = 20; // [0:1:500]
-l1_def = 40; // [0:1:500]
-l2_def = 40; // [0:1:500]
+w = 30; // [0:1:500]
+d = 20; // [0:1:500]
+l1 = 40; // [0:1:500]
+l2 = 40; // [0:1:500]
 
 a_halving = 0; // [-50:1:50]
 g_shoulder_halving = 0.025; // [0:0.001:2]
 g_cheek_halving = 0.1; // [0:0.001:2]
 
-a_tenon = 8; // [-50:1:50]
-g_shoulder_tenon = 0.1; // [0:0.001:2]
-g_cheek_tenon = 0.1; // [0:0.001:2]
-
 a_mortise = -8; // [-50:1:50]
-g_shoulder_mortise = 0.1; // [0:0.001:2]
-g_cheek_mortise = 0.1; // [0:0.001:2]
+a_tenon = 8; // [-50:1:50]
+g_shoulder_mt = 0.1; // [0:0.001:2]
+g_cheek_mt = 0.1; // [0:0.001:2]
 
-a_dovetail = 30; // [-50:1:50]
-g_shoulder_dovetail = 0.1; // [0:0.001:2]
-g_cheek_dovetail = 0.1; // [0:0.001:2]
-ratio_dovetail = 0.5; //[0:0.1:1]
-
-// TODO name this
-b_dov = 10; // [-50:1:50]
+a_dt = 30; // [-50:1:50]
+a_tail = 10; // [-50:1:50]
+g_shoulder_dt = 0.1; // [0:0.001:2]
+g_cheek_dt = 0.1; // [0:0.001:2]
+ratio_dt = 0.5; //[0:0.1:1]
 
 /**
 Render a generic joint centred at origin.
@@ -272,11 +267,11 @@ function line_intersect(x1, y1, a1, x2, y2, a2) =
 
 // print with cheek facing up
 module halving(
-  l = w_def,
-  l1 = l1_def,
-  l2 = l2_def,
-  w = w_def,
-  d = d_def,
+  l = w,
+  l1 = l1,
+  l2 = l2,
+  w = w,
+  d = d,
   a = 0,
   ratio = 1 / 2,
   ratios = undef, // overrides ratio
@@ -328,17 +323,17 @@ module halving(
 // set l2 for a tee bridle
 // TODO allow l_tenon longer than w
 module tenon(
-  l = w_def, // depth of the slot
-  l1 = l1_def,
+  l = w, // depth of the slot
+  l1 = l1,
   l2 = 0,
-  w = w_def,
-  d = d_def,
+  w = w,
+  d = d,
   a = a_tenon,
   l_tenon = undef, // length of the tenon, set to less than w for blind, overrides l2
   ratio = 1 / 3, // of the tenon, centred
   ratios = undef, // overrides ratio
-  g_shoulder = g_shoulder_tenon, // one to each shoulder, half to blind end
-  g_cheek = g_cheek_tenon, // half to each cheek
+  g_shoulder = g_shoulder_mt, // one to each shoulder, half to blind end
+  g_cheek = g_cheek_mt, // half to each cheek
   r_edge = r_edge_def,
   d_pin = d_pin_def,
   inner = true,
@@ -391,17 +386,17 @@ module tenon(
 // print with vertical slot
 // remove l1 or l2 for a corner bridle
 module mortise(
-  l = w_def, // width of the tenon
-  l1 = l1_def,
-  l2 = l2_def,
-  w = w_def,
-  d = d_def,
+  l = w, // width of the tenon
+  l1 = l1,
+  l2 = l2,
+  w = w,
+  d = d,
   a = a_mortise,
   l_tenon = undef, // length of the tenon, set to less than w for blind
   ratio = 1 / 3, // of the slot, centred
   ratios = undef, // overrides ratio
-  g_shoulder = g_shoulder_mortise, // one to each shoulder, half to blind
-  g_cheek = g_cheek_mortise, // half to each cheek
+  g_shoulder = g_shoulder_mt, // one to each shoulder, half to blind
+  g_cheek = g_cheek_mt, // half to each cheek
   r_edge = r_edge_def,
   d_pin = d_pin_def,
   inner = false,
@@ -479,16 +474,16 @@ a_dov is BCS and TDA
 g_shoulder AB, CD when blind 
 */
 module dove_tail(
-  l = w_def, // depth of the socket
-  l1 = l1_def,
-  w = w_def,
-  d = d_def,
-  a = a_dovetail,
-  b_dov = b_dov,
+  l = w, // depth of the socket
+  l1 = l1,
+  w = w,
+  d = d,
+  a = a_dt, // RBA
+  a_tail = a_tail, // BSC
   l_tail = undef, // length of the tail
-  ratio = ratio_dovetail, // undef or 0 for no vertical waste
-  g_shoulder = g_shoulder_dovetail, // one to each shoulder, half to blind end
-  g_cheek = g_cheek_dovetail, // half to each cheek
+  ratio = ratio_dt, // undef or 0 for no vertical waste
+  g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
+  g_cheek = g_cheek_dt, // half to each cheek
   r_edge = r_edge_def,
   d_pin = d_pin_def,
   inner = true,
@@ -516,9 +511,9 @@ module dove_tail(
   );
 
   // A <-> D
-  T = line_intersect(ABCD[0][0], ABCD[0][1], 90 - a, ABCD[3][0], ABCD[3][1], -b_dov);
+  T = line_intersect(ABCD[0][0], ABCD[0][1], 90 - a, ABCD[3][0], ABCD[3][1], -a_tail);
   // B <-> C
-  S = line_intersect(ABCD[1][0], ABCD[1][1], 90 - a, ABCD[2][0], ABCD[2][1], b_dov);
+  S = line_intersect(ABCD[1][0], ABCD[1][1], 90 - a, ABCD[2][0], ABCD[2][1], a_tail);
 
   // AQRB SCDT (A)
   body = [
@@ -570,9 +565,9 @@ render() {
 module dove_test() {
   color(c="peru")
     dove_tail();
-  // color(c="sienna")
-  //   rotate(a=90 - a_dovetail)
-  //     halving(a=-a_dovetail);
+  color(c="sienna")
+    rotate(a=90 - a_dt)
+      halving(a=-a_dt);
 }
 
 module halving_test() {
