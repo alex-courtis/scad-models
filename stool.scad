@@ -37,7 +37,7 @@ d_pin may be cut through the joint at origin.
 
 $fn = 200;
 
-test = "mt"; // ["mt", "halving", "dovetail", "stool"]
+test = "dovetail"; // ["mt", "halving", "dovetail", "stool"]
 
 debug = false;
 
@@ -52,24 +52,25 @@ d_def = 20; // [0:1:500]
 l1_def = 40; // [0:1:500]
 l2_def = 40; // [0:1:500]
 
-a_halving = 0; // [-60:1:60]
+a_halving = 0; // [-50:1:50]
 g_shoulder_halving = 0.025; // [0:0.001:2]
 g_cheek_halving = 0.1; // [0:0.001:2]
 
-a_tenon = 8; // [-60:1:60]
+a_tenon = 8; // [-50:1:50]
 g_shoulder_tenon = 0.1; // [0:0.001:2]
 g_cheek_tenon = 0.1; // [0:0.001:2]
 
-a_mortise = -8; // [-60:1:60]
+a_mortise = -8; // [-50:1:50]
 g_shoulder_mortise = 0.1; // [0:0.001:2]
 g_cheek_mortise = 0.1; // [0:0.001:2]
 
-a_dovetail = 30; // [-60:1:60]
-g_shoulder_dovetail = 2; // [0:0.001:2]
-g_cheek_dovetail = 2; // [0:0.001:2]
+a_dovetail = 30; // [-50:1:50]
+g_shoulder_dovetail = 0.1; // [0:0.001:2]
+g_cheek_dovetail = 0.1; // [0:0.001:2]
+ratio_dovetail = 0.5; //[0:0.1:1]
 
 // TODO name this
-b_dov = 10; // [-60:1:60]
+b_dov = 10; // [-50:1:50]
 
 /**
 Render a generic joint centred at origin.
@@ -78,17 +79,17 @@ xy line segments capped with spheres specified by edge_lines_h are removed from 
 z cylinders capped with spheres specified by edge_points_v are removed from waste and body layers
 */
 module joint_render(
-  d,
-  body,
-  waste,
-  ratios,
+  d, // total z
+  body, // poly to render
+  waste, // poly to z waste
+  ratios, // empty vector for no waste
   inner, // true for waste at bottom
   g_cheek,
   r_edge,
   d_pin,
-  edge_lines_h,
-  edge_points_v_body,
-  edge_points_v_waste,
+  edge_lines_h, // y horizontal cutouts
+  edge_points_v_body, // vertical shoulder cutouts
+  edge_points_v_waste, // vertical blind edge cutouts
 ) {
 
   // remove inner horizontal edges
@@ -120,23 +121,26 @@ module joint_render(
   }
 
   if (debug) {
-    color(c="red")
+    color(c="red", alpha=0.5)
       linear_extrude(h=1, center=true)
         polygon(waste);
 
-    color(c="red")
+    color(c="red", alpha=0.5)
       translate(v=[0, 0, d / 2])
         linear_extrude(h=1, center=true)
           polygon(waste);
   }
 
-  // material/waste bottom up from origin
+  // material/waste bottom up from origin, no waste when no ratios
   im = inner ? 1 : -1;
-  dzs = [
-    -d / 2,
-    for (i = [0:1:len(ratios) - 1]) -d / 2 + ratios[i] * d + (i % 2 == 0 ? im : -im) * g_cheek / 2,
-    d / 2,
-  ];
+  dzs =
+    ratios ?
+      [
+        -d / 2,
+        for (i = [0:1:len(ratios) - 1]) -d / 2 + ratios[i] * d + (i % 2 == 0 ? im : -im) * g_cheek / 2,
+        d / 2,
+      ]
+    : [-d / 2, d / 2];
 
   // material/waste heights
   zs = [
@@ -153,7 +157,7 @@ module joint_render(
     for (i = [0:1:len(zs) - 1])
       translate(v=[0, 0, dzs[i]]) {
 
-        wasting = inner && (i % 2 == 0) || !inner && (i % 2 == 1);
+        wasting = ratios && inner && (i % 2 == 0) || !inner && (i % 2 == 1);
 
         // remove joint waste
         if (wasting)
@@ -482,7 +486,7 @@ module dove_tail(
   a = a_dovetail,
   b_dov = b_dov,
   l_tail = undef, // length of the tail
-  ratio = 1 / 2,
+  ratio = ratio_dovetail, // undef or 0 for no vertical waste
   g_shoulder = g_shoulder_dovetail, // one to each shoulder, half to blind end
   g_cheek = g_cheek_dovetail, // half to each cheek
   r_edge = r_edge_def,
@@ -516,8 +520,9 @@ module dove_tail(
   // B <-> C
   S = line_intersect(ABCD[1][0], ABCD[1][1], 90 - a, ABCD[2][0], ABCD[2][1], b_dov);
 
-  // tail is cut out
+  // AQRB SCDT (A)
   body = [
+    QRBA[3],
     QRBA[0],
     QRBA[1],
     QRBA[2],
@@ -525,7 +530,6 @@ module dove_tail(
     ABCD[2],
     ABCD[3],
     T,
-    QRBA[3],
   ];
 
   waste = skewed_rect(
@@ -541,7 +545,7 @@ module dove_tail(
     d=d,
     body=body,
     waste=waste,
-    [ratio],
+    ratios=is_num(ratio) && ratio != 0 ? [ratio] : [],
     g_cheek=g_cheek,
     r_edge=r_edge,
     d_pin=d_pin,
@@ -564,7 +568,11 @@ render() {
 }
 
 module dove_test() {
-  dove_tail();
+  color(c="peru")
+    dove_tail();
+  // color(c="sienna")
+  //   rotate(a=90 - a_dovetail)
+  //     halving(a=-a_dovetail);
 }
 
 module halving_test() {
