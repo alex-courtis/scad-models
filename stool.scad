@@ -68,18 +68,20 @@ a_mortise = -8; // [-50:1:50]
 a_tenon = 8; // [-50:1:50]
 g_shoulder_mt = 0.1; // [0:0.001:2]
 g_cheek_mt = 0.1; // [0:0.001:2]
-g_side_mt = 0.5; // [0:0.001:2]
+g_side_mt = 0.1; // [0:0.001:2]
 
 /* [Dovetail] */
 a_dt = 0; // [-50:1:50]
 a_tail = 10; // [-50:1:50]
 g_shoulder_dt = 0.1; // [0:0.001:2]
 g_cheek_dt = 0.1; // [0:0.001:2]
-g_pin_dt = 0.8; // [0:0.001:2]
-ratio_dt = 0.5; //[0:0.1:1]
+g_pin_dt = 0.025; // [0:0.001:2]
+ratio_dt = 0.5; // [0:0.05:1]
+l_tail = 0; // [0:1:500]
 
 /* [Tuning] */
 show_wastes = false;
+explode_z = 0; // [0:1:100]
 
 /**
 Render a generic joint centred at origin.
@@ -136,11 +138,11 @@ module joint_render(
   }
 
   if (show_wastes) {
-    color(c="red", alpha=0.5)
+    #color(c="red", alpha=0.5)
       linear_extrude(h=1, center=true)
         polygon(waste);
 
-    color(c="red", alpha=0.5)
+    #color(c="red", alpha=0.5)
       translate(v=[0, 0, d / 2])
         linear_extrude(h=1, center=true)
           polygon(waste);
@@ -258,8 +260,9 @@ function skewed_rect(y1, y2, d1, d2, a1, a2) =
 
 /**
 Intersection point of two lines specified by point and angle
+TODO remove
 */
-function line_intersect(x1, y1, a1, x2, y2, a2) =
+function line_intersect0(x1, y1, a1, x2, y2, a2) =
   assert(is_num(a1))
   assert(is_num(a2))
   assert(a1 != a2)
@@ -280,6 +283,41 @@ function line_intersect(x1, y1, a1, x2, y2, a2) =
       x1
     : v2 ?
       x2
+    : (d - c) / (a - b),
+
+    // y = a * x + c
+    y = v1 ?
+      (b * x + d)
+    : (a * x + c),
+  ) [
+      x,
+      y,
+  ];
+
+/**
+Intersection point of two lines specified by point and angle
+*/
+function line_intersect(P1, a1, P2, a2) =
+  assert(is_num(a1))
+  assert(is_num(a2))
+  assert(a1 != a2)
+
+  let (
+    // y = ax + c
+    v1 = (a1 % 90 == 0),
+    a = v1 ? undef : tan(a1),
+    c = v1 ? undef : P1[1] - P1[0] * a,
+
+    // y = bx + d
+    v2 = (a2 % 90 == 0),
+    b = tan(a2),
+    d = P2[1] - P2[0] * b,
+
+    // x = (d - c) / (a - b)
+    x = v1 ?
+      P1[0]
+    : v2 ?
+      P2[0]
     : (d - c) / (a - b),
 
     // y = a * x + c
@@ -479,26 +517,27 @@ module mortise(
 |<-------l1-------->|
 .                   .   
 .                   .   
-R---------------------------B                            ---------C   ^
-|                   .      /                     -------/        /    |
-|                   .     /              -------/               /     |
-|                   .    /       -------/                      /      |
-|                   .   S-------/                             /       |
-|                   .  /                                     /        |
-|                   . /                                     /         |
-|                   ./                                     /          |
-|                   -                  O                  /           w
-|                  /                                     /            |
-|                 /                                     /             |
-|                /                                     /              |
-|               T-----\                               /               |
-|              /       ------\                       /                |
-|           |a/               ------\               /                 |
-|           |/                       ------\       /                  |
-Q-----------A                               ------D                   -
+R---------------------------B-----------------------F-------------C   ^
+|                   .      /                     --J----/        /    |
+|                   .     /              -------/ /             /     |
+|                   .    /       -------/        /             /      |
+|                   .   S-------/               /             /       |
+|                   .  /                       /             /        |
+|                   . /                       /             /         |
+|                   ./                       /             /          |
+|                   -                  O    /             /           w
+|                  /                       /             /            |
+|                 /                       /             /             |
+|                /                       /             /              |
+|               T-----\                 /             /               |
+|              /       ------\         /             /                |
+|           |a/               ------\ /             /                 |
+|           |/                       K-----\       /                  |
+Q-----------A-----------------------E-------------D                   -
 
 a_dov is BCS and TDA
-g_shoulder AB, CD when blind 
+blind: ends at JK otherwise CD
+g_shoulder AB, half JK when blind 
 */
 module dove_tail(
   l = w, // depth of the socket
@@ -507,7 +546,7 @@ module dove_tail(
   d = d,
   a = a_dt, // RBA
   a_tail = a_tail, // BSC
-  l_tail = undef, // length of the tail
+  l_tail = l_tail, // length of the tail, < w for blind, ignored when > w
   ratio = ratio_dt, // undef or 0 for no vertical waste
   g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_dt, // half to each cheek
@@ -515,9 +554,7 @@ module dove_tail(
   d_dowel = d_dowel,
   inner = true,
 ) {
-
-  // TODO blind
-  blind = l_tail && l_tail < w;
+  blind = l_tail && l_tail > 0 && l_tail < w;
 
   QRBA = skewed_rect(
     y1=w / 2,
@@ -527,6 +564,10 @@ module dove_tail(
     a1=0,
     a2=a,
   );
+  Q = QRBA[0];
+  R = QRBA[1];
+  B = QRBA[2];
+  A = QRBA[3];
 
   ABCD = skewed_rect(
     y1=w / 2,
@@ -536,23 +577,36 @@ module dove_tail(
     a1=a,
     a2=a,
   );
+  C = ABCD[2];
+  D = ABCD[3];
 
-  // A <-> D
-  T = line_intersect(ABCD[0][0], ABCD[0][1], 90 - a, ABCD[3][0], ABCD[3][1], -a_tail);
   // B <-> C
-  S = line_intersect(ABCD[1][0], ABCD[1][1], 90 - a, ABCD[2][0], ABCD[2][1], a_tail);
+  S = line_intersect(P1=B, a1=90 - a, P2=C, a2=a_tail);
+  // A <-> D
+  T = line_intersect(P1=A, a1=90 - a, P2=D, a2=-a_tail);
 
-  // AQRB SCDT (A)
-  body = [
-    QRBA[3],
-    QRBA[0],
-    QRBA[1],
-    QRBA[2],
-    S,
-    ABCD[2],
-    ABCD[3],
-    T,
-  ];
+  ABFE =
+    blind ? skewed_rect(
+        y1=w / 2,
+        y2=w / 2,
+        d1=l / 2 + g_shoulder,
+        d2=l_tail - l / 2 - g_shoulder / 2,
+        a1=a,
+        a2=a,
+      )
+    : [];
+  F = ABFE[2];
+  E = ABFE[3];
+
+  // F <-> C
+  J = blind ? line_intersect(P1=F, a1=90 - a, P2=C, a2=a_tail) : undef;
+  // E <-> D
+  K = blind ? line_intersect(P1=E, a1=90 - a, P2=D, a2=-a_tail) : undef;
+
+  body =
+    blind ?
+      [A, Q, R, B, S, J, K, T]
+    : [A, Q, R, B, S, C, D, T];
 
   waste = skewed_rect(
     y1=w / 2,
@@ -619,7 +673,7 @@ module dove_socket(
   ];
 
   // D <-> O
-  V = line_intersect(l / 2, w / 2, 90 - a_tail, 0, 0, -a_tail);
+  V = line_intersect0(l / 2, w / 2, 90 - a_tail, 0, 0, -a_tail);
 
   // OV
   d12 = sqrt(V[0] ^ 2 + V[1] ^ 2) + g_pin;
@@ -668,8 +722,9 @@ module dove_test() {
   // intersection()
   {
     color(c="peru")
-      rotate(a=90 - a_dt)
-        dove_tail();
+      translate(v=[0, 0, explode_z])
+        rotate(a=90 + a_dt)
+          dove_tail();
     color(c="sienna")
       dove_socket();
   }
