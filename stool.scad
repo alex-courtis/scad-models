@@ -72,7 +72,7 @@ g_side_mt = 0.1; // [0:0.001:2]
 
 /* [Dovetail] */
 a_dt = 0; // [-50:1:50]
-a_tail = 10; // [-50:1:50]
+a_tail = 10; // [0:1:50]
 g_shoulder_dt = 0.1; // [0:0.001:2]
 g_cheek_dt = 0.1; // [0:0.001:2]
 g_pin_dt = 0.025; // [0:0.001:2]
@@ -107,7 +107,6 @@ module joint_render(
     (ratios == [0] && !inner || ratios == [1] && inner) ? "all"
     : (ratios == [0] && inner || ratios == [1] && !inner) ? "none"
     : "layers";
-  echo(waste_scope=waste_scope);
 
   // remove inner horizontal edges
   // cut out a cylinder and cap with spheres
@@ -304,12 +303,12 @@ function line_intersect(P1, a1, P2, a2) =
 
   let (
     // y = ax + c
-    v1 = (a1 % 90 == 0),
+    v1 = ( (a1 + 90) % 180 == 0),
     a = v1 ? undef : tan(a1),
     c = v1 ? undef : P1[1] - P1[0] * a,
 
     // y = bx + d
-    v2 = (a2 % 90 == 0),
+    v2 = ( (a2 + 90) % 180 == 0),
     b = tan(a2),
     d = P2[1] - P2[0] * b,
 
