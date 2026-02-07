@@ -75,7 +75,7 @@ module joint_render(
   d, // total z
   body, // poly to render
   waste, // poly to z waste
-  ratios, // empty vector for no waste
+  ratios, // [0] or [1] for all or no waste, depending on inner
   inner, // true for waste at bottom
   g_cheek,
   r_edge,
@@ -84,6 +84,12 @@ module joint_render(
   edge_points_v_body, // vertical shoulder cutouts
   edge_points_v_waste, // vertical blind edge cutouts
 ) {
+
+  waste_scope =
+    (ratios == [0] && !inner || ratios == [1] && inner) ? "all"
+    : (ratios == [0] && inner || ratios == [1] && !inner) ? "none"
+    : "layers";
+  echo(waste_scope=waste_scope);
 
   // remove inner horizontal edges
   // cut out a cylinder and cap with spheres
@@ -124,33 +130,24 @@ module joint_render(
           polygon(waste);
   }
 
-  // material/waste bottom up from origin, no waste when no ratios
-  im = inner ? 1 : -1;
-  dzs =
-    ratios ?
-      [
-        -d / 2,
-        for (i = [0:1:len(ratios) - 1]) -d / 2 + ratios[i] * d + (i % 2 == 0 ? im : -im) * g_cheek / 2,
-        d / 2,
-      ]
-    : [-d / 2, d / 2];
+  // material/waste bottom up from origin
+  module waste_layers() {
+    im = inner ? 1 : -1;
+    dzs = [
+      -d / 2,
+      for (i = [0:1:len(ratios) - 1]) -d / 2 + ratios[i] * d + (i % 2 == 0 ? im : -im) * g_cheek / 2,
+      d / 2,
+    ];
 
-  // material/waste heights
-  zs = [
-    for (i = [0:1:len(dzs) - 2]) dzs[i + 1] - dzs[i],
-  ];
-
-  difference() {
-
-    // entire body
-    translate(v=[0, 0, -d / 2])
-      linear_extrude(h=d, center=false)
-        polygon(body);
+    // material/waste heights
+    zs = [
+      for (i = [0:1:len(dzs) - 2]) dzs[i + 1] - dzs[i],
+    ];
 
     for (i = [0:1:len(zs) - 1])
       translate(v=[0, 0, dzs[i]]) {
 
-        wasting = ratios && inner && (i % 2 == 0) || !inner && (i % 2 == 1);
+        wasting = inner && (i % 2 == 0) || !inner && (i % 2 == 1);
 
         // remove joint waste
         if (wasting)
@@ -169,6 +166,21 @@ module joint_render(
           for (p = edge_points_v_body)
             edge_point(p=p, h=zs[i]);
       }
+  }
+
+  difference() {
+
+    // entire body
+    linear_extrude(h=d, center=true)
+      polygon(body);
+
+    // maybe waste
+    if (waste_scope == "all") {
+      linear_extrude(h=d, center=true)
+        polygon(waste);
+    } else if (waste_scope == "layers") {
+      waste_layers();
+    }
 
     // centred pin
     if (d_pin) {
@@ -538,7 +550,7 @@ module dove_tail(
     d=d,
     body=body,
     waste=waste,
-    ratios=is_num(ratio) && ratio != 0 ? [ratio] : [],
+	ratios=[ratio],
     g_cheek=g_cheek,
     r_edge=r_edge,
     d_pin=d_pin,
@@ -613,7 +625,7 @@ module dove_socket(
     d=d,
     body=body,
     waste=waste,
-    ratios=is_num(ratio) && ratio != 0 ? [ratio] : [],
+    ratios=[ratio],
     g_cheek=g_cheek,
     r_edge=r_edge,
     d_pin=d_pin,
