@@ -32,38 +32,54 @@ g_shoulder is usually applied to shoulders AB CD, with half applied to inner sho
 
 r_edge is a sphere capped cylinder usually cut into all concave edges along xy and z.
 
-d_pin may be cut through the joint at origin.
+d_dowel may be cut through the joint at origin.
 */
 
 $fn = 200;
 
-test = "dovetail"; // ["mt", "halving", "dovetail", "stool"]
+/* [What] */
+test = "dovetail"; // ["none", "mt", "halving", "dovetail", "stool"]
 
-debug = false;
+/* [General Dimensions] */
 
-r_edge = 0.20; // [0:0.001:2]
-
-d_pin = 2.10; // [0:0.05:2]
-
-w = 30; // [0:1:500]
-d = 20; // [0:1:500]
+// x
 l1 = 40; // [0:1:500]
 l2 = 40; // [0:1:500]
+// y
+w = 30; // [0:1:500]
+// z
+d = 20; // [0:1:500]
 
+/* [Finishing] */
+
+// 0 for no edges
+r_edge = 0.20; // [0:0.001:2]
+
+// 0 for no dowel
+d_dowel = 2.10; // [0:0.05:2]
+
+/* [Halving] */
 a_halving = 0; // [-50:1:50]
 g_shoulder_halving = 0.025; // [0:0.001:2]
 g_cheek_halving = 0.1; // [0:0.001:2]
 
+/* [Mortise And Tenon] */
 a_mortise = -8; // [-50:1:50]
 a_tenon = 8; // [-50:1:50]
 g_shoulder_mt = 0.1; // [0:0.001:2]
 g_cheek_mt = 0.1; // [0:0.001:2]
+g_side_mt = 0.5; // [0:0.001:2]
 
+/* [Dovetail] */
 a_dt = 0; // [-50:1:50]
 a_tail = 10; // [-50:1:50]
 g_shoulder_dt = 0.1; // [0:0.001:2]
 g_cheek_dt = 0.1; // [0:0.001:2]
+g_pin_dt = 0.8; // [0:0.001:2]
 ratio_dt = 0.5; //[0:0.1:1]
+
+/* [Tuning] */
+show_wastes = false;
 
 /**
 Render a generic joint centred at origin.
@@ -79,7 +95,7 @@ module joint_render(
   inner, // true for waste at bottom
   g_cheek,
   r_edge,
-  d_pin,
+  d_dowel,
   edge_lines_h, // y horizontal cutouts
   edge_points_v_body, // vertical shoulder cutouts
   edge_points_v_waste, // vertical blind edge cutouts
@@ -119,7 +135,7 @@ module joint_render(
     }
   }
 
-  if (debug) {
+  if (show_wastes) {
     color(c="red", alpha=0.5)
       linear_extrude(h=1, center=true)
         polygon(waste);
@@ -182,9 +198,9 @@ module joint_render(
       waste_layers();
     }
 
-    // centred pin
-    if (d_pin) {
-      cylinder(d=d_pin, h=d, center=true);
+    // centred dowel
+    if (d_dowel) {
+      cylinder(d=d_dowel, h=d, center=true);
     }
   }
 }
@@ -288,7 +304,7 @@ module halving(
   g_shoulder = g_shoulder_halving, // one to each shoulder
   g_cheek = g_cheek_halving, // half to each cheek
   r_edge = r_edge,
-  d_pin = d_pin,
+  d_dowel = d_dowel,
   inner = false,
 ) {
 
@@ -323,7 +339,7 @@ module halving(
     ratios=ratios ? ratios : [ratio],
     g_cheek=g_cheek,
     r_edge=r_edge,
-    d_pin=d_pin,
+    d_dowel=d_dowel,
     inner=inner,
     edge_lines_h=edge_lines_h,
   );
@@ -345,7 +361,7 @@ module tenon(
   g_shoulder = g_shoulder_mt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_mt, // half to each cheek
   r_edge = r_edge,
-  d_pin = d_pin,
+  d_dowel = d_dowel,
   inner = true,
 ) {
   blind = l_tenon && l_tenon < w;
@@ -387,7 +403,7 @@ module tenon(
     ratios=ratios ? ratios : [(1 - ratio) / 2, (1 + ratio) / 2],
     g_cheek=g_cheek,
     r_edge=r_edge,
-    d_pin=d_pin,
+    d_dowel=d_dowel,
     inner=inner,
     edge_lines_h=edge_lines_h,
   );
@@ -405,15 +421,16 @@ module mortise(
   l_tenon = undef, // length of the tenon, set to less than w for blind
   ratio = 1 / 3, // of the slot, centred
   ratios = undef, // overrides ratio
-  g_shoulder = g_shoulder_mt, // one to each shoulder, half to blind
+  g_shoulder = g_shoulder_mt, // half to blind end
   g_cheek = g_cheek_mt, // half to each cheek
+  g_side = g_side_mt, // one to each side
   r_edge = r_edge,
-  d_pin = d_pin,
+  d_dowel = d_dowel,
   inner = false,
 ) {
   blind = l_tenon && l_tenon < w;
 
-  // when not l1 or l2, body extends to the side of the joint, without g_shoulder
+  // when not l1 or l2, body extends to the side of the joint, without g_side
   body = skewed_rect(
     y1=w / 2,
     y2=w / 2,
@@ -427,8 +444,8 @@ module mortise(
   waste = skewed_rect(
     y1=w / 2,
     y2=blind ? l_tenon - w / 2 + g_shoulder / 2 : w / 2,
-    d1=l / 2 + g_shoulder,
-    d2=l / 2 + g_shoulder,
+    d1=l / 2 + g_side,
+    d2=l / 2 + g_side,
     a1=a,
     a2=a,
   );
@@ -451,7 +468,7 @@ module mortise(
     ratios=ratios ? ratios : [(1 - ratio) / 2, (1 + ratio) / 2],
     g_cheek=g_cheek,
     r_edge=r_edge,
-    d_pin=d_pin,
+    d_dowel=d_dowel,
     inner=inner,
     edge_lines_h=edge_lines_h,
     edge_points_v_waste=edge_points_v_waste,
@@ -495,7 +512,7 @@ module dove_tail(
   g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_dt, // half to each cheek
   r_edge = r_edge,
-  d_pin = d_pin,
+  d_dowel = d_dowel,
   inner = true,
 ) {
 
@@ -550,10 +567,10 @@ module dove_tail(
     d=d,
     body=body,
     waste=waste,
-	ratios=[ratio],
+    ratios=[ratio],
     g_cheek=g_cheek,
     r_edge=r_edge,
-    d_pin=d_pin,
+    d_dowel=d_dowel,
     inner=inner,
     edge_lines_h=[[S, T]],
     edge_points_v_body=[S, T],
@@ -588,8 +605,9 @@ module dove_socket(
   ratio = ratio_dt, // undef or 0 for no vertical waste
   g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_dt, // half to each cheek
+  g_pin = g_pin_dt, // one to each pin
   r_edge = r_edge,
-  d_pin = d_pin,
+  d_dowel = d_dowel,
   inner = false,
 ) {
 
@@ -604,7 +622,7 @@ module dove_socket(
   V = line_intersect(l / 2, w / 2, 90 - a_tail, 0, 0, -a_tail);
 
   // OV
-  d12 = sqrt(V[0] ^ 2 + V[1] ^ 2) + g_shoulder;
+  d12 = sqrt(V[0] ^ 2 + V[1] ^ 2) + g_pin;
 
   SCDT = skewed_rect(
     y1=w / 2,
@@ -628,7 +646,7 @@ module dove_socket(
     ratios=[ratio],
     g_cheek=g_cheek,
     r_edge=r_edge,
-    d_pin=d_pin,
+    d_dowel=d_dowel,
     inner=inner,
     edge_lines_h=edge_lines_h,
   );
@@ -659,19 +677,16 @@ module dove_test() {
 
 module halving_test() {
   a = 8;
-  l1 = 10;
 
   color(c="sienna")
     halving(
       a=a,
-      l1=l1,
     );
 
   color(c="orange")
     rotate(a=90 - a)
       halving(
         a=-a,
-        l1=l1,
         inner=true,
       );
 }
@@ -745,7 +760,7 @@ module stool() {
   d_top = 125;
   h_top = 2.6;
 
-  d_pin = d_pin;
+  d_dowel = d_dowel;
 
   show_leg = true;
   show_top = true;
@@ -753,7 +768,7 @@ module stool() {
   show_half2 = true;
   show_half3 = false;
   show_half4 = false;
-  pins = true;
+  dowels = true;
 
   dx = d_cross / 2 + l12_halving + w_leg / 2 + l1_tenon;
 
@@ -933,25 +948,25 @@ module stool() {
               half4();
     }
 
-    // pins
-    if (pins) {
-      x_pin = d_cross / 2 + l12_halving + l1_tenon + w_leg / 2;
-      l_pin = w_cross * 1.5;
+    // dowels
+    if (dowels) {
+      x_dowel = d_cross / 2 + l12_halving + l1_tenon + w_leg / 2;
+      l_dowel = w_cross * 1.5;
 
       rotate(a=90, v=[1, 0, 0]) {
-        translate(v=[x_pin, 0, 0])
-          cylinder(d=d_pin, h=l_pin, center=true);
+        translate(v=[x_dowel, 0, 0])
+          cylinder(d=d_dowel, h=l_dowel, center=true);
 
-        translate(v=[-x_pin, 0, 0])
-          cylinder(d=d_pin, h=l_pin, center=true);
-
-        rotate(a=a_cross)
-          translate(v=[0, x_pin, 0])
-            cylinder(d=d_pin, h=l_pin, center=true);
+        translate(v=[-x_dowel, 0, 0])
+          cylinder(d=d_dowel, h=l_dowel, center=true);
 
         rotate(a=a_cross)
-          translate(v=[0, -x_pin, 0])
-            cylinder(d=d_pin, h=l_pin, center=true);
+          translate(v=[0, x_dowel, 0])
+            cylinder(d=d_dowel, h=l_dowel, center=true);
+
+        rotate(a=a_cross)
+          translate(v=[0, -x_dowel, 0])
+            cylinder(d=d_dowel, h=l_dowel, center=true);
       }
     }
   }
