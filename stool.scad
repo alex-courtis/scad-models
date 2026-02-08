@@ -59,20 +59,20 @@ r_edge = 0.20; // [0:0.001:2]
 d_dowel = 2.10; // [0:0.05:2]
 
 /* [Halving] */
-a_halving = 0; // [-50:1:50]
+a_halving = 0; // [-50:0.5:50]
 g_shoulder_halving = 0.025; // [0:0.001:2]
 g_cheek_halving = 0.1; // [0:0.001:2]
 
 /* [Mortise And Tenon] */
-a_mortise = -8; // [-50:1:50]
-a_tenon = 8; // [-50:1:50]
+a_mortise = -8; // [-50:0.5:50]
+a_tenon = 8; // [-50:0.5:50]
 g_shoulder_mt = 0.1; // [0:0.001:2]
 g_cheek_mt = 0.1; // [0:0.001:2]
 g_side_mt = 0.1; // [0:0.001:2]
 
 /* [Dovetail] */
-a_dt = 0; // [-50:1:50]
-a_tail = 10; // [0:1:50]
+a_dt = 0; // [-50:0.5:50]
+a_tail = 10; // [0:0.5:30]
 g_shoulder_dt = 0.1; // [0:0.001:2]
 g_cheek_dt = 0.1; // [0:0.001:2]
 g_pin_dt = 0.025; // [0:0.001:2]
@@ -256,42 +256,6 @@ function skewed_rect(y1, y2, d1, d2, a1, a2) =
       [Dx, -y2],
     ]
   : undef;
-
-/**
-Intersection point of two lines specified by point and angle
-TODO remove
-*/
-function line_intersect0(x1, y1, a1, x2, y2, a2) =
-  assert(is_num(a1))
-  assert(is_num(a2))
-  assert(a1 != a2)
-
-  let (
-    // y = ax + b
-    v1 = (a1 % 90 == 0),
-    a = v1 ? undef : tan(a1),
-    c = v1 ? undef : y1 - x1 * a,
-
-    // y = bx + d
-    v2 = (a2 % 90 == 0),
-    b = tan(a2),
-    d = y2 - x2 * b,
-
-    // x = (d - c) / (a - b)
-    x = v1 ?
-      x1
-    : v2 ?
-      x2
-    : (d - c) / (a - b),
-
-    // y = a * x + c
-    y = v1 ?
-      (b * x + d)
-    : (a * x + c),
-  ) [
-      x,
-      y,
-  ];
 
 /**
 Intersection point of two lines specified by point and angle
@@ -541,7 +505,7 @@ g_shoulder AB, half JK when blind
 module dove_tail(
   l = w, // depth of the socket
   l1 = l1,
-  w = w,
+  w = w, // TODO w and l could be different for tail and socket
   d = d,
   a = a_dt, // RBA
   a_tail = a_tail, // BSC
@@ -641,18 +605,18 @@ B-------------C---------------------------------D-------------E     ^
 |                 \                         /                 |     |
 |                  \           O           /                  |     w
 |                   \                     /                   |     |
-|                    \at|                V                    |     |
-|                     \ |               /                     |     |
-|                      \|              /                      |     |
+|                    W                   V                    |     |
+|                     \                 /                     |     |
+|                      \               /                      |     |
 A-------------R---------S-------------T---------U-------------F     -
 */
 module dove_socket(
-  l = w,
+  l = w, // TODO w and l could be different for tail and socket
   l1 = l1, // l1 and l2 must be nonzero
   l2 = l2,
   w = w,
   d = d,
-  a = 0, // only 0 for now
+  a = a_dt,
   a_tail = a_tail,
   l_tail = undef, // length of the tail
   ratio = ratio_dt, // undef or 0 for no vertical waste
@@ -664,32 +628,58 @@ module dove_socket(
   inner = false,
 ) {
 
-  body = [
+  ABEF = [
     [-l / 2 - l1, -w / 2],
     [-l / 2 - l1, w / 2],
     [l / 2 + l2, w / 2],
     [l / 2 + l2, -w / 2],
   ];
+  A = ABEF[0];
+  B = ABEF[1];
+  E = ABEF[2];
+  F = ABEF[3];
 
-  // D <-> O
-  V = line_intersect0(l / 2, w / 2, 90 - a_tail, 0, 0, -a_tail);
+  RCDU_no_gap = skewed_rect(
+    y1=w / 2,
+    y2=w / 2,
+    d1=l / 2,
+    d2=l / 2,
+    a1=-a,
+    a2=-a,
+  );
+  C_no_gap = RCDU_no_gap[1];
+  D_no_gap = RCDU_no_gap[2];
 
+  // D_no_gap <-> O
+  V = line_intersect(P1=D_no_gap, a1=90 + a - a_tail, P2=[0, 0], a2=-a_tail + a);
   // OV
-  d12 = sqrt(V[0] ^ 2 + V[1] ^ 2) + g_pin;
+  dOV = sqrt(V[0] ^ 2 + V[1] ^ 2) + g_pin;
+
+  // C_no_gap <-> O
+  W = line_intersect(P1=C_no_gap, a1=90 + a + a_tail, P2=[0, 0], a2=a_tail + a);
+  // OW
+  dOW = sqrt(W[0] ^ 2 + W[1] ^ 2) + g_pin;
 
   SCDT = skewed_rect(
     y1=w / 2,
     y2=w / 2,
-    d1=d12,
-    d2=d12,
-    a1=-a_tail,
-    a2=a_tail,
+    d1=dOW,
+    d2=dOV,
+    a1=-a - a_tail,
+    a2=-a + a_tail,
   );
-  waste = SCDT;
+  S = SCDT[0];
+  C = SCDT[1];
+  D = SCDT[2];
+  T = SCDT[3];
+
+  body = [A, B, E, F];
+
+  waste = [S, C, D, T];
 
   edge_lines_h = [
-    [SCDT[0], SCDT[1]], // CS
-    [SCDT[2], SCDT[3]], // DT
+    [S, C],
+    [D, T],
   ];
 
   joint_render(
