@@ -44,10 +44,10 @@ model = 0; // [0:1:8]
 /* [General Dimensions] */
 
 // x
-l1 = 3; // [0:1:500]
-l2 = 3; // [0:1:500]
+l1 = 12; // [0:1:500]
+l2 = 12; // [0:1:500]
 // y
-w = 20; // [0:1:500]
+w = 15; // [0:1:500]
 // z
 d = 10; // [0:1:500]
 
@@ -70,6 +70,7 @@ a_tenon = 8; // [-50:0.5:50]
 g_shoulder_mt = 0.1; // [0:0.001:2]
 g_cheek_mt = 0.1; // [0:0.001:2]
 g_side_mt = 0.1; // [0:0.001:2]
+l_tenon = 0; // [0:1:30]
 
 /* [Dovetail] */
 a_dt = 0; // [-50:0.5:50]
@@ -350,7 +351,6 @@ module halving(
 
 // print with vertical cheeks
 // set l2 for a tee bridle
-// TODO allow l_tenon longer than w
 module tenon(
   l = w, // depth of the slot
   l1 = l1,
@@ -358,7 +358,7 @@ module tenon(
   w = w,
   d = d,
   a = a_tenon,
-  l_tenon = undef, // length of the tenon, set to less than w for blind, overrides l2
+  l_tenon = l_tenon, // length of the tenon, < l for blind, > l for exposed, ignored when l2 > 0
   ratio = 1 / 3, // of the tenon, centred
   ratios = undef, // overrides ratio
   g_shoulder = g_shoulder_mt, // one to each shoulder, half to blind end
@@ -367,35 +367,35 @@ module tenon(
   d_dowel = d_dowel,
   inner = true,
 ) {
-  blind = l_tenon && l_tenon < w;
+  blind = l_tenon && l_tenon < l && l2 == 0;
+  exposed = l_tenon && l_tenon > l && l2 == 0;
 
-  // when not l1 or l2, body extends to the side of the joint, without g_shoulder
-  d2 =
-    blind ?
-      l_tenon - l / 2 - g_shoulder / 2
-    : l2 ?
-      (l / 2 + l2)
-    : l / 2;
+  d1_body = l / 2 + l1;
+  d2_body =
+    exposed ? l_tenon - l / 2
+    : blind ? l_tenon - l / 2 - g_shoulder / 2
+    : l / 2 + l2;
+
   body = skewed_rect(
     y1=w / 2,
     y2=w / 2,
-    d1=l1 ? (l / 2 + l1) : l / 2,
-    d2=d2,
+    d1=d1_body,
+    d2=d2_body,
     a1=l1 ? 0 : a,
-    a2=(blind || !l2) ? a : 0,
+    a2=(blind || exposed || !l2) ? a : 0,
   );
 
   waste = skewed_rect(
     y1=w / 2,
     y2=w / 2,
     d1=l / 2 + g_shoulder,
-    d2=l / 2 + g_shoulder,
+    d2=(exposed ? d2_body : l / 2) + g_shoulder,
     a1=a,
     a2=a,
   );
 
   edge_lines_h = [
-    [waste[0], waste[1]],
+    l1 ? [waste[0], waste[1]] : undef,
     l2 ? [waste[2], waste[3]] : undef,
   ];
 
@@ -421,7 +421,7 @@ module mortise(
   w = w,
   d = d,
   a = a_mortise,
-  l_tenon = undef, // length of the tenon, set to less than w for blind
+  l_tenon = l_tenon, // length of the tenon, set to less than w for blind
   ratio = 1 / 3, // of the slot, centred
   ratios = undef, // overrides ratio
   g_shoulder = g_shoulder_mt, // half to blind end
@@ -511,7 +511,7 @@ module dove_tail(
   d = d,
   a = a_dt, // RBA
   a_tail = a_tail, // BSC
-  l_tail = l_tail, // length of the tail, < w for blind, ignored when > w
+  l_tail = l_tail, // length of the tail, < l for blind, ignored when > l
   ratio = ratio_dt, // undef or 0 for no vertical waste
   g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_dt, // half to each cheek
@@ -715,13 +715,16 @@ module dove_test() {
   a = a_dt + 7;
   a_tail = a_tail + 3;
 
-  l_socket = w + 2;
-  w_socket = w - 2;
+  l_socket = w + 3;
+  w_socket = w - 1;
 
-  l1_tail = l1 * 3;
+  l1_tail = l1;
   l_tail = w_socket * 5 / 7;
 
-  dx = l1 + l2 + l_socket;
+  l1_socket = l1 / 2;
+  l2_socket = l2 / 2;
+
+  dx = l1_socket + l2_socket + l_socket;
 
   all = model == 0;
 
@@ -733,7 +736,7 @@ module dove_test() {
             dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
       color(c="wheat")
-        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket);
+        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
     }
   }
 
@@ -745,7 +748,7 @@ module dove_test() {
             dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
       color(c="sienna")
-        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket);
+        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
     }
 
   if (all || model == 3)
@@ -756,7 +759,7 @@ module dove_test() {
             dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
       color(c="rosybrown")
-        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail);
+        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
     }
 
   if (all || model == 4)
@@ -767,7 +770,7 @@ module dove_test() {
             dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
       color(c="maroon")
-        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail);
+        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
     }
 
   if (all || model == 5)
@@ -780,7 +783,7 @@ module dove_test() {
             dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=d_dowel);
 
       color(c="brown")
-        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=d_dowel);
+        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=d_dowel, l1=l1_socket, l2=l2_socket);
     }
 
   if (all || model == 6)
@@ -793,7 +796,7 @@ module dove_test() {
             dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel);
 
       color(c="darkgoldenrod")
-        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio);
+        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio, l1=l1_socket, l2=l2_socket);
     }
 
   if (all || model == 7)
@@ -809,7 +812,7 @@ module dove_test() {
             dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d);
 
       color(c="brown")
-        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d);
+        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d, l1=l1_socket, l2=l2_socket);
     }
 
   if (all || model == 8)
@@ -825,7 +828,7 @@ module dove_test() {
             dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d);
 
       color(c="darkgoldenrod")
-        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d);
+        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d, l1=l1_socket, l2=l2_socket);
     }
 }
 
@@ -846,51 +849,58 @@ module halving_test() {
 }
 
 module mt_test() {
-  w_tenon = 30;
-  d_tenon = 20;
-  l12_tenon = 25;
+  all = model == 0;
 
-  w_mortise = d_tenon;
-  l_mortise = w_tenon;
-  l12_mortise = 25;
+  w_tenon = w;
+  d_tenon = d;
 
-  color(c="sienna")
-    tenon(
-      w=w_tenon,
-      d=d_tenon,
-      l=w_mortise,
-      l1=l12_tenon,
-      l2=0,
-      l_tenon=15,
-    );
-  color(c="orange")
-    rotate(a=90 + a_mortise)
-      mortise(
-        w=w_mortise,
-        d=d_tenon,
-        l=l_mortise,
-        l1=l12_mortise,
-        l2=l12_mortise,
-      );
+  w_mortise = w;
+  l_mortise = w;
 
-  translate(v=[70, 0, 0]) {
-    color(c="tan")
-      tenon(
-        w=w_tenon,
-        d=d_tenon,
-        l=w_mortise,
-        l1=l12_tenon,
-        l2=l12_tenon,
-      );
-    color(c="chocolate")
+  dx = 70;
+
+  if (all || model == 1) {
+    color(c="sienna")
+      translate(v=[0, 0, explode_z])
+        tenon(
+          w=w_tenon,
+          d=d_tenon,
+          l=w_mortise,
+          l1=l1,
+          l2=0
+        );
+    color(c="orange")
       rotate(a=90 + a_mortise)
         mortise(
           w=w_mortise,
           d=d_tenon,
           l=l_mortise,
-          l1=l12_mortise,
-          l2=0
+          l1=l1,
+          l2=l2
         );
+  }
+
+  if (all || model == 2) {
+    translate(v=[dx, 0, 0]) {
+      color(c="tan")
+        translate(v=[0, 0, explode_z])
+          tenon(
+            w=w_tenon,
+            d=d_tenon,
+            l=w_mortise,
+            l1=l1,
+            l2=l2,
+          );
+      color(c="chocolate")
+        rotate(a=90 + a_mortise)
+          mortise(
+            w=w_mortise,
+            d=d_tenon,
+            l=l_mortise,
+            l1=l1,
+            l2=0
+          );
+    }
   }
 }
 
@@ -921,8 +931,8 @@ module stool() {
   show_top = true;
   show_half1 = true;
   show_half2 = true;
-  show_half3 = false;
-  show_half4 = false;
+  show_half3 = true;
+  show_half4 = true;
   dowels = true;
 
   dx = d_cross / 2 + l12_halving + w_leg / 2 + l1_tenon;
