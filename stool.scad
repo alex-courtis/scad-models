@@ -43,8 +43,8 @@ test = "dovetail"; // ["none", "mt", "halving", "dovetail", "stool"]
 /* [General Dimensions] */
 
 // x
-l1 = 40; // [0:1:500]
-l2 = 40; // [0:1:500]
+l1 = 20; // [0:1:500]
+l2 = 20; // [0:1:500]
 // y
 w = 30; // [0:1:500]
 // z
@@ -505,7 +505,7 @@ g_shoulder AB, half JK when blind
 module dove_tail(
   l = w, // depth of the socket
   l1 = l1,
-  w = w, // TODO w and l could be different for tail and socket
+  w = w,
   d = d,
   a = a_dt, // RBA
   a_tail = a_tail, // BSC
@@ -517,6 +517,8 @@ module dove_tail(
   d_dowel = d_dowel,
   inner = true,
 ) {
+  // TODO boil down the calculations
+
   blind = l_tail && l_tail > 0 && l_tail < w;
 
   QRBA = skewed_rect(
@@ -611,7 +613,7 @@ B-------------C---------------------------------D-------------E     ^
 A-------------R---------S-------------T---------U-------------F     -
 */
 module dove_socket(
-  l = w, // TODO w and l could be different for tail and socket
+  l = w,
   l1 = l1, // l1 and l2 must be nonzero
   l2 = l2,
   w = w,
@@ -627,6 +629,8 @@ module dove_socket(
   d_dowel = d_dowel,
   inner = false,
 ) {
+
+  // TODO boil down the calculations
 
   ABEF = [
     [-l / 2 - l1, -w / 2],
@@ -708,14 +712,53 @@ render() {
 }
 
 module dove_test() {
-  // intersection()
-  {
-    color(c="peru")
+
+  a_tail = a_tail + 3;
+
+  l_socket = w + 2;
+  w_socket = w - 2;
+
+  l1_tail = l1 * 2;
+
+  color(c="peru")
+    translate(v=[0, 0, explode_z])
+      rotate(a=90 + a_dt)
+        dove_tail(
+          a_tail=a_tail,
+          l=w_socket,
+          w=l_socket,
+          l1=l1_tail,
+        );
+
+  color(c="sienna")
+    dove_socket(
+      a_tail=a_tail,
+      l=l_socket,
+      w=w_socket,
+    );
+
+  translate(v=[l1 + l2 + l_socket, 0, 0]) {
+
+    a = a_dt + 7;
+
+    color(c="tan")
       translate(v=[0, 0, explode_z])
-        rotate(a=90 + a_dt)
-          dove_tail();
-    color(c="sienna")
-      dove_socket();
+        rotate(a=90 + a)
+          dove_tail(
+            a=a,
+            a_tail=a_tail,
+            l=w_socket,
+            w=l_socket,
+            l1=l1_tail,
+          );
+
+    color(c="orange")
+      dove_socket(
+        a=a,
+        a_tail=a_tail,
+        l=l_socket,
+        w=w_socket,
+      );
   }
 }
 
