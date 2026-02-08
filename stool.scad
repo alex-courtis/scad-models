@@ -43,12 +43,12 @@ test = "dovetail"; // ["none", "mt", "halving", "dovetail", "stool"]
 /* [General Dimensions] */
 
 // x
-l1 = 15; // [0:1:500]
-l2 = 15; // [0:1:500]
+l1 = 3; // [0:1:500]
+l2 = 3; // [0:1:500]
 // y
-w = 30; // [0:1:500]
+w = 20; // [0:1:500]
 // z
-d = 20; // [0:1:500]
+d = 10; // [0:1:500]
 
 /* [Finishing] */
 
@@ -56,7 +56,7 @@ d = 20; // [0:1:500]
 r_edge = 0.20; // [0:0.001:2]
 
 // 0 for no dowel
-d_dowel = 2.10; // [0:0.05:2]
+d_dowel = 2.20; // [0:0.05:2]
 
 /* [Halving] */
 a_halving = 0; // [-50:0.5:50]
@@ -73,11 +73,12 @@ g_side_mt = 0.1; // [0:0.001:2]
 /* [Dovetail] */
 a_dt = 0; // [-50:0.5:50]
 a_tail = 10; // [0:0.5:30]
-g_shoulder_dt = 0.1; // [0:0.001:2]
-g_cheek_dt = 0.1; // [0:0.001:2]
-g_pin_dt = 0.025; // [0:0.001:2]
+g_shoulder_dt = 0.05; // [0:0.001:2]
+g_cheek_dt = 0.08; // [0:0.001:2]
+g_pin_dt = 0.010; // [0:0.001:2]
 ratio_dt = 0.5; // [0:0.05:1]
 l_tail = 0; // [0:1:30]
+inner_dt = true;
 
 /* [Tuning] */
 show_wastes = false;
@@ -515,7 +516,7 @@ module dove_tail(
   g_cheek = g_cheek_dt, // half to each cheek
   r_edge = r_edge,
   d_dowel = d_dowel,
-  inner = true,
+  inner = inner_dt,
 ) {
   // TODO boil down the calculations
 
@@ -545,9 +546,9 @@ module dove_tail(
   C = ABCD[2];
   D = ABCD[3];
 
-  // B <-> C
+  // AB <-> C
   S = line_intersect(P1=B, a1=90 - a, P2=C, a2=a_tail);
-  // A <-> D
+  // AB <-> D
   T = line_intersect(P1=A, a1=90 - a, P2=D, a2=-a_tail);
 
   ABFE =
@@ -563,9 +564,9 @@ module dove_tail(
   F = ABFE[2];
   E = ABFE[3];
 
-  // F <-> C
+  // EF <-> C
   J = blind ? line_intersect(P1=F, a1=90 - a, P2=C, a2=a_tail) : undef;
-  // E <-> D
+  // EF <-> D
   K = blind ? line_intersect(P1=E, a1=90 - a, P2=D, a2=-a_tail) : undef;
 
   body =
@@ -627,7 +628,7 @@ module dove_socket(
   g_pin = g_pin_dt, // one to each pin
   r_edge = r_edge,
   d_dowel = d_dowel,
-  inner = false,
+  inner = !inner_dt,
 ) {
 
   // TODO boil down the calculations
@@ -656,14 +657,12 @@ module dove_socket(
   C_no_gap = RCDU_no_gap[1];
   D_no_gap = RCDU_no_gap[2];
 
-  // D <-> O
+  // DT <-> O
   V = line_intersect(P1=D_no_gap, a1=90 + a - a_tail, P2=[0, 0], a2=-a_tail + a);
-  // OV
   dOV = sqrt(V[0] ^ 2 + V[1] ^ 2) + g_pin;
 
-  // C <-> O
+  // CS <-> O
   W = line_intersect(P1=C_no_gap, a1=90 + a + a_tail, P2=[0, 0], a2=a_tail + a);
-  // OW
   dOW = sqrt(W[0] ^ 2 + W[1] ^ 2) + g_pin;
 
   SJKT = skewed_rect(
@@ -722,7 +721,7 @@ module dove_test() {
   l_socket = w + 2;
   w_socket = w - 2;
 
-  l1_tail = l1 * 2;
+  l1_tail = l1 * 3;
   l_tail = w_socket * 5 / 7;
 
   dx = l1 + l2 + l_socket;
@@ -763,8 +762,30 @@ module dove_test() {
         rotate(a=90 + a)
           dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
-    color(c="saddlebrown")
+    color(c="maroon")
       dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail);
+  }
+
+  translate(v=[4 * dx, 0, 0]) {
+    ratio = 0;
+    color(c="sandybrown")
+      translate(v=[0, 0, explode_z])
+        rotate(a=90 + a_dt)
+          dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0);
+
+    color(c="brown")
+      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0);
+  }
+
+  translate(v=[5 * dx, 0, 0]) {
+    ratio = 0;
+    color(c="bisque")
+      translate(v=[0, 0, explode_z])
+        rotate(a=90 + a)
+          dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio = ratio);
+
+    color(c="darkgoldenrod")
+      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio);
   }
 }
 
