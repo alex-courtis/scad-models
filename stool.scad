@@ -43,8 +43,8 @@ test = "dovetail"; // ["none", "mt", "halving", "dovetail", "stool"]
 /* [General Dimensions] */
 
 // x
-l1 = 20; // [0:1:500]
-l2 = 20; // [0:1:500]
+l1 = 15; // [0:1:500]
+l2 = 15; // [0:1:500]
 // y
 w = 30; // [0:1:500]
 // z
@@ -77,7 +77,7 @@ g_shoulder_dt = 0.1; // [0:0.001:2]
 g_cheek_dt = 0.1; // [0:0.001:2]
 g_pin_dt = 0.025; // [0:0.001:2]
 ratio_dt = 0.5; // [0:0.05:1]
-l_tail = 0; // [0:1:500]
+l_tail = 0; // [0:1:30]
 
 /* [Tuning] */
 show_wastes = false;
@@ -519,7 +519,7 @@ module dove_tail(
 ) {
   // TODO boil down the calculations
 
-  blind = l_tail && l_tail > 0 && l_tail < w;
+  blind = l_tail && l_tail > 0 && l_tail < l;
 
   QRBA = skewed_rect(
     y1=w / 2,
@@ -603,7 +603,7 @@ module dove_tail(
 B-------------C---------------------------------D-------------E     ^
 |              \                               /              |     |
 |               \                             /               |     |
-|                \                           /                |     |
+|                J---------------------------K                |     |
 |                 \                         /                 |     |
 |                  \           O           /                  |     w
 |                   \                     /                   |     |
@@ -620,7 +620,7 @@ module dove_socket(
   d = d,
   a = a_dt,
   a_tail = a_tail,
-  l_tail = undef, // length of the tail
+  l_tail = l_tail, // length of the tail, < w for blind, ignored when > w
   ratio = ratio_dt, // undef or 0 for no vertical waste
   g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_dt, // half to each cheek
@@ -631,6 +631,7 @@ module dove_socket(
 ) {
 
   // TODO boil down the calculations
+  blind = l_tail && l_tail > 0 && l_tail < w;
 
   ABEF = [
     [-l / 2 - l1, -w / 2],
@@ -643,6 +644,7 @@ module dove_socket(
   E = ABEF[2];
   F = ABEF[3];
 
+  // no gap for RCDU
   RCDU_no_gap = skewed_rect(
     y1=w / 2,
     y2=w / 2,
@@ -654,36 +656,37 @@ module dove_socket(
   C_no_gap = RCDU_no_gap[1];
   D_no_gap = RCDU_no_gap[2];
 
-  // D_no_gap <-> O
+  // D <-> O
   V = line_intersect(P1=D_no_gap, a1=90 + a - a_tail, P2=[0, 0], a2=-a_tail + a);
   // OV
   dOV = sqrt(V[0] ^ 2 + V[1] ^ 2) + g_pin;
 
-  // C_no_gap <-> O
+  // C <-> O
   W = line_intersect(P1=C_no_gap, a1=90 + a + a_tail, P2=[0, 0], a2=a_tail + a);
   // OW
   dOW = sqrt(W[0] ^ 2 + W[1] ^ 2) + g_pin;
 
-  SCDT = skewed_rect(
-    y1=w / 2,
+  SJKT = skewed_rect(
+    y1=blind ? (l_tail - w / 2) + g_shoulder / 2 : w / 2,
     y2=w / 2,
     d1=dOW,
     d2=dOV,
     a1=-a - a_tail,
     a2=-a + a_tail,
   );
-  S = SCDT[0];
-  C = SCDT[1];
-  D = SCDT[2];
-  T = SCDT[3];
+  S = SJKT[0];
+  J = SJKT[1];
+  K = SJKT[2];
+  T = SJKT[3];
 
   body = [A, B, E, F];
 
-  waste = [S, C, D, T];
+  waste = [S, J, K, T];
 
   edge_lines_h = [
-    [S, C],
-    [D, T],
+    [S, J],
+    [K, T],
+    blind ? [J, K] : undef,
   ];
 
   joint_render(
@@ -713,52 +716,55 @@ render() {
 
 module dove_test() {
 
+  a = a_dt + 7;
   a_tail = a_tail + 3;
 
   l_socket = w + 2;
   w_socket = w - 2;
 
   l1_tail = l1 * 2;
+  l_tail = w_socket * 5 / 7;
 
-  color(c="peru")
-    translate(v=[0, 0, explode_z])
-      rotate(a=90 + a_dt)
-        dove_tail(
-          a_tail=a_tail,
-          l=w_socket,
-          w=l_socket,
-          l1=l1_tail,
-        );
+  dx = l1 + l2 + l_socket;
 
-  color(c="sienna")
-    dove_socket(
-      a_tail=a_tail,
-      l=l_socket,
-      w=w_socket,
-    );
+  translate(v=[0 * dx, 0, 0]) {
+    color(c="orange")
+      translate(v=[0, 0, explode_z])
+        rotate(a=90 + a_dt)
+          dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
-  translate(v=[l1 + l2 + l_socket, 0, 0]) {
+    color(c="wheat")
+      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket);
+  }
 
-    a = a_dt + 7;
-
-    color(c="tan")
+  translate(v=[1 * dx, 0, 0]) {
+    color(c="burlywood")
       translate(v=[0, 0, explode_z])
         rotate(a=90 + a)
-          dove_tail(
-            a=a,
-            a_tail=a_tail,
-            l=w_socket,
-            w=l_socket,
-            l1=l1_tail,
-          );
+          dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
-    color(c="orange")
-      dove_socket(
-        a=a,
-        a_tail=a_tail,
-        l=l_socket,
-        w=w_socket,
-      );
+    color(c="sienna")
+      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket);
+  }
+
+  translate(v=[2 * dx, 0, 0]) {
+    color(c="chocolate")
+      translate(v=[0, 0, explode_z])
+        rotate(a=90 + a_dt)
+          dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
+
+    color(c="rosybrown")
+      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail);
+  }
+
+  translate(v=[3 * dx, 0, 0]) {
+    color(c="wheat")
+      translate(v=[0, 0, explode_z])
+        rotate(a=90 + a)
+          dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
+
+    color(c="saddlebrown")
+      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail);
   }
 }
 
