@@ -685,6 +685,8 @@ module dove_socket(
     blind ? [J, K] : undef,
   ];
 
+  edge_points_v_waste = blind ? [J, K] : undef;
+
   joint_render(
     d=d,
     body=body,
@@ -695,6 +697,7 @@ module dove_socket(
     d_dowel=d_dowel,
     inner=inner,
     edge_lines_h=edge_lines_h,
+    edge_points_v_waste=edge_points_v_waste,
   );
 }
 
