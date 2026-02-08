@@ -56,7 +56,7 @@ d = 10; // [0:1:500]
 r_edge = 0.20; // [0:0.001:2]
 
 // 0 for no dowel
-d_dowel = 2.20; // [0:0.05:2]
+d_dowel = 2.30; // [0:0.05:5]
 
 /* [Halving] */
 a_halving = 0; // [-50:0.5:50]
@@ -75,7 +75,7 @@ a_dt = 0; // [-50:0.5:50]
 a_tail = 10; // [0:0.5:30]
 g_shoulder_dt = 0.05; // [0:0.001:2]
 g_cheek_dt = 0.08; // [0:0.001:2]
-g_pin_dt = 0.010; // [0:0.001:2]
+g_pin_dt = 0.005; // [0:0.001:2]
 ratio_dt = 0.5; // [0:0.05:1]
 l_tail = 0; // [0:1:30]
 inner_dt = true;
@@ -786,6 +786,36 @@ module dove_test() {
 
     color(c="darkgoldenrod")
       dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio);
+  }
+
+  translate(v=[4 * dx, 30, 0]) {
+    ratio = 0;
+    d = 60;
+    w_socket = w_socket / 2;
+    l_tail = w_socket / 2;
+    d_dowel = 0;
+    color(c="sandybrown")
+      translate(v=[0, 0, explode_z])
+        rotate(a=90 + a_dt)
+          dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d);
+
+    color(c="brown")
+      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d);
+  }
+
+  translate(v=[5 * dx, 60, 0]) {
+    ratio = 0;
+    d = 60;
+    w_socket = w_socket / 2;
+    l_tail = w_socket / 2;
+    d_dowel = 0;
+    color(c="bisque")
+      translate(v=[0, 0, explode_z])
+        rotate(a=90 + a)
+          dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d);
+
+    color(c="darkgoldenrod")
+      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d);
   }
 }
 
