@@ -71,15 +71,15 @@ d_dowel = 2.30; // [0:0.05:5]
 
 /* [Halving] */
 a_halving = 0; // [-50:0.5:50]
-g_shoulder_halving = 0.025; // [0:0.001:2]
-g_cheek_halving = 0.1; // [0:0.001:2]
+g_shoulder_halving = 0.04; // [0:0.001:2]
+g_cheek_halving = 0.08; // [0:0.001:2]
 
 /* [Mortise And Tenon] */
 a_mortise = -8; // [-50:0.5:50]
 a_tenon = 8; // [-50:0.5:50]
-g_shoulder_mt = 0.1; // [0:0.001:2]
-g_cheek_mt = 0.1; // [0:0.001:2]
-g_side_mt = 0.1; // [0:0.001:2]
+g_shoulder_mt = 0.04; // [0:0.001:2]
+g_cheek_mt = 0.08; // [0:0.001:2]
+g_side_mt = 0.01; // [0:0.001:2]
 l_tenon = 0; // [0:1:30]
 
 /* [Dovetail] */
@@ -810,7 +810,7 @@ module halving_test() {
   }
 
   test_render(m=5, dx=dx) {
-    halving(inner=false, a=a, l2=0);
+    halving(inner=true, a=a, l2=0);
 
     rotate(a=90 - a)
       halving(a=-a, l1=0);
