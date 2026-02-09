@@ -37,9 +37,19 @@ d_dowel may be cut through the joint at origin.
 
 $fn = 200;
 
-/* [What] */
+/* [Testing] */
+
+// what
 test = "dovetail"; // ["none", "mt", "halving", "dovetail", "stool"]
-model = 0; // [0:1:8]
+
+// -1 for all
+test_model = -1; // [-1:1:8]
+
+test_rotate = 0; // [-45:1:45]
+
+show_wastes = false;
+
+explode_z = 0; // [0:1:100]
 
 /* [General Dimensions] */
 
@@ -83,11 +93,20 @@ l_tail = 0; // [0:1:30]
 inner_dt = true;
 
 /* [Tuning] */
-show_wastes = false;
-explode_z = 0; // [0:1:100]
 
 // accept large epsilon needed exposed joint when a != 0
 EPS_END = 2; // [0:1:100]
+
+COL = [
+  ["orange", "wheat"],
+  ["navajowhite", "sienna"],
+  ["chocolate", "rosybrown"],
+  ["burlywood", "maroon"],
+  ["sandybrown", "brown"],
+  ["bisque", "darkgoldenrod"],
+  ["tan", "peru"],
+  ["blanchedalmond", "saddlebrown"],
+];
 
 /**
 Render a generic joint centred at origin.
@@ -455,7 +474,7 @@ module mortise(
     : l / 2 + g_side;
 
   d2_waste =
-    l2 == 0 ? l/2 + EPS_END
+    l2 == 0 ? l / 2 + EPS_END
     : l / 2 + g_side;
 
   // full g_shoulder on shoulders, half on blind
@@ -731,7 +750,7 @@ render() {
 module dove_test() {
 
   a = a_dt + 7;
-  a_tail = a_tail + 3;
+  a_tail = a_tail;
 
   l_socket = w + 3;
   w_socket = w - 1;
@@ -744,121 +763,95 @@ module dove_test() {
 
   dx = l1_socket + l2_socket + l_socket;
 
-  all = model == 0;
+  all = test_model == -1;
 
-  if (all || model == 1) {
-    translate(v=[0 * dx, 0, 0]) {
-      color(c="orange")
+  module test(m, dy = 0) {
+    if (all || test_model == m) {
+      translate(v=[m * dx, dy, 0]) {
         translate(v=[0, 0, explode_z])
-          rotate(a=90 + a_dt)
-            dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
+          color(c=COL[m][0])
+            children(0);
 
-      color(c="wheat")
-        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
+        color(c=COL[m][1])
+          children(1);
+      }
     }
   }
 
-  if (all || model == 2)
-    translate(v=[1 * dx, 0, 0]) {
-      color(c="burlywood")
-        translate(v=[0, 0, explode_z])
-          rotate(a=90 + a)
-            dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
+  rotate(a=test_rotate) {
+    test(m=0) {
+      rotate(a=90 + a_dt)
+        dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
-      color(c="sienna")
-        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
+      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
     }
 
-  if (all || model == 3)
-    translate(v=[2 * dx, 0, 0]) {
-      color(c="chocolate")
-        translate(v=[0, 0, explode_z])
-          rotate(a=90 + a_dt)
-            dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
+    test(m=1) {
+      rotate(a=90 + a)
+        dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
-      color(c="rosybrown")
-        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
+      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
     }
 
-  if (all || model == 4)
-    translate(v=[3 * dx, 0, 0]) {
-      color(c="wheat")
-        translate(v=[0, 0, explode_z])
-          rotate(a=90 + a)
-            dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
+    test(m=2) {
+      rotate(a=90 + a_dt)
+        dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
-      color(c="maroon")
-        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
+      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
     }
 
-  if (all || model == 5)
-    translate(v=[4 * dx, 0, 0]) {
-      ratio = 0;
-      d_dowel = 0;
-      color(c="sandybrown")
-        translate(v=[0, 0, explode_z])
-          rotate(a=90 + a_dt)
-            dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=d_dowel);
+    test(m=3) {
+      rotate(a=90 + a)
+        dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
-      color(c="brown")
-        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=d_dowel, l1=l1_socket, l2=l2_socket);
+      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
     }
 
-  if (all || model == 6)
-    translate(v=[5 * dx, 0, 0]) {
-      ratio = 0;
-      d_dowel = 0;
-      color(c="bisque")
-        translate(v=[0, 0, explode_z])
-          rotate(a=90 + a)
-            dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel);
+    test(m=4) {
+      rotate(a=90 + a_dt)
+        dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
 
-      color(c="darkgoldenrod")
-        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio, l1=l1_socket, l2=l2_socket);
+      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, l1=l1_socket, l2=l2_socket);
     }
 
-  if (all || model == 7)
-    translate(v=[4 * dx, 30, 0]) {
-      ratio = 0;
+    test(m=5) {
+      rotate(a=90 + a)
+        dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
+
+      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
+    }
+
+    test(m=6, dy=20) {
       d = 60;
       w_socket = w_socket / 2;
       l_tail = w_socket / 2;
-      d_dowel = 0;
-      color(c="sandybrown")
-        translate(v=[0, 0, explode_z])
-          rotate(a=90 + a_dt)
-            dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d);
+      rotate(a=90 + a_dt)
+        dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, d=d);
 
-      color(c="brown")
-        dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d, l1=l1_socket, l2=l2_socket);
+      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, d=d, l1=l1_socket, l2=l2_socket);
     }
 
-  if (all || model == 8)
-    translate(v=[5 * dx, 60, 0]) {
-      ratio = 0;
+    test(m=7) {
       d = 60;
       w_socket = w_socket / 2;
       l_tail = w_socket / 2;
-      d_dowel = 0;
-      color(c="bisque")
-        translate(v=[0, 0, explode_z])
-          rotate(a=90 + a)
-            dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d);
+      rotate(a=90 + a)
+        dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, d=d);
 
-      color(c="darkgoldenrod")
-        dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=ratio, d_dowel=d_dowel, d=d, l1=l1_socket, l2=l2_socket);
+      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, d=d, l1=l1_socket, l2=l2_socket);
     }
+  }
 }
 
 module halving_test() {
   a = 8;
 
-  color(c="sienna")
+  color(c=COL[1][1])
     halving(
       a=a,
     );
 
-  color(c="orange")
+  color(c=COL[0][0])
     rotate(a=90 - a)
       halving(
         a=-a,
@@ -867,7 +860,7 @@ module halving_test() {
 }
 
 module mt_test() {
-  all = model == 0;
+  all = test_model == -1;
 
   w_tenon = w;
   d_tenon = d;
@@ -875,10 +868,13 @@ module mt_test() {
   w_mortise = w;
   l_mortise = w;
 
-  dx = 50;
+  l_tenon_blind = w * 5 / 7;
+  l_tenon_exposed = w * 7 / 5;
 
-  if (all || model == 1) {
-    color(c="sienna")
+  dx = 45;
+
+  if (all || test_model == 0) {
+    color(c=COL[0][0])
       translate(v=[0, 0, explode_z])
         tenon(
           w=w_tenon,
@@ -887,7 +883,7 @@ module mt_test() {
           l1=l1,
           l2=0
         );
-    color(c="orange")
+    color(c=COL[0][1])
       rotate(a=90 + a_mortise)
         mortise(
           w=w_mortise,
@@ -898,9 +894,9 @@ module mt_test() {
         );
   }
 
-  if (all || model == 2) {
+  if (all || test_model == 1) {
     translate(v=[1 * dx, 0, 0]) {
-      color(c="sienna")
+      color(c=COL[0][0])
         translate(v=[0, 0, explode_z])
           tenon(
             w=w_tenon,
@@ -909,7 +905,7 @@ module mt_test() {
             l1=0,
             l2=l2
           );
-      color(c="orange")
+      color(c=COL[0][1])
         rotate(a=90 + a_mortise)
           mortise(
             w=w_mortise,
@@ -921,9 +917,9 @@ module mt_test() {
     }
   }
 
-  if (all || model == 3) {
+  if (all || test_model == 2) {
     translate(v=[2 * dx, 0, 0]) {
-      color(c="tan")
+      color(c=COL[1][0])
         translate(v=[0, 0, explode_z])
           tenon(
             w=w_tenon,
@@ -932,7 +928,7 @@ module mt_test() {
             l1=l1,
             l2=l2,
           );
-      color(c="chocolate")
+      color(c=COL[1][1])
         rotate(a=90 + a_mortise)
           mortise(
             w=w_mortise,
@@ -944,9 +940,9 @@ module mt_test() {
     }
   }
 
-  if (all || model == 4) {
+  if (all || test_model == 3) {
     translate(v=[3 * dx, 0, 0]) {
-      color(c="tan")
+      color(c=COL[1][0])
         translate(v=[0, 0, explode_z])
           tenon(
             w=w_tenon,
@@ -955,7 +951,7 @@ module mt_test() {
             l1=l1,
             l2=l2,
           );
-      color(c="chocolate")
+      color(c=COL[1][1])
         rotate(a=90 + a_mortise)
           mortise(
             w=w_mortise,
@@ -967,9 +963,9 @@ module mt_test() {
     }
   }
 
-  if (all || model == 5) {
+  if (all || test_model == 4) {
     translate(v=[4 * dx, 0, 0]) {
-      color(c="sandybrown")
+      color(c=COL[2][0])
         translate(v=[0, 0, explode_z])
           tenon(
             w=w_tenon,
@@ -977,9 +973,9 @@ module mt_test() {
             l=w_mortise,
             l1=l1,
             l2=0,
-            l_tenon=10,
+            l_tenon=l_tenon_blind,
           );
-      color(c="brown")
+      color(c=COL[2][1])
         rotate(a=90 + a_mortise)
           mortise(
             w=w_mortise,
@@ -987,14 +983,14 @@ module mt_test() {
             l=l_mortise,
             l1=0,
             l2=l2,
-            l_tenon=10,
+            l_tenon=l_tenon_blind,
           );
     }
   }
 
-  if (all || model == 6) {
+  if (all || test_model == 5) {
     translate(v=[5 * dx, 0, 0]) {
-      color(c="sandybrown")
+      color(c=COL[2][0])
         translate(v=[0, 0, explode_z])
           tenon(
             w=w_tenon,
@@ -1002,9 +998,9 @@ module mt_test() {
             l=w_mortise,
             l1=l1,
             l2=0,
-            l_tenon=10,
+            l_tenon=l_tenon_blind,
           );
-      color(c="brown")
+      color(c=COL[2][1])
         rotate(a=90 + a_mortise)
           mortise(
             w=w_mortise,
@@ -1012,7 +1008,57 @@ module mt_test() {
             l=l_mortise,
             l1=l1,
             l2=0,
-            l_tenon=10,
+            l_tenon=l_tenon_blind,
+          );
+    }
+  }
+
+  if (all || test_model == 6) {
+    translate(v=[6 * dx, 0, 0]) {
+      color(c=COL[3][0])
+        translate(v=[0, 0, explode_z])
+          tenon(
+            w=w_tenon,
+            d=d_tenon,
+            l=w_mortise,
+            l1=l1,
+            l2=0,
+            l_tenon=l_tenon_exposed,
+          );
+      color(c=COL[3][1])
+        rotate(a=90 + a_mortise)
+          mortise(
+            w=w_mortise,
+            d=d_tenon,
+            l=l_mortise,
+            l1=l1,
+            l2=l2,
+          );
+    }
+  }
+
+  if (all || test_model == 7) {
+    translate(v=[7 * dx, 0, 0]) {
+      color(c=COL[4][0])
+        translate(v=[0, 0, explode_z])
+          tenon(
+            a=0,
+            w=w_tenon,
+            d=d_tenon,
+            l=w_mortise,
+            l1=l1,
+            l2=0,
+            l_tenon=l_tenon_exposed,
+          );
+      color(c=COL[4][1])
+        rotate(a=90)
+          mortise(
+            a=0,
+            w=w_mortise,
+            d=d_tenon,
+            l=l_mortise,
+            l1=l1,
+            l2=l2,
           );
     }
   }
