@@ -320,7 +320,7 @@ module halving(
   l2 = l2,
   w = w,
   d = d,
-  a = 0,
+  a = a_halving,
   ratio = 1 / 2,
   ratios = undef, // overrides ratio
   g_shoulder = g_shoulder_halving, // one to each shoulder
@@ -330,7 +330,6 @@ module halving(
   inner = false,
 ) {
 
-  // when not l1 or l2, body extends to the side of the joint, without g_shoulder
   body = skewed_rect(
     y1=w / 2,
     y2=w / 2,
@@ -340,11 +339,19 @@ module halving(
     a2=l2 ? 0 : a,
   );
 
+  d1_waste =
+    l1 == 0 ? l / 2 + EPS_END
+    : l / 2 + g_shoulder;
+
+  d2_waste =
+    l2 == 0 ? l / 2 + EPS_END
+    : l / 2 + g_shoulder;
+
   waste = skewed_rect(
     y1=w / 2,
     y2=w / 2,
-    d1=l / 2 + g_shoulder,
-    d2=l / 2 + g_shoulder,
+    d1=d1_waste,
+    d2=d2_waste,
     a1=a,
     a2=a,
   );
@@ -768,45 +775,45 @@ module halving_test() {
   dx = 45;
 
   test_render(m=0, dx=dx) {
-    halving();
+    halving(inner=true, a=-a_halving);
 
-    rotate(a=90)
-      halving(inner=true);
+    rotate(a=90 + a_halving)
+      halving();
   }
 
   test_render(m=1, dx=dx) {
-    halving(a=a);
+    halving(inner=true, a=a);
 
     rotate(a=90 - a)
-      halving(a=-a, inner=true);
+      halving(a=-a);
   }
 
   test_render(m=2, dx=dx) {
-    halving(l2=0);
+    halving(inner=true, a=-a_halving, l2=0);
 
-    rotate(a=90)
-      halving(inner=true, l1=0);
+    rotate(a=90 + a_halving)
+      halving(l1=0);
   }
 
   test_render(m=3, dx=dx) {
-    halving(l1=0);
+    halving(inner=true, a=-a_halving, l1=0);
 
-    rotate(a=90)
-      halving(inner=true, l2=0);
+    rotate(a=90 + a_halving)
+      halving(l2=0);
   }
 
   test_render(m=4, dx=dx) {
-    halving(a=a, l1=0);
+    halving(inner=true, a=a, l1=0);
 
     rotate(a=90 - a)
-      halving(a=-a, inner=true, l2=0);
+      halving(a=-a, l2=0);
   }
 
   test_render(m=5, dx=dx) {
-    halving(a=a, l2=0);
+    halving(inner=false, a=a, l2=0);
 
     rotate(a=90 - a)
-      halving(a=-a, inner=true, l1=0);
+      halving(a=-a, l1=0);
   }
 }
 
