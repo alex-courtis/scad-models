@@ -138,6 +138,7 @@ module joint_render(
   // accept that a small epsilon is needed to ensure the sphere intersects with the cylinder cleanly
   module edge_line(l) {
     #if(l[0] && l[1]) {
+      // TODO change to a cylinder to remove BOSL
       extrude_from_to(pt1=l[0], pt2=l[1])
         circle(r=r_edge);
       translate(v=l[0])
