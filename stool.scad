@@ -47,9 +47,9 @@ test_model = -1; // [-1:1:8]
 
 test_rotate = 0; // [-45:1:45]
 
-show_wastes = false;
+test_explode_z = 0; // [0:1:100]
 
-explode_z = 0; // [0:1:100]
+show_wastes = false;
 
 /* [General Dimensions] */
 
@@ -101,11 +101,11 @@ COL = [
   ["orange", "wheat"],
   ["navajowhite", "sienna"],
   ["chocolate", "rosybrown"],
-  ["burlywood", "maroon"],
   ["sandybrown", "brown"],
   ["bisque", "darkgoldenrod"],
-  ["tan", "peru"],
-  ["blanchedalmond", "saddlebrown"],
+  ["burlywood", "maroon"],
+  ["blanchedalmond", "peru"],
+  ["tan", "saddlebrown"],
 ];
 
 /**
@@ -736,14 +736,77 @@ module dove_socket(
 }
 
 render() {
-  if (test == "halving") {
-    halving_test();
-  } else if (test == "dovetail") {
-    dove_test();
-  } else if (test == "stool") {
-    stool();
-  } else if (test == "mt") {
-    mt_test();
+  rotate(a=test_rotate) {
+    if (test == "halving") {
+      halving_test();
+    } else if (test == "dovetail") {
+      dove_test();
+    } else if (test == "stool") {
+      stool();
+    } else if (test == "mt") {
+      mt_test();
+    }
+  }
+}
+
+module test_render(m, dx = 0, dy = 0) {
+  if (test_model == -1 || test_model == m) {
+    translate(v=[m * dx, dy, 0]) {
+      translate(v=[0, 0, test_explode_z])
+        color(c=COL[m][0])
+          children(0);
+
+      color(c=COL[m][1])
+        children(1);
+    }
+  }
+}
+
+module halving_test() {
+  a = a_halving + 17;
+
+  dx = 45;
+
+  test_render(m=0, dx=dx) {
+    halving();
+
+    rotate(a=90)
+      halving(inner=true);
+  }
+
+  test_render(m=1, dx=dx) {
+    halving(a=a);
+
+    rotate(a=90 - a)
+      halving(a=-a, inner=true);
+  }
+
+  test_render(m=2, dx=dx) {
+    halving(l2=0);
+
+    rotate(a=90)
+      halving(inner=true, l1=0);
+  }
+
+  test_render(m=3, dx=dx) {
+    halving(l1=0);
+
+    rotate(a=90)
+      halving(inner=true, l2=0);
+  }
+
+  test_render(m=4, dx=dx) {
+    halving(a=a, l1=0);
+
+    rotate(a=90 - a)
+      halving(a=-a, inner=true, l2=0);
+  }
+
+  test_render(m=5, dx=dx) {
+    halving(a=a, l2=0);
+
+    rotate(a=90 - a)
+      halving(a=-a, inner=true, l1=0);
   }
 }
 
@@ -763,100 +826,67 @@ module dove_test() {
 
   dx = l1_socket + l2_socket + l_socket;
 
-  all = test_model == -1;
+  test_render(m=0, dx=dx) {
+    rotate(a=90 + a_dt)
+      dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
-  module test(m, dy = 0) {
-    if (all || test_model == m) {
-      translate(v=[m * dx, dy, 0]) {
-        translate(v=[0, 0, explode_z])
-          color(c=COL[m][0])
-            children(0);
-
-        color(c=COL[m][1])
-          children(1);
-      }
-    }
+    dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
   }
 
-  rotate(a=test_rotate) {
-    test(m=0) {
-      rotate(a=90 + a_dt)
-        dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
+  test_render(m=1, dx=dx) {
+    rotate(a=90 + a)
+      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
-      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
-    }
-
-    test(m=1) {
-      rotate(a=90 + a)
-        dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
-
-      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
-    }
-
-    test(m=2) {
-      rotate(a=90 + a_dt)
-        dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
-
-      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
-    }
-
-    test(m=3) {
-      rotate(a=90 + a)
-        dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
-
-      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
-    }
-
-    test(m=4) {
-      rotate(a=90 + a_dt)
-        dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
-
-      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, l1=l1_socket, l2=l2_socket);
-    }
-
-    test(m=5) {
-      rotate(a=90 + a)
-        dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
-
-      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
-    }
-
-    test(m=6, dy=20) {
-      d = 60;
-      w_socket = w_socket / 2;
-      l_tail = w_socket / 2;
-      rotate(a=90 + a_dt)
-        dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, d=d);
-
-      dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, d=d, l1=l1_socket, l2=l2_socket);
-    }
-
-    test(m=7) {
-      d = 60;
-      w_socket = w_socket / 2;
-      l_tail = w_socket / 2;
-      rotate(a=90 + a)
-        dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, d=d);
-
-      dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, d=d, l1=l1_socket, l2=l2_socket);
-    }
+    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
   }
-}
 
-module halving_test() {
-  a = 8;
+  test_render(m=2, dx=dx) {
+    rotate(a=90 + a_dt)
+      dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
-  color(c=COL[1][1])
-    halving(
-      a=a,
-    );
+    dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
+  }
 
-  color(c=COL[0][0])
-    rotate(a=90 - a)
-      halving(
-        a=-a,
-        inner=true,
-      );
+  test_render(m=3, dx=dx) {
+    rotate(a=90 + a)
+      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
+
+    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
+  }
+
+  test_render(m=4, dx=dx) {
+    rotate(a=90 + a_dt)
+      dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
+
+    dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, l1=l1_socket, l2=l2_socket);
+  }
+
+  test_render(m=5, dx=dx) {
+    rotate(a=90 + a)
+      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
+
+    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
+  }
+
+  test_render(m=6, dx=dx, dy=20) {
+    d = 60;
+    w_socket = w_socket / 2;
+    l_tail = w_socket / 2;
+    rotate(a=90 + a_dt)
+      dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, d=d);
+
+    dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, d=d, l1=l1_socket, l2=l2_socket);
+  }
+
+  test_render(m=7, dx=dx) {
+    d = 60;
+    w_socket = w_socket / 2;
+    l_tail = w_socket / 2;
+    rotate(a=90 + a)
+      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, d=d);
+
+    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, d=d, l1=l1_socket, l2=l2_socket);
+  }
 }
 
 module mt_test() {
@@ -873,194 +903,156 @@ module mt_test() {
 
   dx = 45;
 
-  if (all || test_model == 0) {
-    color(c=COL[0][0])
-      translate(v=[0, 0, explode_z])
-        tenon(
-          w=w_tenon,
-          d=d_tenon,
-          l=w_mortise,
-          l1=l1,
-          l2=0
-        );
-    color(c=COL[0][1])
-      rotate(a=90 + a_mortise)
-        mortise(
-          w=w_mortise,
-          d=d_tenon,
-          l=l_mortise,
-          l1=l1,
-          l2=l2
-        );
+  test_render(m=0, dx=dx) {
+    tenon(
+      w=w_tenon,
+      d=d_tenon,
+      l=w_mortise,
+      l1=l1,
+      l2=0
+    );
+    rotate(a=90 + a_mortise)
+      mortise(
+        w=w_mortise,
+        d=d_tenon,
+        l=l_mortise,
+        l1=l1,
+        l2=l2
+      );
   }
 
-  if (all || test_model == 1) {
-    translate(v=[1 * dx, 0, 0]) {
-      color(c=COL[0][0])
-        translate(v=[0, 0, explode_z])
-          tenon(
-            w=w_tenon,
-            d=d_tenon,
-            l=w_mortise,
-            l1=0,
-            l2=l2
-          );
-      color(c=COL[0][1])
-        rotate(a=90 + a_mortise)
-          mortise(
-            w=w_mortise,
-            d=d_tenon,
-            l=l_mortise,
-            l1=l1,
-            l2=l2
-          );
-    }
+  test_render(m=1, dx=dx) {
+    tenon(
+      w=w_tenon,
+      d=d_tenon,
+      l=w_mortise,
+      l1=0,
+      l2=l2
+    );
+    rotate(a=90 + a_mortise)
+      mortise(
+        w=w_mortise,
+        d=d_tenon,
+        l=l_mortise,
+        l1=l1,
+        l2=l2
+      );
   }
 
-  if (all || test_model == 2) {
-    translate(v=[2 * dx, 0, 0]) {
-      color(c=COL[1][0])
-        translate(v=[0, 0, explode_z])
-          tenon(
-            w=w_tenon,
-            d=d_tenon,
-            l=w_mortise,
-            l1=l1,
-            l2=l2,
-          );
-      color(c=COL[1][1])
-        rotate(a=90 + a_mortise)
-          mortise(
-            w=w_mortise,
-            d=d_tenon,
-            l=l_mortise,
-            l1=l1,
-            l2=0
-          );
-    }
+  test_render(m=2, dx=dx) {
+    tenon(
+      w=w_tenon,
+      d=d_tenon,
+      l=w_mortise,
+      l1=l1,
+      l2=l2,
+    );
+    rotate(a=90 + a_mortise)
+      mortise(
+        w=w_mortise,
+        d=d_tenon,
+        l=l_mortise,
+        l1=l1,
+        l2=0
+      );
   }
 
-  if (all || test_model == 3) {
-    translate(v=[3 * dx, 0, 0]) {
-      color(c=COL[1][0])
-        translate(v=[0, 0, explode_z])
-          tenon(
-            w=w_tenon,
-            d=d_tenon,
-            l=w_mortise,
-            l1=l1,
-            l2=l2,
-          );
-      color(c=COL[1][1])
-        rotate(a=90 + a_mortise)
-          mortise(
-            w=w_mortise,
-            d=d_tenon,
-            l=l_mortise,
-            l1=0,
-            l2=l2,
-          );
-    }
+  test_render(m=3, dx=dx) {
+    tenon(
+      w=w_tenon,
+      d=d_tenon,
+      l=w_mortise,
+      l1=l1,
+      l2=l2,
+    );
+    rotate(a=90 + a_mortise)
+      mortise(
+        w=w_mortise,
+        d=d_tenon,
+        l=l_mortise,
+        l1=0,
+        l2=l2,
+      );
   }
 
-  if (all || test_model == 4) {
-    translate(v=[4 * dx, 0, 0]) {
-      color(c=COL[2][0])
-        translate(v=[0, 0, explode_z])
-          tenon(
-            w=w_tenon,
-            d=d_tenon,
-            l=w_mortise,
-            l1=l1,
-            l2=0,
-            l_tenon=l_tenon_blind,
-          );
-      color(c=COL[2][1])
-        rotate(a=90 + a_mortise)
-          mortise(
-            w=w_mortise,
-            d=d_tenon,
-            l=l_mortise,
-            l1=0,
-            l2=l2,
-            l_tenon=l_tenon_blind,
-          );
-    }
+  test_render(m=4, dx=dx) {
+    tenon(
+      w=w_tenon,
+      d=d_tenon,
+      l=w_mortise,
+      l1=l1,
+      l2=0,
+      l_tenon=l_tenon_blind,
+    );
+    rotate(a=90 + a_mortise)
+      mortise(
+        w=w_mortise,
+        d=d_tenon,
+        l=l_mortise,
+        l1=0,
+        l2=l2,
+        l_tenon=l_tenon_blind,
+      );
   }
 
-  if (all || test_model == 5) {
-    translate(v=[5 * dx, 0, 0]) {
-      color(c=COL[2][0])
-        translate(v=[0, 0, explode_z])
-          tenon(
-            w=w_tenon,
-            d=d_tenon,
-            l=w_mortise,
-            l1=l1,
-            l2=0,
-            l_tenon=l_tenon_blind,
-          );
-      color(c=COL[2][1])
-        rotate(a=90 + a_mortise)
-          mortise(
-            w=w_mortise,
-            d=d_tenon,
-            l=l_mortise,
-            l1=l1,
-            l2=0,
-            l_tenon=l_tenon_blind,
-          );
-    }
+  test_render(m=5, dx=dx) {
+    tenon(
+      w=w_tenon,
+      d=d_tenon,
+      l=w_mortise,
+      l1=l1,
+      l2=0,
+      l_tenon=l_tenon_blind,
+    );
+    rotate(a=90 + a_mortise)
+      mortise(
+        w=w_mortise,
+        d=d_tenon,
+        l=l_mortise,
+        l1=l1,
+        l2=0,
+        l_tenon=l_tenon_blind,
+      );
   }
 
-  if (all || test_model == 6) {
-    translate(v=[6 * dx, 0, 0]) {
-      color(c=COL[3][0])
-        translate(v=[0, 0, explode_z])
-          tenon(
-            w=w_tenon,
-            d=d_tenon,
-            l=w_mortise,
-            l1=l1,
-            l2=0,
-            l_tenon=l_tenon_exposed,
-          );
-      color(c=COL[3][1])
-        rotate(a=90 + a_mortise)
-          mortise(
-            w=w_mortise,
-            d=d_tenon,
-            l=l_mortise,
-            l1=l1,
-            l2=l2,
-          );
-    }
+  test_render(m=6, dx=dx) {
+    tenon(
+      w=w_tenon,
+      d=d_tenon,
+      l=w_mortise,
+      l1=l1,
+      l2=0,
+      l_tenon=l_tenon_exposed,
+    );
+    rotate(a=90 + a_mortise)
+      mortise(
+        w=w_mortise,
+        d=d_tenon,
+        l=l_mortise,
+        l1=l1,
+        l2=l2,
+      );
   }
 
-  if (all || test_model == 7) {
-    translate(v=[7 * dx, 0, 0]) {
-      color(c=COL[4][0])
-        translate(v=[0, 0, explode_z])
-          tenon(
-            a=0,
-            w=w_tenon,
-            d=d_tenon,
-            l=w_mortise,
-            l1=l1,
-            l2=0,
-            l_tenon=l_tenon_exposed,
-          );
-      color(c=COL[4][1])
-        rotate(a=90)
-          mortise(
-            a=0,
-            w=w_mortise,
-            d=d_tenon,
-            l=l_mortise,
-            l1=l1,
-            l2=l2,
-          );
-    }
+  test_render(m=7, dx=dx) {
+    tenon(
+      a=0,
+      w=w_tenon,
+      d=d_tenon,
+      l=w_mortise,
+      l1=l1,
+      l2=0,
+      l_tenon=l_tenon_exposed,
+    );
+    rotate(a=90)
+      mortise(
+        a=0,
+        w=w_mortise,
+        d=d_tenon,
+        l=l_mortise,
+        l1=l1,
+        l2=l2,
+      );
   }
 }
 
