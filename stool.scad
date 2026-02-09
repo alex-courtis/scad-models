@@ -803,24 +803,10 @@ module halving_test() {
   }
 
   test_render(m=3, dx=dx) {
-    halving(inner=true, a=-a_halving, l1=0);
-
-    rotate(a=90 + a_halving)
-      halving(l2=0);
-  }
-
-  test_render(m=4, dx=dx) {
     halving(inner=true, a=a, l1=0);
 
     rotate(a=90 - a)
       halving(a=-a, l2=0);
-  }
-
-  test_render(m=5, dx=dx) {
-    halving(inner=true, a=a, l2=0);
-
-    rotate(a=90 - a)
-      halving(a=-a, l1=0);
   }
 }
 
@@ -919,6 +905,26 @@ module mt_test() {
 
   test_render(m=0, dx=dx) {
     tenon(
+      a=0,
+      w=w_tenon,
+      d=d_tenon,
+      l=w_mortise,
+      l1=l1,
+      l2=0,
+    );
+    rotate(a=90)
+      mortise(
+        a=0,
+        w=w_mortise,
+        d=d_tenon,
+        l=l_mortise,
+        l1=l1,
+        l2=l2,
+      );
+  }
+
+  test_render(m=1, dx=dx) {
+    tenon(
       w=w_tenon,
       d=d_tenon,
       l=w_mortise,
@@ -935,34 +941,18 @@ module mt_test() {
       );
   }
 
-  test_render(m=1, dx=dx) {
-    tenon(
-      w=w_tenon,
-      d=d_tenon,
-      l=w_mortise,
-      l1=0,
-      l2=l2
-    );
-    rotate(a=90 + a_mortise)
-      mortise(
-        w=w_mortise,
-        d=d_tenon,
-        l=l_mortise,
-        l1=l1,
-        l2=l2
-      );
-  }
-
   test_render(m=2, dx=dx) {
     tenon(
+      a=0,
       w=w_tenon,
       d=d_tenon,
       l=w_mortise,
       l1=l1,
       l2=l2,
     );
-    rotate(a=90 + a_mortise)
+    rotate(a=90)
       mortise(
+        a=0,
         w=w_mortise,
         d=d_tenon,
         l=l_mortise,
@@ -984,8 +974,8 @@ module mt_test() {
         w=w_mortise,
         d=d_tenon,
         l=l_mortise,
-        l1=0,
-        l2=l2,
+        l1=l1,
+        l2=0
       );
   }
 
@@ -1003,13 +993,31 @@ module mt_test() {
         w=w_mortise,
         d=d_tenon,
         l=l_mortise,
-        l1=0,
+        l1=l1,
         l2=l2,
         l_tenon=l_tenon_blind,
       );
   }
 
   test_render(m=5, dx=dx) {
+    tenon(
+      w=w_tenon,
+      d=d_tenon,
+      l=w_mortise,
+      l1=l1,
+      l2=0,
+    );
+    rotate(a=90 + a_mortise)
+      mortise(
+        w=w_mortise,
+        d=d_tenon,
+        l=l_mortise,
+        l1=0,
+        l2=l2,
+      );
+  }
+
+  test_render(m=6, dx=dx) {
     tenon(
       w=w_tenon,
       d=d_tenon,
@@ -1023,13 +1031,13 @@ module mt_test() {
         w=w_mortise,
         d=d_tenon,
         l=l_mortise,
-        l1=l1,
-        l2=0,
+        l1=0,
+        l2=l2,
         l_tenon=l_tenon_blind,
       );
   }
 
-  test_render(m=6, dx=dx) {
+  test_render(m=7, dx=dx) {
     tenon(
       w=w_tenon,
       d=d_tenon,
@@ -1040,27 +1048,6 @@ module mt_test() {
     );
     rotate(a=90 + a_mortise)
       mortise(
-        w=w_mortise,
-        d=d_tenon,
-        l=l_mortise,
-        l1=l1,
-        l2=l2,
-      );
-  }
-
-  test_render(m=7, dx=dx) {
-    tenon(
-      a=0,
-      w=w_tenon,
-      d=d_tenon,
-      l=w_mortise,
-      l1=l1,
-      l2=0,
-      l_tenon=l_tenon_exposed,
-    );
-    rotate(a=90)
-      mortise(
-        a=0,
         w=w_mortise,
         d=d_tenon,
         l=l_mortise,
