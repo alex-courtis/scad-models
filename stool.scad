@@ -39,13 +39,13 @@ $fn = 200;
 
 /* [Testing] */
 
-// what
-test = "dovetail"; // ["none", "mt", "halving", "dovetail", "stool"]
+test_dt = false;
+test_mt = false;
+test_halving = false;
+test_stool = false;
 
 // -1 for all
 test_model = -1; // [-1:1:8]
-
-test_rotate = 0; // [-45:1:45]
 
 test_explode_z = 0; // [0:1:100]
 
@@ -63,9 +63,6 @@ d = 10; // [0:1:500]
 
 /* [Finishing] */
 
-// 0 for no edges
-r_edge = 0.20; // [0:0.001:2]
-
 // printed z, 0 for no dowel
 d_dowel_v = 2.35; // [0:0.05:5]
 
@@ -74,8 +71,9 @@ d_dowel_h = 2.05; // [0:0.05:5]
 
 /* [Halving] */
 a_halving = 0; // [-50:0.5:50]
-g_shoulder_halving = 0.02; // [0:0.001:2]
+g_shoulder_halving = 0.008; // [0:0.001:2]
 g_cheek_halving = 0.10; // [0:0.001:2]
+r_edge_halving = 0.15; // [0:0.001:2]
 
 /* [Mortise And Tenon] */
 a_mortise = -8; // [-50:0.5:50]
@@ -83,6 +81,7 @@ a_tenon = 8; // [-50:0.5:50]
 g_shoulder_mt = 0.08; // [0:0.001:2]
 g_cheek_mt = 0.08; // [0:0.001:2]
 g_side_mt = 0.02; // [0:0.001:2]
+r_edge_mt = 0.30; // [0:0.001:2]
 l_tenon = 0; // [0:1:30]
 
 /* [Dovetail] */
@@ -90,7 +89,8 @@ a_dt = 0; // [-50:0.5:50]
 a_tail = 10; // [0:0.5:30]
 g_shoulder_dt = 0.04; // [0:0.001:2]
 g_cheek_dt = 0.10; // [0:0.001:2]
-g_pin_dt = 0.003; // [0:0.001:2]
+g_pin_dt = 0.002; // [0:0.001:2]
+r_edge_dt = 0.25; // [0:0.001:2]
 ratio_dt = 0.5; // [0:0.05:1]
 l_tail = 0; // [0:1:30]
 inner_dt = true;
@@ -329,7 +329,7 @@ module halving(
   ratios = undef, // overrides ratio
   g_shoulder = g_shoulder_halving, // one to each shoulder
   g_cheek = g_cheek_halving, // half to each cheek
-  r_edge = r_edge,
+  r_edge = r_edge_halving,
   d_dowel = d_dowel_v,
   inner = false,
 ) {
@@ -392,7 +392,7 @@ module tenon(
   ratios = undef, // overrides ratio
   g_shoulder = g_shoulder_mt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_mt, // half to each cheek
-  r_edge = r_edge,
+  r_edge = r_edge_mt,
   d_dowel = d_dowel_h,
   inner = true,
 ) {
@@ -465,7 +465,7 @@ module mortise(
   g_shoulder = g_shoulder_mt, // half to blind end
   g_cheek = g_cheek_mt, // half to each cheek
   g_side = g_side_mt, // one to each side
-  r_edge = r_edge,
+  r_edge = r_edge_mt,
   d_dowel = d_dowel_h,
   inner = false,
 ) {
@@ -560,7 +560,7 @@ module dove_tail(
   ratio = ratio_dt, // undef or 0 for no vertical waste
   g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_dt, // half to each cheek
-  r_edge = r_edge,
+  r_edge = r_edge_dt,
   d_dowel = d_dowel_v,
   inner = inner_dt,
 ) {
@@ -670,7 +670,7 @@ module dove_socket(
   g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_dt, // half to each cheek
   g_pin = g_pin_dt, // one to each pin
-  r_edge = r_edge,
+  r_edge = r_edge_dt,
   d_dowel = d_dowel_v,
   inner = !inner_dt,
 ) {
@@ -746,19 +746,22 @@ module dove_socket(
   );
 }
 
-render() {
-  rotate(a=test_rotate) {
-    if (test == "halving") {
-      halving_test();
-    } else if (test == "dovetail") {
-      dove_test();
-    } else if (test == "stool") {
-      stool();
-    } else if (test == "mt") {
-      mt_test();
-    }
+if (test_dt || test_mt || test_halving || test_stool)
+  render() {
+    dy = 100;
+    if (test_dt)
+      translate(v=[0, 0 * dy, 0])
+        dove_test();
+    if (test_mt)
+      translate(v=[0, 1 * dy, 0])
+        mt_test();
+    if (test_halving)
+      translate(v=[0, 2 * dy, 0])
+        halving_test();
+    if (test_stool)
+      translate(v=[-100, 0 * dy, 0])
+        stool();
   }
-}
 
 module test_render(m, dx = 0, dy = 0) {
   if (test_model == -1 || test_model == m) {
@@ -1088,8 +1091,6 @@ module stool() {
   d_top = 125;
   h_top = 2.6;
 
-  d_dowel = d_dowel;
-
   show_leg = true;
   show_top = true;
   show_half1 = true;
@@ -1283,18 +1284,18 @@ module stool() {
 
       rotate(a=90, v=[1, 0, 0]) {
         translate(v=[x_dowel, 0, 0])
-          cylinder(d=d_dowel, h=l_dowel, center=true);
+          cylinder(d=d_dowel_h, h=l_dowel, center=true);
 
         translate(v=[-x_dowel, 0, 0])
-          cylinder(d=d_dowel, h=l_dowel, center=true);
+          cylinder(d=d_dowel_h, h=l_dowel, center=true);
 
         rotate(a=a_cross)
           translate(v=[0, x_dowel, 0])
-            cylinder(d=d_dowel, h=l_dowel, center=true);
+            cylinder(d=d_dowel_h, h=l_dowel, center=true);
 
         rotate(a=a_cross)
           translate(v=[0, -x_dowel, 0])
-            cylinder(d=d_dowel, h=l_dowel, center=true);
+            cylinder(d=d_dowel_h, h=l_dowel, center=true);
       }
     }
   }
