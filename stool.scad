@@ -86,6 +86,9 @@ inner_dt = true;
 show_wastes = false;
 explode_z = 0; // [0:1:100]
 
+// accept large epsilon needed exposed joint when a != 0
+EPS_END = 2; // [0:1:100]
+
 /**
 Render a generic joint centred at origin.
 Entire body is z extruded and wasted out.
@@ -139,15 +142,13 @@ module joint_render(
     }
   }
 
-  if (show_wastes) {
-    #color(c="red", alpha=0.5)
-      linear_extrude(h=1, center=true)
+  module waste(h, center) {
+    if (show_wastes)
+      #linear_extrude(h=h, center=center)
         polygon(waste);
-
-    #color(c="red", alpha=0.5)
-      translate(v=[0, 0, d / 2])
-        linear_extrude(h=1, center=true)
-          polygon(waste);
+    else
+      linear_extrude(h=h, center=center)
+        polygon(waste);
   }
 
   // material/waste bottom up from origin
@@ -171,8 +172,7 @@ module joint_render(
 
         // remove joint waste
         if (wasting)
-          linear_extrude(h=zs[i], center=false)
-            polygon(waste);
+          waste(h=zs[i], center=false);
 
         if (r_edge && edge_lines_h && i > 0)
           for (l = edge_lines_h)
@@ -196,8 +196,7 @@ module joint_render(
 
     // maybe waste
     if (waste_scope == "all") {
-      linear_extrude(h=d, center=true)
-        polygon(waste);
+      waste(h=d, center=true);
     } else if (waste_scope == "layers") {
       waste_layers();
     }
@@ -385,11 +384,20 @@ module tenon(
     a2=(blind || exposed || !l2) ? a : 0,
   );
 
+  d1_waste =
+    l1 == 0 ? d1_body + EPS_END
+    : l / 2 + g_shoulder;
+
+  d2_waste =
+    exposed ? d2_body + EPS_END
+    : l2 == 0 ? d2_body + EPS_END
+    : l / 2 + g_shoulder;
+
   waste = skewed_rect(
     y1=w / 2,
     y2=w / 2,
-    d1=l / 2 + g_shoulder,
-    d2=(exposed ? d2_body : l / 2) + g_shoulder,
+    d1=d1_waste,
+    d2=d2_waste,
     a1=a,
     a2=a,
   );
@@ -433,7 +441,6 @@ module mortise(
 ) {
   blind = l_tenon && l_tenon < w;
 
-  // when not l1 or l2, body extends to the side of the joint, without g_side
   body = skewed_rect(
     y1=w / 2,
     y2=w / 2,
@@ -443,12 +450,20 @@ module mortise(
     a2=l2 ? 0 : a,
   );
 
+  d1_waste =
+    l1 == 0 ? l / 2 + EPS_END
+    : l / 2 + g_side;
+
+  d2_waste =
+    l2 == 0 ? l/2 + EPS_END
+    : l / 2 + g_side;
+
   // full g_shoulder on shoulders, half on blind
   waste = skewed_rect(
     y1=w / 2,
     y2=blind ? l_tenon - w / 2 + g_shoulder / 2 : w / 2,
-    d1=l / 2 + g_side,
-    d2=l / 2 + g_side,
+    d1=d1_waste,
+    d2=d2_waste,
     a1=a,
     a2=a,
   );
@@ -577,7 +592,7 @@ module dove_tail(
     y1=w / 2,
     y2=w / 2,
     d1=l / 2 + g_shoulder,
-    d2=l / 2 + g_shoulder,
+    d2=l / 2 + g_shoulder + EPS_END,
     a1=a,
     a2=a,
   );
@@ -860,7 +875,7 @@ module mt_test() {
   w_mortise = w;
   l_mortise = w;
 
-  dx = 70;
+  dx = 50;
 
   if (all || model == 1) {
     color(c="sienna")
@@ -884,7 +899,30 @@ module mt_test() {
   }
 
   if (all || model == 2) {
-    translate(v=[dx, 0, 0]) {
+    translate(v=[1 * dx, 0, 0]) {
+      color(c="sienna")
+        translate(v=[0, 0, explode_z])
+          tenon(
+            w=w_tenon,
+            d=d_tenon,
+            l=w_mortise,
+            l1=0,
+            l2=l2
+          );
+      color(c="orange")
+        rotate(a=90 + a_mortise)
+          mortise(
+            w=w_mortise,
+            d=d_tenon,
+            l=l_mortise,
+            l1=l1,
+            l2=l2
+          );
+    }
+  }
+
+  if (all || model == 3) {
+    translate(v=[2 * dx, 0, 0]) {
       color(c="tan")
         translate(v=[0, 0, explode_z])
           tenon(
@@ -902,6 +940,79 @@ module mt_test() {
             l=l_mortise,
             l1=l1,
             l2=0
+          );
+    }
+  }
+
+  if (all || model == 4) {
+    translate(v=[3 * dx, 0, 0]) {
+      color(c="tan")
+        translate(v=[0, 0, explode_z])
+          tenon(
+            w=w_tenon,
+            d=d_tenon,
+            l=w_mortise,
+            l1=l1,
+            l2=l2,
+          );
+      color(c="chocolate")
+        rotate(a=90 + a_mortise)
+          mortise(
+            w=w_mortise,
+            d=d_tenon,
+            l=l_mortise,
+            l1=0,
+            l2=l2,
+          );
+    }
+  }
+
+  if (all || model == 5) {
+    translate(v=[4 * dx, 0, 0]) {
+      color(c="sandybrown")
+        translate(v=[0, 0, explode_z])
+          tenon(
+            w=w_tenon,
+            d=d_tenon,
+            l=w_mortise,
+            l1=l1,
+            l2=0,
+            l_tenon=10,
+          );
+      color(c="brown")
+        rotate(a=90 + a_mortise)
+          mortise(
+            w=w_mortise,
+            d=d_tenon,
+            l=l_mortise,
+            l1=0,
+            l2=l2,
+            l_tenon=10,
+          );
+    }
+  }
+
+  if (all || model == 6) {
+    translate(v=[5 * dx, 0, 0]) {
+      color(c="sandybrown")
+        translate(v=[0, 0, explode_z])
+          tenon(
+            w=w_tenon,
+            d=d_tenon,
+            l=w_mortise,
+            l1=l1,
+            l2=0,
+            l_tenon=10,
+          );
+      color(c="brown")
+        rotate(a=90 + a_mortise)
+          mortise(
+            w=w_mortise,
+            d=d_tenon,
+            l=l_mortise,
+            l1=l1,
+            l2=0,
+            l_tenon=10,
           );
     }
   }
