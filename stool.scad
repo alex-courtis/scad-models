@@ -66,27 +66,30 @@ d = 10; // [0:1:500]
 // 0 for no edges
 r_edge = 0.20; // [0:0.001:2]
 
-// 0 for no dowel
-d_dowel = 2.30; // [0:0.05:5]
+// printed z, 0 for no dowel
+d_dowel_v = 2.35; // [0:0.05:5]
+
+// printed x/y, 0 for no dowel
+d_dowel_h = 2.05; // [0:0.05:5]
 
 /* [Halving] */
 a_halving = 0; // [-50:0.5:50]
-g_shoulder_halving = 0.04; // [0:0.001:2]
-g_cheek_halving = 0.08; // [0:0.001:2]
+g_shoulder_halving = 0.02; // [0:0.001:2]
+g_cheek_halving = 0.10; // [0:0.001:2]
 
 /* [Mortise And Tenon] */
 a_mortise = -8; // [-50:0.5:50]
 a_tenon = 8; // [-50:0.5:50]
-g_shoulder_mt = 0.04; // [0:0.001:2]
+g_shoulder_mt = 0.08; // [0:0.001:2]
 g_cheek_mt = 0.08; // [0:0.001:2]
-g_side_mt = 0.01; // [0:0.001:2]
+g_side_mt = 0.02; // [0:0.001:2]
 l_tenon = 0; // [0:1:30]
 
 /* [Dovetail] */
 a_dt = 0; // [-50:0.5:50]
 a_tail = 10; // [0:0.5:30]
 g_shoulder_dt = 0.04; // [0:0.001:2]
-g_cheek_dt = 0.08; // [0:0.001:2]
+g_cheek_dt = 0.10; // [0:0.001:2]
 g_pin_dt = 0.003; // [0:0.001:2]
 ratio_dt = 0.5; // [0:0.05:1]
 l_tail = 0; // [0:1:30]
@@ -327,7 +330,7 @@ module halving(
   g_shoulder = g_shoulder_halving, // one to each shoulder
   g_cheek = g_cheek_halving, // half to each cheek
   r_edge = r_edge,
-  d_dowel = d_dowel,
+  d_dowel = d_dowel_v,
   inner = false,
 ) {
 
@@ -390,7 +393,7 @@ module tenon(
   g_shoulder = g_shoulder_mt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_mt, // half to each cheek
   r_edge = r_edge,
-  d_dowel = d_dowel,
+  d_dowel = d_dowel_h,
   inner = true,
 ) {
   blind = l_tenon && l_tenon < l && l2 == 0;
@@ -463,7 +466,7 @@ module mortise(
   g_cheek = g_cheek_mt, // half to each cheek
   g_side = g_side_mt, // one to each side
   r_edge = r_edge,
-  d_dowel = d_dowel,
+  d_dowel = d_dowel_h,
   inner = false,
 ) {
   blind = l_tenon && l_tenon < w;
@@ -558,7 +561,7 @@ module dove_tail(
   g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_dt, // half to each cheek
   r_edge = r_edge,
-  d_dowel = d_dowel,
+  d_dowel = d_dowel_v,
   inner = inner_dt,
 ) {
   blind = l_tail && l_tail > 0 && l_tail < l;
@@ -668,7 +671,7 @@ module dove_socket(
   g_cheek = g_cheek_dt, // half to each cheek
   g_pin = g_pin_dt, // one to each pin
   r_edge = r_edge,
-  d_dowel = d_dowel,
+  d_dowel = d_dowel_v,
   inner = !inner_dt,
 ) {
   blind = l_tail && l_tail > 0 && l_tail < w;
