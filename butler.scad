@@ -72,20 +72,22 @@ module step_half_bottom() {
       l1=l_step_bottom / 2,
       l=l_joint_step,
       l_tail=l_tail_step,
-      // d_dowel=0,
+      d_dowel=0,
     );
 }
 
 module step_bottom() {
-  rotate(a=90, v=[0, 1, 0])
-    step_half_bottom();
-  rotate(a=-90, v=[0, 1, 0])
-    step_half_bottom();
+  translate(v=[0, dy_step_bottom, 0]) {
+    rotate(a=90, v=[0, 1, 0])
+      step_half_bottom();
+    rotate(a=-90, v=[0, 1, 0])
+      step_half_bottom();
+  }
 }
 
 module step_half_top() {
   translate(v=[l_step_top / 4, 0, 0])
-    cube([l_step_top / 2, d_step, w_step_bottom], center=true);
+    cube([l_step_top / 2, d_step, w_step_top], center=true);
 }
 
 module step_top() {
@@ -96,42 +98,82 @@ module step_top() {
   }
 }
 
+module leg_joint_mask() {
+  intersection() {
+    linear_extrude(h=d_leg, center=true) {
+      polygon(leg_poly());
+    }
+
+    // cut out space for the dovetail joint
+    color(c="red")
+      translate(v=[0, dy_step_bottom, 0])
+        cube([300, d_step, d_leg], center=true);
+  }
+}
+
 module leg() {
-  linear_extrude(h=d_leg, center=true) {
-    polygon(leg_poly());
+
+  // leg with joint cut out
+  difference() {
+    linear_extrude(h=d_leg, center=true)
+      polygon(leg_poly());
+    leg_joint_mask();
+  }
+
+  // joint
+  intersection() {
+    leg_joint_mask();
+    translate(v=[w_step_bottom / 2, dy_step_bottom, 0])
+      rotate(a=90, v=[1, 0, 0])
+        rotate(a=90, v=[0, 1, 0])
+          dove_socket(
+            w=d_step,
+            d=w_step_bottom,
+            l=d_step,
+            l_tail=l_tail_step,
+            l1=d_step,
+            l2=d_step,
+            d_dowel=0,
+          );
   }
 }
 
 render() {
+  // legs
   translate(v=[0, 0, l_step_bottom / 2 + d_leg / 2 + explode]) {
-    color("saddlebrown")
-      leg();
-    color("wheat")
-      mirror(v=[1, 0, 0])
+    color(COL[0][0])
+      translate(v=[explode, 0, 0])
         leg();
+    color(COL[0][1])
+      translate(v=[-explode, 0, 0])
+        mirror(v=[1, 0, 0])
+          leg();
   }
-
   translate(v=[0, 0, -l_step_bottom / 2 - d_leg / 2 - explode]) {
-    color("rosybrown")
-      leg();
-    color("tan")
-      mirror(v=[1, 0, 0])
-        leg();
+    color(COL[1][0])
+      rotate(a=180, v=[0, 1, 0])
+        translate(v=[explode, 0, 0])
+          leg();
+    color(COL[1][1])
+      rotate(a=180, v=[0, 1, 0])
+        translate(v=[-explode, 0, 0])
+          mirror(v=[1, 0, 0])
+            leg();
   }
 
-  translate(v=[0, dy_step_bottom, 0]) {
-    color("darkgoldenrod")
-      translate(v=[w_step_bottom / 2 + explode, 0, 0])
-        step_bottom();
-    color("peru")
-      translate(v=[-w_step_bottom / 2 - explode, 0, 0])
-        step_bottom();
-  }
+  // bottom steps
+  color(COL[2][0])
+    translate(v=[w_step_bottom / 2 + explode, 0, 0])
+      step_bottom();
+  color(COL[2][1])
+    translate(v=[-w_step_bottom / 2 - explode, 0, 0])
+      step_bottom();
 
-  color("burlywood")
-    translate(v=[w_step_top / 2, 0, 0])
+  // top steps
+  color(COL[3][0])
+    translate(v=[w_step_top / 2 + explode, -d_step / 2, 0])
       step_top();
-  color("sandybrown")
-    translate(v=[-w_step_top / 2, 0, 0])
+  color(COL[3][1])
+    translate(v=[-w_step_top / 2 - explode, -d_step / 2, 0])
       step_top();
 }
