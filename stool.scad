@@ -112,14 +112,14 @@ COL = [
 ];
 
 /**
-Render a generic joint centred at origin.
+Build a generic joint centred at origin.
 Entire body is z extruded and wasted out.
 xy line segments capped with spheres specified by edge_lines_h are removed from each layer
 z cylinders capped with spheres specified by edge_points_v are removed from waste and body layers
 */
-module joint_render(
+module joint_build(
   d, // total z
-  body, // poly to render
+  body, // poly to build
   waste, // poly to z waste
   ratios, // [0] or [1] for all or no waste, depending on inner
   inner, // true for waste at bottom
@@ -211,6 +211,15 @@ module joint_render(
       }
   }
 
+  module waste_all() {
+    waste(h=d, center=true);
+
+    if (r_edge && edge_points_v_waste)
+      for (p = edge_points_v_waste)
+        translate(v=[0, 0, -d / 2])
+          edge_point(p=p, h=d);
+  }
+
   difference() {
 
     // entire body
@@ -219,7 +228,7 @@ module joint_render(
 
     // maybe waste
     if (waste_scope == "all") {
-      waste(h=d, center=true);
+      waste_all();
     } else if (waste_scope == "layers") {
       waste_layers();
     }
@@ -365,7 +374,7 @@ module halving(
     l2 ? [waste[2], waste[3]] : undef,
   ];
 
-  joint_render(
+  joint_build(
     d=d,
     body=body,
     waste=waste,
@@ -437,7 +446,7 @@ module tenon(
     l2 ? [waste[2], waste[3]] : undef,
   ];
 
-  joint_render(
+  joint_build(
     d=d,
     body=body,
     waste=waste,
@@ -509,7 +518,7 @@ module mortise(
     (blind && l2) ? waste[3] : undef,
   ];
 
-  joint_render(
+  joint_build(
     d=d,
     body=body,
     waste=waste,
@@ -627,7 +636,7 @@ module dove_tail(
     a2=a,
   );
 
-  joint_render(
+  joint_build(
     d=d,
     body=body,
     waste=waste,
@@ -732,7 +741,7 @@ module dove_socket(
 
   edge_points_v_waste = blind ? [J, K] : undef;
 
-  joint_render(
+  joint_build(
     d=d,
     body=body,
     waste=waste,
@@ -763,7 +772,7 @@ if (test_dt || test_mt || test_halving || test_stool)
         stool();
   }
 
-module test_render(m, dx = 0, dy = 0) {
+module test_build(m, dx = 0, dy = 0) {
   if (test_model == -1 || test_model == m) {
     translate(v=[m * dx, dy, 0]) {
       translate(v=[0, 0, test_explode_z])
@@ -781,28 +790,28 @@ module halving_test() {
 
   dx = 45;
 
-  test_render(m=0, dx=dx) {
+  test_build(m=0, dx=dx) {
     halving(inner=true, a=-a_halving);
 
     rotate(a=90 + a_halving)
       halving();
   }
 
-  test_render(m=1, dx=dx) {
+  test_build(m=1, dx=dx) {
     halving(inner=true, a=a);
 
     rotate(a=90 - a)
       halving(a=-a);
   }
 
-  test_render(m=2, dx=dx) {
+  test_build(m=2, dx=dx) {
     halving(inner=true, a=-a_halving, l2=0);
 
     rotate(a=90 + a_halving)
       halving(l1=0);
   }
 
-  test_render(m=3, dx=dx) {
+  test_build(m=3, dx=dx) {
     halving(inner=true, a=a, l1=0);
 
     rotate(a=90 - a)
@@ -826,49 +835,49 @@ module dove_test() {
 
   dx = l1_socket + l2_socket + l_socket;
 
-  test_render(m=0, dx=dx) {
+  test_build(m=0, dx=dx) {
     rotate(a=90 + a_dt)
       dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
     dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
   }
 
-  test_render(m=1, dx=dx) {
+  test_build(m=1, dx=dx) {
     rotate(a=90 + a)
       dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
     dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
   }
 
-  test_render(m=2, dx=dx) {
+  test_build(m=2, dx=dx) {
     rotate(a=90 + a_dt)
       dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
     dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
   }
 
-  test_render(m=3, dx=dx) {
+  test_build(m=3, dx=dx) {
     rotate(a=90 + a)
       dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
     dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
   }
 
-  test_render(m=4, dx=dx) {
+  test_build(m=4, dx=dx) {
     rotate(a=90 + a_dt)
       dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
 
     dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, l1=l1_socket, l2=l2_socket);
   }
 
-  test_render(m=5, dx=dx) {
+  test_build(m=5, dx=dx) {
     rotate(a=90 + a)
       dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
 
     dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
   }
 
-  test_render(m=6, dx=dx, dy=20) {
+  test_build(m=6, dx=dx, dy=20) {
     d = 60;
     w_socket = w_socket / 2;
     l_tail = w_socket / 2;
@@ -878,7 +887,7 @@ module dove_test() {
     dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, d=d, l1=l1_socket, l2=l2_socket);
   }
 
-  test_render(m=7, dx=dx) {
+  test_build(m=7, dx=dx) {
     d = 60;
     w_socket = w_socket / 2;
     l_tail = w_socket / 2;
@@ -903,7 +912,7 @@ module mt_test() {
 
   dx = 45;
 
-  test_render(m=0, dx=dx) {
+  test_build(m=0, dx=dx) {
     tenon(
       a=0,
       w=w_tenon,
@@ -923,7 +932,7 @@ module mt_test() {
       );
   }
 
-  test_render(m=1, dx=dx) {
+  test_build(m=1, dx=dx) {
     tenon(
       w=w_tenon,
       d=d_tenon,
@@ -941,7 +950,7 @@ module mt_test() {
       );
   }
 
-  test_render(m=2, dx=dx) {
+  test_build(m=2, dx=dx) {
     tenon(
       a=0,
       w=w_tenon,
@@ -961,7 +970,7 @@ module mt_test() {
       );
   }
 
-  test_render(m=3, dx=dx) {
+  test_build(m=3, dx=dx) {
     tenon(
       w=w_tenon,
       d=d_tenon,
@@ -979,7 +988,7 @@ module mt_test() {
       );
   }
 
-  test_render(m=4, dx=dx) {
+  test_build(m=4, dx=dx) {
     tenon(
       w=w_tenon,
       d=d_tenon,
@@ -999,7 +1008,7 @@ module mt_test() {
       );
   }
 
-  test_render(m=5, dx=dx) {
+  test_build(m=5, dx=dx) {
     tenon(
       w=w_tenon,
       d=d_tenon,
@@ -1017,7 +1026,7 @@ module mt_test() {
       );
   }
 
-  test_render(m=6, dx=dx) {
+  test_build(m=6, dx=dx) {
     tenon(
       w=w_tenon,
       d=d_tenon,
@@ -1037,7 +1046,7 @@ module mt_test() {
       );
   }
 
-  test_render(m=7, dx=dx) {
+  test_build(m=7, dx=dx) {
     tenon(
       w=w_tenon,
       d=d_tenon,
