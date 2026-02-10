@@ -60,10 +60,26 @@ function leg_poly() =
       B,
   ];
 
+module mask_bottom_joint() {
+  translate(v=[0, dy_step_bottom, 0])
+    translate(v=[w_step_bottom / 2, 0, 0])
+      cube([w_step_bottom, d_step * 2, d_leg * 2], center=true);
+}
+
+module mask_top_joint() {
+  translate(v=[w_step_top / 2, 0, 0])
+    cube([w_step_top, d_step * 2, d_leg * 2], center=true);
+}
+
+module leg_body() {
+  linear_extrude(h=d_leg, center=true)
+    polygon(leg_poly());
+}
+
 module step_half_bottom() {
   intersection() {
 
-    // build joint at origin
+    // build joint at origin then shift to destination for planing
     translate(v=[0, dy_step_bottom, 0]) {
 
       // complete step body as a dovetail
@@ -89,8 +105,8 @@ module step_half_bottom() {
         }
 
         // shoulder gap from the 162.5 degree leg
-        translate(v=[-g_shoulder_dt / cos(17.5), 0, d_step / 2])
-          leg_bottom_joint_at_origin();
+        translate(v=[-g_shoulder_dt / cos(17.5), dy_step_bottom, d_step / 2])
+          leg_body();
       }
     }
 
@@ -117,30 +133,7 @@ module step_half_top() {
   }
 }
 
-module mask_bottom_joint() {
-  translate(v=[0, dy_step_bottom, 0])
-    translate(v=[w_step_bottom / 2, 0, 0])
-      cube([w_step_bottom, d_step * 2, d_leg], center=true);
-}
-
-module mask_top_joint() {
-  translate(v=[w_step_top / 2, 0, 0])
-    cube([w_step_top, d_step * 2, d_leg], center=true);
-}
-
-// TODO this should go - normalise positions of bottom step
-module leg_bottom_joint_at_origin() {
-  translate(v=[0, -dy_step_bottom, 0])
-    linear_extrude(h=d_leg, center=true)
-      polygon(leg_poly());
-}
-
 module leg() {
-
-  module leg_body() {
-    linear_extrude(h=d_leg, center=true)
-      polygon(leg_poly());
-  }
 
   // leg body with joint gaps removed
   difference() {
@@ -204,13 +197,14 @@ module butler() {
   }
 
   if (show_leg) {
-    translate(v=[0, -explode, -explode]) {
+    translate(v=[0, -explode, -explode])
       color(COL[1][0]) leg();
 
+    
+    translate(v=[0, -explode, explode])
       translate(v=[0, 0, l_step_bottom])
         mirror(v=[0, 0, 1])
           color(COL[1][1]) leg();
-    }
   }
 
   if (show_step_top) {
