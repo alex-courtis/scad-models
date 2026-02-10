@@ -8,6 +8,9 @@ $fn = 200; // [1:1:2000]
 
 /* [Testing] */
 show_wastes = false;
+show_leg = true;
+show_step_bottom = true;
+show_step_top = true;
 
 box = false;
 box_x = 250; // [0:1:800]
@@ -25,7 +28,7 @@ d_step = 23; // [5:1:50]
 l_step_bottom = 349; // [100:1:1000]
 
 // TODO set this to d_step once it lines up
-d_leg = 33; // [5:1:50]
+d_leg = 23; // [5:1:50]
 
 dy_step_bottom = 220; // [100:1:500]
 
@@ -56,23 +59,6 @@ function leg_poly() =
       A,
       B,
   ];
-
-// hull of both legs
-module mask_leg_hull() {
-  hull() {
-    linear_extrude(h=l_step_bottom * 2, center=true) {
-      polygon(leg_poly());
-      mirror(v=[1, 0])
-        polygon(leg_poly());
-    }
-  }
-}
-
-module leg_bottom_joint_at_origin() {
-  translate(v=[0, -dy_step_bottom, 0])
-    linear_extrude(h=d_leg, center=true)
-      polygon(leg_poly());
-}
 
 module step_half_bottom() {
   intersection() {
@@ -108,33 +94,70 @@ module step_half_bottom() {
       }
     }
 
-    // plane sides flush with leg
-    mask_leg_hull();
+    // plane sides flush using hull of both leg
+    hull() {
+      linear_extrude(h=l_step_bottom * 2, center=true) {
+        polygon(leg_poly());
+        mirror(v=[1, 0])
+          polygon(leg_poly());
+      }
+    }
   }
 }
 
 module step_half_top() {
-  translate(v=[0, -d_step / 2, l_step_bottom / 2 - l_step_top / 2])
-    cube([w_step_top, d_step, l_step_top / 2], center=false);
+
+  // leg body with joint gaps removed
+  difference() {
+    translate(v=[0, -d_step / 2, l_step_bottom / 2 - l_step_top / 2])
+      cube([w_step_top, d_step, l_step_top / 2], center=false);
+
+    // remove top joint
+    mask_top_joint();
+  }
+}
+
+module mask_bottom_joint() {
+  translate(v=[0, dy_step_bottom, 0])
+    translate(v=[w_step_bottom / 2, 0, 0])
+      cube([w_step_bottom, d_step * 2, d_leg], center=true);
+}
+
+module mask_top_joint() {
+  translate(v=[w_step_top / 2, 0, 0])
+    cube([w_step_top, d_step * 2, d_leg], center=true);
+}
+
+// TODO this should go - normalise positions of bottom step
+module leg_bottom_joint_at_origin() {
+  translate(v=[0, -dy_step_bottom, 0])
+    linear_extrude(h=d_leg, center=true)
+      polygon(leg_poly());
 }
 
 module leg() {
 
-  // build bottom joint at origin
-  translate(v=[0, dy_step_bottom, 0]) {
+  module leg_body() {
+    linear_extrude(h=d_leg, center=true)
+      polygon(leg_poly());
+  }
 
-    // body with gap for bottom step joint
-    difference() {
-      leg_bottom_joint_at_origin();
+  // leg body with joint gaps removed
+  difference() {
+    leg_body();
 
-      translate(v=[w_step_bottom / 2, 0, 0])
-        cube([w_step_bottom, d_step * 2, d_leg], center=true);
-    }
+    // remove bottom joint
+    mask_bottom_joint();
 
-    // bottom step joint
-    intersection() {
-      leg_bottom_joint_at_origin();
+    // remove top joint
+    mask_top_joint();
+  }
 
+  // add bottom slot
+  intersection() {
+    leg_body();
+
+    translate(v=[0, dy_step_bottom, 0])
       translate(v=[w_step_bottom / 2, 0, 0])
         rotate(a=90, v=[0, 1, 0])
           rotate(a=90, v=[0, 0, -1])
@@ -148,44 +171,54 @@ module leg() {
               ratio=0,
               d_dowel=0,
             );
-    }
   }
 
-  // translate(v=[w_step_top / 2, 0, 0])
-  //   #rotate(a=90, v=[-1, 0, 0])
-  //     rotate(a=90, v=[0, 1, 0])
-  //       dove_tail(
-  //         w=d_step,
-  //         l=d_leg,
-  //         l_tail=d_leg / 2,
-  //         l1=10,
-  //         d=w_step_top,
-  //         ratio=0,
-  //         d_dowel=0,
-  //       );
+  // add top tail
+  intersection() {
+    leg_body();
+
+    translate(v=[w_step_top / 2, 0, 0])
+      rotate(a=90, v=[-1, 0, 0])
+        rotate(a=90, v=[0, 1, 0])
+          dove_tail(
+            w=d_leg,
+            l=d_step,
+            l_tail=d_step / 2,
+            l1=d_step,
+            d=w_step_top,
+            ratio=0,
+            d_dowel=0,
+          );
+  }
 }
 
 module butler() {
-  translate(v=[explode, 0, 0]) {
-    color(COL[0][0]) step_half_bottom();
+  if (show_step_bottom) {
+    translate(v=[explode, 0, 0]) {
+      color(COL[0][0]) step_half_bottom();
 
-    translate(v=[0, 0, l_step_bottom])
-      mirror(v=[0, 0, 1])
-        color(COL[0][1]) step_half_bottom();
+      translate(v=[0, 0, l_step_bottom])
+        mirror(v=[0, 0, 1])
+          color(COL[0][1]) step_half_bottom();
+    }
   }
 
-  translate(v=[0, -explode, -explode]) {
-    color(COL[1][0]) leg();
+  if (show_leg) {
+    translate(v=[0, -explode, -explode]) {
+      color(COL[1][0]) leg();
 
-    translate(v=[0, 0, l_step_bottom])
-      mirror(v=[0, 0, 1])
-        color(COL[1][1]) leg();
+      translate(v=[0, 0, l_step_bottom])
+        mirror(v=[0, 0, 1])
+          color(COL[1][1]) leg();
+    }
   }
 
-  color(COL[2][0]) step_half_top();
-  translate(v=[0, 0, l_step_bottom])
-    mirror(v=[0, 0, 1])
-      color(COL[2][1]) step_half_top();
+  if (show_step_top) {
+    color(COL[2][0]) step_half_top();
+    translate(v=[0, 0, l_step_bottom])
+      mirror(v=[0, 0, 1])
+        color(COL[2][1]) step_half_top();
+  }
 
   // translate(v=[-20, -20, 0])
   //   cube([40, 40, 40]);
