@@ -140,7 +140,7 @@ module joint_build(
   // cut out a cylinder and cap with spheres
   // accept that a small epsilon is needed to ensure the sphere intersects with the cylinder cleanly
   module edge_line(l) {
-    #if(l[0] && l[1]) {
+    if (l[0] && l[1]) {
       // TODO change to a cylinder to remove BOSL
       extrude_from_to(pt1=l[0], pt2=l[1])
         circle(r=r_edge);
@@ -154,7 +154,7 @@ module joint_build(
   // remove inner vertical edges
   // these will intersect with the spheres from the horizontals
   module edge_point(p, h) {
-    #if(p) {
+    if (p) {
       translate(v=p)
         cylinder(r=r_edge, h=h);
       translate(v=p)
@@ -166,12 +166,8 @@ module joint_build(
   }
 
   module waste(h, center) {
-    if (show_wastes)
-      #linear_extrude(h=h, center=center)
-        polygon(waste);
-    else
-      linear_extrude(h=h, center=center)
-        polygon(waste);
+    linear_extrude(h=h, center=center)
+      polygon(waste);
   }
 
   // material/waste bottom up from origin
@@ -228,9 +224,15 @@ module joint_build(
 
     // maybe waste
     if (waste_scope == "all") {
-      waste_all();
+      if (show_wastes)
+        #waste_all();
+      else
+        waste_all();
     } else if (waste_scope == "layers") {
-      waste_layers();
+      if (show_wastes)
+        #waste_layers();
+      else
+        waste_layers();
     }
 
     // centred dowel
