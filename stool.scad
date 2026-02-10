@@ -71,25 +71,25 @@ d_dowel_h = 2.05; // [0:0.05:5]
 
 /* [Halving] */
 a_halving = 0; // [-50:0.5:50]
-g_shoulder_halving = 0.008; // [0:0.001:2]
-g_cheek_halving = 0.10; // [0:0.001:2]
+g_shoulder_halving = 0.004; // [0:0.001:2]
+g_cheek_halving = 0.12; // [0:0.001:2]
 r_edge_halving = 0.15; // [0:0.001:2]
 
 /* [Mortise And Tenon] */
 a_mortise = -8; // [-50:0.5:50]
 a_tenon = 8; // [-50:0.5:50]
-g_shoulder_mt = 0.08; // [0:0.001:2]
+g_shoulder_mt = 0.07; // [0:0.001:2]
 g_cheek_mt = 0.08; // [0:0.001:2]
-g_side_mt = 0.02; // [0:0.001:2]
-r_edge_mt = 0.30; // [0:0.001:2]
+g_side_mt = 0.03; // [0:0.001:2]
+r_edge_mt = 0.35; // [0:0.001:2]
 l_tenon = 0; // [0:1:30]
 
 /* [Dovetail] */
 a_dt = 0; // [-50:0.5:50]
 a_tail = 10; // [0:0.5:30]
-g_shoulder_dt = 0.04; // [0:0.001:2]
-g_cheek_dt = 0.10; // [0:0.001:2]
-g_pin_dt = 0.002; // [0:0.001:2]
+g_shoulder_dt = 0.035; // [0:0.001:2]
+g_cheek_dt = 0.12; // [0:0.001:2]
+g_pin_dt = 0.001; // [0:0.001:2]
 r_edge_dt = 0.25; // [0:0.001:2]
 ratio_dt = 0.5; // [0:0.05:1]
 l_tail = 0; // [0:1:30]
