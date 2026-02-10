@@ -1,8 +1,18 @@
 include <stool.scad>
 
+/* [Finishing] */
+
+scale = 1; // [0.1:0.01:1]
+
+$fn = 200; // [1:1:2000]
+
 /* [Testing] */
-test_explode_z = 0; // [0:1:100]
 show_wastes = false;
+
+box = false;
+box_x = 250; // [0:1:800]
+box_y = 80; // [0:1:800]
+box_z = 80; // [0:1:800]
 
 explode = 0; // [0:1:100]
 
@@ -17,28 +27,15 @@ l_step_bottom = 349; // [100:1:1000]
 // TODO set this to d_step once it lines up
 d_leg = 33; // [5:1:50]
 
-// TODO remove
-// l_joint_step = 17;
-l_joint_step = 99;
-
-l_tail_step = 11; // [0:1:25]
-
-dy_step_bottom = 220;
+dy_step_bottom = 220; // [100:1:500]
 
 /* [Dovetail] */
-a_dt = 0; // [-50:0.5:50]
-a_tail = 10; // [0:0.5:30]
-g_shoulder_dt = 0.04; // [0:0.001:2]
-g_cheek_dt = 0.10; // [0:0.001:2]
-g_pin_dt = 0.002; // [0:0.001:2]
+
+g_shoulder_dt = 0.035; // [0:0.001:2]
+g_cheek_dt = 0.12; // [0:0.001:2]
+g_pin_dt = 0.001; // [0:0.001:2]
 r_edge_dt = 0.25; // [0:0.001:2]
-// ratio_dt = 0.5; // [0:0.05:1]
-// l_tail = 0; // [0:1:30]
-inner_dt = true;
-
-/* [Finishing] */
-
-$fn = 200;
+a_tail = 10; // [0:0.5:30]
 
 /* [Hidden] */
 test = "none";
@@ -61,191 +58,148 @@ function leg_poly() =
   ];
 
 // hull of both legs
-module mask_bottom_step() {
-  translate(v=[0, -dy_step_bottom, l_step_bottom / 4])
-    hull() {
-      linear_extrude(h=l_step_bottom, center=true) {
+module mask_leg_hull() {
+  hull() {
+    linear_extrude(h=l_step_bottom * 2, center=true) {
+      polygon(leg_poly());
+      mirror(v=[1, 0])
         polygon(leg_poly());
-        mirror(v=[1, 0])
-          polygon(leg_poly());
-      }
     }
+  }
 }
 
-module mask_bottom_joint() {
+module leg_bottom_joint_at_origin() {
   translate(v=[0, -dy_step_bottom, 0])
     linear_extrude(h=d_leg, center=true)
       polygon(leg_poly());
 }
 
-module step_bottom() {
-
-  // step as a dovetail, planing sides flush with leg
+module step_half_bottom() {
   intersection() {
-    translate(v=[w_step_bottom / 2, 0, 0])
-      rotate(a=90, v=[0, 1, 0])
-        dove_tail(
-          w=d_step,
-          l=d_leg,
-          l_tail=l_tail_step,
-          l1=l_step_bottom / 2 - l_tail_step,
-          d=w_step_bottom,
-          ratio=0,
-          d_dowel=0,
-        );
 
-    mask_bottom_step();
-  }
+    // build joint at origin
+    translate(v=[0, dy_step_bottom, 0]) {
 
-  // remove dovetail beyond step with a shoulder gap
-  difference() {
-    {
-      z = l_tail_step + g_shoulder_dt / 2;
-      dz = (z + d_leg + g_shoulder_dt) / 2 - l_tail_step;
-      translate(v=[w_step_bottom / 4, 0, dz])
-        cube([w_step_bottom / 2, d_step, z], center=true);
-    }
-
-    // shoulder gap from the 162.5 degree leg
-    translate(v=[-g_shoulder_dt / cos(17.5), 0, d_step / 2])
-      mask_bottom_joint();
-  }
-}
-
-module leg2() {
-
-  // body with gap for bottom step joint
-  intersection() {
-    difference() {
-      mask_bottom_joint();
-
+      // complete step body as a dovetail
       translate(v=[w_step_bottom / 2, 0, 0])
-        cube([w_step_bottom, d_step * 2, d_leg], center=true);
-    }
-  }
-
-  // bottom step joint
-  intersection() {
-    mask_bottom_joint();
-
-    translate(v=[w_step_bottom / 2, 0, 0])
-      rotate(a=90, v=[0, 1, 0])
-        rotate(a=90, v=[0, 0, -1])
-          dove_socket(
-            l=d_step,
-            w=d_leg,
-            l_tail=l_tail_step,
-            l1=d_step,
-            l2=d_step,
+        rotate(a=90, v=[0, 1, 0])
+          dove_tail(
+            w=d_step,
+            l=d_leg,
+            l_tail=d_leg / 2,
+            l1=(l_step_bottom - d_leg) / 2,
             d=w_step_bottom,
             ratio=0,
             d_dowel=0,
           );
-  }
-}
 
-if (true)
-  render() {
+      // fill in dovetail beyond step with a shoulder gap
+      difference() {
+        {
+          z = d_step;
+          dz = z / 2 + g_shoulder_dt / 2;
+          translate(v=[w_step_bottom / 4, 0, dz])
+            cube([w_step_bottom / 2, d_step, z], center=true);
+        }
 
-    color(COL[2][0])
-      translate(v=[explode, 0, 0])
-        step_bottom();
-
-    color(COL[2][1])
-      translate(v=[0, -explode, -explode])
-        leg2();
-  }
-
-module step_half_top() {
-  translate(v=[l_step_top / 4, 0, 0])
-    cube([l_step_top / 2, d_step, w_step_top], center=true);
-}
-
-module step_top() {
-  rotate(a=90, v=[0, 1, 0]) {
-    step_half_top();
-    rotate(a=180)
-      step_half_top();
-  }
-}
-
-module leg_joint_mask() {
-  intersection() {
-    linear_extrude(h=d_leg, center=true) {
-      polygon(leg_poly());
+        // shoulder gap from the 162.5 degree leg
+        translate(v=[-g_shoulder_dt / cos(17.5), 0, d_step / 2])
+          leg_bottom_joint_at_origin();
+      }
     }
 
-    // cut out space for the dovetail joint
-    color(c="red")
-      translate(v=[0, dy_step_bottom, 0])
-        cube([300, d_step, d_leg], center=true);
+    // plane sides flush with leg
+    mask_leg_hull();
   }
+}
+
+module step_half_top() {
+  translate(v=[0, -d_step / 2, l_step_bottom / 2 - l_step_top / 2])
+    cube([w_step_top, d_step, l_step_top / 2], center=false);
 }
 
 module leg() {
 
-  // leg with joint cut out
-  difference() {
-    linear_extrude(h=d_leg, center=true)
-      polygon(leg_poly());
-    leg_joint_mask();
+  // build bottom joint at origin
+  translate(v=[0, dy_step_bottom, 0]) {
+
+    // body with gap for bottom step joint
+    difference() {
+      leg_bottom_joint_at_origin();
+
+      translate(v=[w_step_bottom / 2, 0, 0])
+        cube([w_step_bottom, d_step * 2, d_leg], center=true);
+    }
+
+    // bottom step joint
+    intersection() {
+      leg_bottom_joint_at_origin();
+
+      translate(v=[w_step_bottom / 2, 0, 0])
+        rotate(a=90, v=[0, 1, 0])
+          rotate(a=90, v=[0, 0, -1])
+            dove_socket(
+              l=d_step,
+              w=d_leg,
+              l_tail=d_leg / 2,
+              l1=d_step,
+              l2=d_step,
+              d=w_step_bottom,
+              ratio=0,
+              d_dowel=0,
+            );
+    }
   }
 
-  // joint
-  intersection() {
-    leg_joint_mask();
-    translate(v=[w_step_bottom / 2, dy_step_bottom, 0])
-      rotate(a=90, v=[1, 0, 0])
-        rotate(a=90, v=[0, 1, 0])
-          dove_socket(
-            w=d_step,
-            d=w_step_bottom,
-            l=d_step,
-            l_tail=l_tail_step,
-            l1=d_step,
-            l2=d_step,
-            d_dowel=0,
-          );
-  }
+  // translate(v=[w_step_top / 2, 0, 0])
+  //   #rotate(a=90, v=[-1, 0, 0])
+  //     rotate(a=90, v=[0, 1, 0])
+  //       dove_tail(
+  //         w=d_step,
+  //         l=d_leg,
+  //         l_tail=d_leg / 2,
+  //         l1=10,
+  //         d=w_step_top,
+  //         ratio=0,
+  //         d_dowel=0,
+  //       );
 }
 
-if (false)
-  render() {
-    // legs
-    translate(v=[0, 0, l_step_bottom / 2 + d_leg / 2 + explode]) {
-      color(COL[0][0])
-        translate(v=[explode, 0, 0])
-          leg();
-      color(COL[0][1])
-        translate(v=[-explode, 0, 0])
-          mirror(v=[1, 0, 0])
-            leg();
-    }
-    translate(v=[0, 0, -l_step_bottom / 2 - d_leg / 2 - explode]) {
-      color(COL[1][0])
-        rotate(a=180, v=[0, 1, 0])
-          translate(v=[explode, 0, 0])
-            leg();
-      color(COL[1][1])
-        rotate(a=180, v=[0, 1, 0])
-          translate(v=[-explode, 0, 0])
-            mirror(v=[1, 0, 0])
-              leg();
-    }
+module butler() {
+  translate(v=[explode, 0, 0]) {
+    color(COL[0][0]) step_half_bottom();
 
-    // bottom steps
-    color(COL[2][0])
-      translate(v=[w_step_bottom / 2 + explode, 0, 0])
-        step_bottom();
-    color(COL[2][1])
-      translate(v=[-w_step_bottom / 2 - explode, 0, 0])
-        step_bottom();
-
-    // top steps
-    color(COL[3][0])
-      translate(v=[w_step_top / 2 + explode, -d_step / 2, 0])
-        step_top();
-    color(COL[3][1])
-      translate(v=[-w_step_top / 2 - explode, -d_step / 2, 0])
-        step_top();
+    translate(v=[0, 0, l_step_bottom])
+      mirror(v=[0, 0, 1])
+        color(COL[0][1]) step_half_bottom();
   }
+
+  translate(v=[0, -explode, -explode]) {
+    color(COL[1][0]) leg();
+
+    translate(v=[0, 0, l_step_bottom])
+      mirror(v=[0, 0, 1])
+        color(COL[1][1]) leg();
+  }
+
+  color(COL[2][0]) step_half_top();
+  translate(v=[0, 0, l_step_bottom])
+    mirror(v=[0, 0, 1])
+      color(COL[2][1]) step_half_top();
+
+  // translate(v=[-20, -20, 0])
+  //   cube([40, 40, 40]);
+}
+
+render() {
+  scale(scale) {
+    if (box) {
+      intersection() {
+        #cube([box_x, box_y, box_z], center=true);
+        butler();
+      }
+    } else {
+      butler();
+    }
+  }
+}
