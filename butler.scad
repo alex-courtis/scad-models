@@ -64,80 +64,133 @@ function leg_poly() =
       B,
   ];
 
-module mask_bottom_joint() {
-  translate(v=[0, dy_step_bottom, 0])
-    translate(v=[w_step_bottom / 2, 0, 0])
-      cube([w_step_bottom, d_step * 2, d_leg * 2], center=true);
-}
-
-module mask_top_joint() {
-  translate(v=[w_step_top / 2, 0, 0])
-    cube([w_step_top, d_step * 2, d_leg * 2], center=true);
-}
-
 module leg_body() {
   linear_extrude(h=d_leg, center=true)
     polygon(leg_poly());
 }
 
-module step_half_bottom() {
-  intersection() {
-
-    // build joint at origin then shift to destination for planing
-    translate(v=[0, dy_step_bottom, 0]) {
-
-      // complete step body as a dovetail
-      translate(v=[w_step_bottom / 2, 0, 0])
-        rotate(a=90, v=[0, 1, 0])
-          dove_tail(
-            w=d_step,
-            l=d_leg,
-            l_tail=d_leg / 2,
-            l1=(l_step_bottom - d_leg) / 2,
-            d=w_step_bottom,
-            ratio=0,
-            d_dowel=0,
-          );
-
-      // fill in dovetail beyond step with a shoulder gap
-      difference() {
-        {
-          z = d_step;
-          dz = z / 2 + g_shoulder_dt / 2;
-          translate(v=[w_step_bottom / 4, 0, dz])
-            cube([w_step_bottom / 2, d_step, z], center=true);
-        }
-
-        // shoulder gap with the inner angle
-        translate(v=[-g_shoulder_dt / cos(180 - a_leg_inner), -dy_step_bottom, d_step / 2])
-          leg_body();
-      }
-    }
-
-    // plane sides flush using hull of both leg
-    hull() {
-      linear_extrude(h=l_step_bottom * 2, center=true) {
+// hull of 4 legs the entire top width
+module legs_hull() {
+  hull() {
+    translate(v=[0, 0, l_step_top / 2 + (l_step_bottom - l_step_top) / 2])
+      linear_extrude(h=l_step_top, center=true) {
         polygon(leg_poly());
         mirror(v=[1, 0])
           polygon(leg_poly());
       }
+  }
+}
+
+module step_half_bottom() {
+
+  // build joint at origin then shift to destination for planing
+  translate(v=[0, dy_step_bottom, 0]) {
+
+    // complete step body as a dovetail
+    translate(v=[w_step_bottom / 2, 0, 0])
+      rotate(a=90, v=[0, 1, 0])
+        dove_tail(
+          w=d_step,
+          l=d_leg,
+          l_tail=d_leg / 2,
+          l1=(l_step_bottom - d_leg) / 2,
+          d=w_step_bottom,
+          ratio=0,
+          d_dowel=0,
+        );
+
+    // TODO not manifold
+
+    // fill in dovetail beyond step with a shoulder gap
+    difference() {
+      {
+        z = d_step;
+        dz = z / 2 + g_shoulder_dt / 2;
+        translate(v=[w_step_bottom / 4, 0, dz])
+          cube([w_step_bottom / 2, d_step, z], center=true);
+      }
+
+      // shoulder gap with the inner angle
+      translate(v=[-g_shoulder_dt / cos(180 - a_leg_inner), -dy_step_bottom, d_step / 2])
+        leg_body();
     }
+  }
+}
+
+module step_bottom() {
+  intersection() {
+    union() {
+      step_half_bottom();
+
+      translate(v=[0, 0, l_step_bottom])
+        mirror(v=[0, 0, 1])
+          step_half_bottom();
+    }
+
+    // plane sides flush to legs
+    legs_hull();
   }
 }
 
 module step_half_top() {
 
-  // leg body with joint gaps removed
+  module mask_joint() {
+    translate(v=[w_step_top / 2, 0, 0])
+      cube([w_step_top, d_step, d_leg * 2], center=true);
+  }
+
+  // leg body with joint space removed
   difference() {
-    translate(v=[0, -d_step / 2, l_step_bottom / 2 - l_step_top / 2])
+    translate(v=[0, -d_step / 2, (l_step_bottom - l_step_top) / 2])
       cube([w_step_top, d_step, l_step_top / 2], center=false);
 
     // remove top joint
-    mask_top_joint();
+    mask_joint();
+  }
+
+  // slot
+  translate(v=[w_step_top / 2, 0, 0])
+    rotate(a=90, v=[0, 1, 0])
+      mirror(v=[0, 1, 0])
+        dove_socket(
+          l=d_leg,
+          w=d_step,
+          l_tail=d_step / 2,
+          l1=d_leg / 2,
+          l2=d_leg / 2,
+          d=w_step_top,
+          ratio=0,
+          d_dowel=0,
+        );
+
+  // fill in slot beyond step with a shoulder gap
+  difference() {
+    mask_joint();
+    translate(v=[g_shoulder_dt / sin(180 - a_leg_outer), 0, 0])
+      legs_hull();
   }
 }
 
+module step_top() {
+  step_half_top();
+
+  translate(v=[0, 0, l_step_bottom])
+    mirror(v=[0, 0, 1])
+      step_half_top();
+}
+
 module leg() {
+
+  module mask_bottom_joint() {
+    translate(v=[0, dy_step_bottom, 0])
+      translate(v=[w_step_bottom / 2, 0, 0])
+        cube([w_step_bottom, d_step * 2, d_leg], center=true);
+  }
+
+  module mask_top_joint() {
+    translate(v=[w_step_top / 2, 0, 0])
+      cube([w_step_top, d_step * 2, d_leg], center=true);
+  }
 
   // leg body with joint space removed
   difference() {
@@ -154,6 +207,7 @@ module leg() {
   intersection() {
     leg_body();
 
+    // TODO not manifold
     translate(v=[0, dy_step_bottom, 0])
       translate(v=[w_step_bottom / 2, 0, 0])
         rotate(a=90, v=[0, 1, 0])
@@ -190,36 +244,25 @@ module leg() {
 }
 
 module butler() {
-  if (show_step_bottom) {
-    translate(v=[explode, 0, 0]) {
-      color(COL[0][0]) step_half_bottom();
-
-      translate(v=[0, 0, l_step_bottom])
-        mirror(v=[0, 0, 1])
-          color(COL[0][1]) step_half_bottom();
-    }
-  }
+  if (show_step_bottom)
+    color(COL[0][0])
+      step_bottom();
 
   if (show_leg) {
-    translate(v=[0, -explode, -explode])
-      color(COL[1][0]) leg();
+    translate(v=[0, 0, -explode])
+      color(COL[1][1])
+        leg();
 
-    
-    translate(v=[0, -explode, explode])
+    translate(v=[0, 0, explode])
       translate(v=[0, 0, l_step_bottom])
         mirror(v=[0, 0, 1])
-          color(COL[1][1]) leg();
+          color(COL[2][1])
+            leg();
   }
 
-  if (show_step_top) {
-    color(COL[2][0]) step_half_top();
-    translate(v=[0, 0, l_step_bottom])
-      mirror(v=[0, 0, 1])
-        color(COL[2][1]) step_half_top();
-  }
-
-  // translate(v=[-20, -20, 0])
-  //   cube([40, 40, 40]);
+  if (show_step_top)
+    color(COL[1][0])
+      step_top();
 }
 
 render() {
