@@ -64,6 +64,11 @@ function leg_poly() =
       B,
   ];
 
+// extents from origin that will cover the model
+bounding_x = 300;
+bounding_y = 600;
+bounding_z = 500;
+
 module leg_body() {
   linear_extrude(h=d_leg, center=true)
     polygon(leg_poly());
@@ -180,66 +185,37 @@ module step_top() {
 }
 
 module leg() {
-
-  module mask_bottom_joint() {
-    translate(v=[0, dy_step_bottom, 0])
-      translate(v=[w_step_bottom / 2, 0, 0])
-        cube([w_step_bottom, d_step * 2, d_leg], center=true);
-  }
-
-  module mask_top_joint() {
-    translate(v=[w_step_top / 2, 0, 0])
-      cube([w_step_top, d_step * 2, d_leg], center=true);
-  }
-
-  // leg body with joint space removed
-  difference() {
-    leg_body();
-
-    // remove bottom joint
-    mask_bottom_joint();
-
-    // remove top joint
-    mask_top_joint();
-  }
-
-  // add bottom slot
   intersection() {
+
     leg_body();
 
-    // TODO not manifold
+    // bottom socket covers entire leg
     translate(v=[0, dy_step_bottom, 0])
-      translate(v=[w_step_bottom / 2, 0, 0])
-        rotate(a=90, v=[0, 1, 0])
-          rotate(a=90, v=[0, 0, -1])
-            dove_socket(
-              l=d_step,
-              w=d_leg,
-              l_tail=d_leg / 2,
-              l1=d_step,
-              l2=d_step,
-              d=w_step_bottom,
-              ratio=0,
-              d_dowel=0,
-            );
-  }
-
-  // add top tail
-  intersection() {
-    leg_body();
-
-    translate(v=[w_step_top / 2, 0, 0])
-      rotate(a=90, v=[-1, 0, 0])
-        rotate(a=90, v=[0, 1, 0])
-          dove_tail(
-            w=d_leg,
+      rotate(a=90, v=[0, 1, 0])
+        rotate(a=90, v=[0, 0, -1])
+          dove_socket(
             l=d_step,
-            l_tail=d_step / 2,
-            l1=d_step,
-            d=w_step_top,
+            w=d_leg,
+            l_tail=d_leg / 2,
+            l1=bounding_y,
+            l2=bounding_y,
+            d=bounding_x * 2,
             ratio=0,
             d_dowel=0,
           );
+
+    // top tail covers entire leg
+    rotate(a=90, v=[-1, 0, 0])
+      rotate(a=90, v=[0, 1, 0])
+        dove_tail(
+          w=d_leg,
+          l=d_step,
+          l_tail=d_step / 2,
+          l1=bounding_y,
+          d=bounding_x * 2,
+          ratio=0,
+          d_dowel=0,
+        );
   }
 }
 
@@ -263,6 +239,9 @@ module butler() {
   if (show_step_top)
     color(COL[1][0])
       step_top();
+
+// color(c="lightgreen", alpha=0.25)
+//   cube([bounding_x, bounding_y, bounding_z], center = false);
 }
 
 render() {
