@@ -2,7 +2,7 @@ include <stool.scad>
 
 /* [Finishing] */
 
-scale = 1; // [0.1:0.01:1]
+scale = 0.3; // [0.1:0.01:1]
 d_dowel_v = 2.35; // [0:0.05:5]
 h_dowel = 42; // [0:1:80]
 
@@ -197,37 +197,46 @@ module step_top() {
 }
 
 module leg() {
-  intersection() {
+  difference() {
+    intersection() {
 
-    leg_body();
+      leg_body();
 
-    // bottom socket covers entire leg
-    translate(v=[0, dy_step_bottom, 0])
-      rotate(a=90, v=[0, 1, 0])
-        rotate(a=90, v=[0, 0, -1])
-          dove_socket(
-            l=d_step,
+      // bottom socket covers entire leg
+      translate(v=[0, dy_step_bottom, 0])
+        rotate(a=90, v=[0, 1, 0])
+          rotate(a=90, v=[0, 0, -1])
+            dove_socket(
+              l=d_step,
+              w=d_leg,
+              l_tail=d_leg / 2,
+              l1=bounding_y,
+              l2=bounding_y,
+              d=bounding_x * 2,
+              ratio=0,
+              d_dowel=0,
+            );
+
+      // top tail covers entire leg
+      rotate(a=90, v=[-1, 0, 0])
+        rotate(a=90, v=[0, 1, 0])
+          dove_tail(
             w=d_leg,
-            l_tail=d_leg / 2,
+            l=d_step,
+            l_tail=d_step / 2,
             l1=bounding_y,
-            l2=bounding_y,
             d=bounding_x * 2,
             ratio=0,
             d_dowel=0,
           );
+    }
 
-    // top tail covers entire leg
-    rotate(a=90, v=[-1, 0, 0])
+    translate(v=[0, d_step * 0.25, 0])
       rotate(a=90, v=[0, 1, 0])
-        dove_tail(
-          w=d_leg,
-          l=d_step,
-          l_tail=d_step / 2,
-          l1=bounding_y,
-          d=bounding_x * 2,
-          ratio=0,
-          d_dowel=0,
-        );
+        cylinder(h=h_dowel, d=d_dowel_v, center=true);
+    translate(v=[0, d_step * 3.25, 0])
+      rotate(a=90, v=[0, 1, 0])
+        cylinder(h=h_dowel, d=d_dowel_v, center=true);
   }
 }
 
