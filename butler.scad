@@ -3,6 +3,8 @@ include <stool.scad>
 /* [Finishing] */
 
 scale = 1; // [0.1:0.01:1]
+d_dowel_v = 2.35; // [0:0.05:5]
+h_dowel = 42; // [0:1:80]
 
 $fn = 200; // [1:1:2000]
 
@@ -91,33 +93,41 @@ module step_half_bottom() {
   // build joint at origin then shift to destination for planing
   translate(v=[0, dy_step_bottom, 0]) {
 
-    // complete step body as a dovetail
-    translate(v=[w_step_bottom / 2, 0, 0])
-      rotate(a=90, v=[0, 1, 0])
-        dove_tail(
-          w=d_step,
-          l=d_leg,
-          l_tail=d_leg / 2,
-          l1=(l_step_bottom - d_leg) / 2,
-          d=w_step_bottom,
-          ratio=0,
-          d_dowel=0,
-        );
-
-    // TODO not manifold
-
-    // fill in dovetail beyond step with a shoulder gap
     difference() {
-      {
-        z = d_step;
-        dz = z / 2 + g_shoulder_dt / 2;
-        translate(v=[w_step_bottom / 4, 0, dz])
-          cube([w_step_bottom / 2, d_step, z], center=true);
+      union() {
+        // complete step body as a dovetail
+        translate(v=[w_step_bottom / 2, 0, 0])
+          rotate(a=90, v=[0, 1, 0])
+            dove_tail(
+              w=d_step,
+              l=d_leg,
+              l_tail=d_leg / 2,
+              l1=(l_step_bottom - d_leg) / 2,
+              d=w_step_bottom,
+              ratio=0,
+              d_dowel=0,
+            );
+
+        // TODO not manifold
+
+        // fill in dovetail beyond step with a shoulder gap
+        difference() {
+          {
+            z = d_step;
+            dz = z / 2 + g_shoulder_dt / 2;
+            translate(v=[w_step_bottom / 4, 0, dz])
+              cube([w_step_bottom / 2, d_step, z], center=true);
+          }
+
+          // shoulder gap with the inner angle
+          translate(v=[-g_shoulder_dt / cos(180 - a_leg_inner), -dy_step_bottom, d_step / 2])
+            leg_body();
+        }
       }
 
-      // shoulder gap with the inner angle
-      translate(v=[-g_shoulder_dt / cos(180 - a_leg_inner), -dy_step_bottom, d_step / 2])
-        leg_body();
+      #translate(v=[0, 0, d_leg * 2])
+        rotate(a=90, v=[0, 1, 0])
+          cylinder(h=h_dowel, d=d_dowel_v, center=true);
     }
   }
 }
@@ -144,29 +154,37 @@ module step_half_top() {
       cube([w_step_top, d_step, l_step_top / 2], center=false);
   }
 
-  intersection() {
-    body();
-
-    // top tail covers entire width
-    rotate(a=90, v=[0, 1, 0])
-      mirror(v=[0, 1, 0])
-        dove_socket(
-          l=d_leg,
-          w=d_step,
-          l_tail=d_step / 2,
-          l1=bounding_z,
-          l2=bounding_z,
-          d=bounding_x * 2,
-          ratio=0,
-          d_dowel=0,
-        );
-  }
-
-  // fill in slot beyond step with a shoulder gap
   difference() {
-    body();
-    translate(v=[g_shoulder_dt / sin(180 - a_leg_outer), 0, 0])
-      legs_hull();
+    union() {
+      intersection() {
+        body();
+
+        // top tail covers entire width
+        rotate(a=90, v=[0, 1, 0])
+          mirror(v=[0, 1, 0])
+            dove_socket(
+              l=d_leg,
+              w=d_step,
+              l_tail=d_step / 2,
+              l1=bounding_z,
+              l2=bounding_z,
+              d=bounding_x * 2,
+              ratio=0,
+              d_dowel=0,
+            );
+      }
+
+      // fill in slot beyond step with a shoulder gap
+      difference() {
+        body();
+        translate(v=[g_shoulder_dt / sin(180 - a_leg_outer), 0, 0])
+          legs_hull();
+      }
+    }
+
+    #translate(v=[0, 0, d_leg * 2])
+      rotate(a=90, v=[0, 1, 0])
+        cylinder(h=h_dowel, d=d_dowel_v, center=true);
   }
 }
 
