@@ -139,38 +139,32 @@ module step_bottom() {
 
 module step_half_top() {
 
-  module mask_joint() {
-    translate(v=[w_step_top / 2, 0, 0])
-      cube([w_step_top, d_step, d_leg * 2], center=true);
-  }
-
-  // leg body with joint space removed
-  difference() {
+  module body() {
     translate(v=[0, -d_step / 2, (l_step_bottom - l_step_top) / 2])
       cube([w_step_top, d_step, l_step_top / 2], center=false);
-
-    // remove top joint
-    mask_joint();
   }
 
-  // slot
-  translate(v=[w_step_top / 2, 0, 0])
+  intersection() {
+    body();
+
+    // top tail covers entire width
     rotate(a=90, v=[0, 1, 0])
       mirror(v=[0, 1, 0])
         dove_socket(
           l=d_leg,
           w=d_step,
           l_tail=d_step / 2,
-          l1=d_leg / 2,
-          l2=d_leg / 2,
-          d=w_step_top,
+          l1=bounding_z,
+          l2=bounding_z,
+          d=bounding_x * 2,
           ratio=0,
           d_dowel=0,
         );
+  }
 
   // fill in slot beyond step with a shoulder gap
   difference() {
-    mask_joint();
+    body();
     translate(v=[g_shoulder_dt / sin(180 - a_leg_outer), 0, 0])
       legs_hull();
   }
@@ -240,8 +234,8 @@ module butler() {
     color(COL[1][0])
       step_top();
 
-// color(c="lightgreen", alpha=0.25)
-//   cube([bounding_x, bounding_y, bounding_z], center = false);
+  // color(c="lightgreen", alpha=0.25)
+  //   cube([bounding_x, bounding_y, bounding_z], center = false);
 }
 
 render() {
