@@ -24,26 +24,31 @@ explode = 0; // [0:1:100]
 
 /* [General Dimensions] */
 
-l_step_top = 415; // [100:1:1000]
-w_step_top = 147; // [50:1:500]
-w_step_bottom = 147; // [50:1:500]
-d_step = 23; // [5:1:50]
-l_step_bottom = 349; // [100:1:1000]
+l_step_top_abs = 415; // [100:1:1000]
+w_step_top_abs = 147; // [50:1:500]
+w_step_bottom_abs = 147; // [50:1:500]
+d_step_abs = 23; // [5:1:50]
+l_step_bottom_abs = 349; // [100:1:1000]
+d_leg_abs = 23; // [5:1:50]
+dy_step_bottom_abs = 220; // [100:1:500]
 
-// TODO set this to d_step once it lines up
-d_leg = 23; // [5:1:50]
-
-dy_step_bottom = 220; // [100:1:500]
+l_step_top = l_step_top_abs * scale;
+w_step_top = w_step_top_abs * scale;
+w_step_bottom = w_step_bottom_abs * scale;
+d_step = d_step_abs * scale;
+l_step_bottom = l_step_bottom_abs * scale;
+d_leg =d_leg_abs * scale; // [5:1:50]
+dy_step_bottom = dy_step_bottom_abs * scale; // [100:1:500]
 
 a_leg_outer = 100;
 a_leg_inner = 162.5;
 
 /* [Dovetail] */
 
-g_shoulder_dt = 0.035; // [0:0.001:2]
-g_cheek_dt = 0.12; // [0:0.001:2]
-g_pin_dt = 0.001; // [0:0.001:2]
-r_edge_dt = 0.25; // [0:0.001:2]
+g_shoulder_dt = 0.035; // [0:0.001:5]
+g_cheek_dt = 0.12; // [0:0.001:5]
+g_pin_dt = 0.002; // [0:0.001:5]
+r_edge_dt = 0.25; // [0:0.001:5]
 a_tail = 10; // [0:0.5:30]
 
 /* [Hidden] */
@@ -52,11 +57,11 @@ test = "none";
 // clockwise from origin
 function leg_poly() =
   let (
-    B = [75, 0],
-    D = [0, 80],
+    B = [75 * scale, 0],
+    D = [0, 80 * scale],
     A = [
-      cos(180 - a_leg_outer) * 433 + B[0],
-      sin(180 - a_leg_outer) * 433,
+      cos(180 - a_leg_outer) * 433 * scale + B[0],
+      sin(180 - a_leg_outer) * 433 * scale,
     ],
     E = line_intersect(P1=D, a1=a_leg_inner - 90, P2=A, a2=0),
   ) [
@@ -179,7 +184,8 @@ module step_half_top() {
       // fill in slot beyond step with a shoulder gap
       difference() {
         body();
-        translate(v=[g_shoulder_dt / sin(180 - a_leg_outer), 0, 0])
+		// x is exact, y not calculated and pushes it out a bit
+        translate(v=[g_shoulder_dt / sin(180 - a_leg_outer), -r_edge_dt, 0])
           legs_hull();
       }
     }
@@ -234,10 +240,10 @@ module leg() {
           );
     }
 
-    #translate(v=[0, d_step * 0.25, 0])
+    #translate(v=[0, d_step, 0])
       rotate(a=90, v=[0, 1, 0])
         cylinder(h=h_dowel, d=d_dowel_v, center=true);
-    #translate(v=[0, d_step * 3.25, 0])
+    #translate(v=[0, d_step * 3, 0])
       rotate(a=90, v=[0, 1, 0])
         cylinder(h=h_dowel, d=d_dowel_v, center=true);
   }
@@ -270,14 +276,12 @@ module butler() {
 }
 
 render() {
-  scale(scale) {
-    if (box) {
-      intersection() {
-        #cube([box_x, box_y, box_z], center=true);
-        butler();
-      }
-    } else {
+  if (box) {
+    intersection() {
+      #cube([box_x, box_y, box_z], center=true);
       butler();
     }
+  } else {
+    butler();
   }
 }
