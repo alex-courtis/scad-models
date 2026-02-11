@@ -216,6 +216,13 @@ module joint_build(
           edge_point(p=p, h=d);
   }
 
+  module waste_none() {
+    if (r_edge && edge_points_v_body)
+      for (p = edge_points_v_body)
+        translate(v=[0, 0, -d / 2])
+          edge_point(p=p, h=d);
+  }
+
   difference() {
 
     // entire body
@@ -233,6 +240,8 @@ module joint_build(
         #waste_layers();
       else
         waste_layers();
+    } else {
+      waste_none();
     }
 
     // centred dowel
