@@ -32,6 +32,9 @@ d_leg = 23; // [5:1:50]
 
 dy_step_bottom = 220; // [100:1:500]
 
+a_leg_outer = 100;
+a_leg_inner = 162.5;
+
 /* [Dovetail] */
 
 g_shoulder_dt = 0.035; // [0:0.001:2]
@@ -43,15 +46,16 @@ a_tail = 10; // [0:0.5:30]
 /* [Hidden] */
 test = "none";
 
+// clockwise from origin
 function leg_poly() =
   let (
     B = [75, 0],
     D = [0, 80],
     A = [
-      cos(80) * 433 + B[0],
-      sin(80) * 433,
+      cos(180 - a_leg_outer) * 433 + B[0],
+      sin(180 - a_leg_outer) * 433,
     ],
-    E = line_intersect(P1=D, a1=162.5 - 90, P2=A, a2=0),
+    E = line_intersect(P1=D, a1=a_leg_inner - 90, P2=A, a2=0),
   ) [
       [0, 0],
       D,
@@ -104,8 +108,8 @@ module step_half_bottom() {
             cube([w_step_bottom / 2, d_step, z], center=true);
         }
 
-        // shoulder gap from the 162.5 degree leg
-        translate(v=[-g_shoulder_dt / cos(17.5), dy_step_bottom, d_step / 2])
+        // shoulder gap with the inner angle
+        translate(v=[-g_shoulder_dt / cos(180 - a_leg_inner), -dy_step_bottom, d_step / 2])
           leg_body();
       }
     }
@@ -135,7 +139,7 @@ module step_half_top() {
 
 module leg() {
 
-  // leg body with joint gaps removed
+  // leg body with joint space removed
   difference() {
     leg_body();
 
