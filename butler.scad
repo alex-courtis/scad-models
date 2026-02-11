@@ -2,7 +2,7 @@ include <stool.scad>
 
 /* [Finishing] */
 
-scale = 0.3; // [0.1:0.01:1]
+scale = 0.4; // [0.1:0.01:1]
 d_dowel_v = 2.35; // [0:0.05:5]
 h_dowel = 42; // [0:1:80]
 
@@ -231,10 +231,10 @@ module leg() {
           );
     }
 
-    translate(v=[0, d_step * 0.25, 0])
+    #translate(v=[0, d_step * 0.25, 0])
       rotate(a=90, v=[0, 1, 0])
         cylinder(h=h_dowel, d=d_dowel_v, center=true);
-    translate(v=[0, d_step * 3.25, 0])
+    #translate(v=[0, d_step * 3.25, 0])
       rotate(a=90, v=[0, 1, 0])
         cylinder(h=h_dowel, d=d_dowel_v, center=true);
   }
