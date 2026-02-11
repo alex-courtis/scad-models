@@ -13,6 +13,7 @@ show_wastes = false;
 show_leg = true;
 show_step_bottom = true;
 show_step_top = true;
+show_half = false;
 
 box = false;
 box_x = 250; // [0:1:800]
@@ -137,9 +138,10 @@ module step_bottom() {
     union() {
       step_half_bottom();
 
-      translate(v=[0, 0, l_step_bottom])
-        mirror(v=[0, 0, 1])
-          step_half_bottom();
+      if (!show_half)
+        translate(v=[0, 0, l_step_bottom])
+          mirror(v=[0, 0, 1])
+            step_half_bottom();
     }
 
     // plane sides flush to legs
@@ -191,9 +193,10 @@ module step_half_top() {
 module step_top() {
   step_half_top();
 
-  translate(v=[0, 0, l_step_bottom])
-    mirror(v=[0, 0, 1])
-      step_half_top();
+  if (!show_half)
+    translate(v=[0, 0, l_step_bottom])
+      mirror(v=[0, 0, 1])
+        step_half_top();
 }
 
 module leg() {
@@ -250,11 +253,12 @@ module butler() {
       color(COL[1][1])
         leg();
 
-    translate(v=[0, 0, explode])
-      translate(v=[0, 0, l_step_bottom])
-        mirror(v=[0, 0, 1])
-          color(COL[2][1])
-            leg();
+    if (!show_half)
+      translate(v=[0, 0, explode])
+        translate(v=[0, 0, l_step_bottom])
+          mirror(v=[0, 0, 1])
+            color(COL[2][1])
+              leg();
   }
 
   if (show_step_top)
