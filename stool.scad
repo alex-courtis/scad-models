@@ -39,9 +39,16 @@ $fn = 200;
 
 /* [Testing] */
 
-test_dt = false;
-test_mt = false;
+// tails and sockets
+test_dovetail = false;
+
+// mortises and tenons
+test_mortise_tenon = false;
+
+// halvings
 test_halving = false;
+
+// stool
 test_stool = false;
 
 // -1 for all
@@ -59,7 +66,7 @@ l2 = 12; // [0:1:500]
 // y
 w = 15; // [0:1:500]
 // z
-d = 10; // [0:1:500]
+t = 10; // [0:1:500]
 
 /* [Finishing] */
 
@@ -121,7 +128,7 @@ xy line segments capped with spheres specified by edge_lines_h are removed from 
 z cylinders capped with spheres specified by edge_points_v are removed from waste and body layers
 */
 module joint_build(
-  d, // total z
+  t, // total z
   body, // poly to build
   waste, // poly to z waste
   ratios, // [0] or [1] for all or no waste, depending on inner
@@ -177,9 +184,9 @@ module joint_build(
   module waste_layers() {
     im = inner ? 1 : -1;
     dzs = [
-      -d / 2,
-      for (i = [0:1:len(ratios) - 1]) -d / 2 + ratios[i] * d + (i % 2 == 0 ? im : -im) * g_cheek / 2,
-      d / 2,
+      -t / 2,
+      for (i = [0:1:len(ratios) - 1]) -t / 2 + ratios[i] * t + (i % 2 == 0 ? im : -im) * g_cheek / 2,
+      t / 2,
     ];
 
     // material/waste heights
@@ -211,25 +218,25 @@ module joint_build(
   }
 
   module waste_all() {
-    waste(h=d, center=true);
+    waste(h=t, center=true);
 
     if (r_edge && edge_points_v_waste)
       for (p = edge_points_v_waste)
-        translate(v=[0, 0, -d / 2])
-          edge_point(p=p, h=d);
+        translate(v=[0, 0, -t / 2])
+          edge_point(p=p, h=t);
   }
 
   module waste_none() {
     if (r_edge && edge_points_v_body)
       for (p = edge_points_v_body)
-        translate(v=[0, 0, -d / 2])
-          edge_point(p=p, h=d);
+        translate(v=[0, 0, -t / 2])
+          edge_point(p=p, h=t);
   }
 
   difference() {
 
     // entire body
-    linear_extrude(h=d, center=true)
+    linear_extrude(h=t, center=true)
       polygon(body);
 
     // maybe waste
@@ -249,7 +256,7 @@ module joint_build(
 
     // centred dowel
     if (d_dowel) {
-      cylinder(d=d_dowel, h=d, center=true);
+      cylinder(d=d_dowel, h=t, center=true);
     }
   }
 }
@@ -346,7 +353,7 @@ module halving(
   l1 = l1,
   l2 = l2,
   w = w,
-  d = d,
+  t = t,
   a = a_halving,
   ratio = 1 / 2,
   ratios = undef, // overrides ratio
@@ -389,7 +396,7 @@ module halving(
   ];
 
   joint_build(
-    d=d,
+    t=t,
     body=body,
     waste=waste,
     ratios=ratios ? ratios : [ratio],
@@ -404,11 +411,11 @@ module halving(
 // print with vertical cheeks
 // set l2 for a tee bridle
 module tenon(
-  l = w, // depth of the slot
+  l = w, // of the mortise
   l1 = l1,
   l2 = 0,
   w = w,
-  d = d,
+  t = t,
   a = a_tenon,
   l_tenon = l_tenon, // length of the tenon, < l for blind, > l for exposed, ignored when l2 > 0
   ratio = 1 / 3, // of the tenon, centred
@@ -461,7 +468,7 @@ module tenon(
   ];
 
   joint_build(
-    d=d,
+    t=t,
     body=body,
     waste=waste,
     ratios=ratios ? ratios : [(1 - ratio) / 2, (1 + ratio) / 2],
@@ -476,11 +483,11 @@ module tenon(
 // print with vertical slot
 // remove l1 or l2 for a corner bridle
 module mortise(
-  l = w, // width of the tenon
+  l = w, // of the tenon
   l1 = l1,
   l2 = l2,
   w = w,
-  d = d,
+  t = t,
   a = a_mortise,
   l_tenon = l_tenon, // length of the tenon, set to less than w for blind
   ratio = 1 / 3, // of the slot, centred
@@ -533,7 +540,7 @@ module mortise(
   ];
 
   joint_build(
-    d=d,
+    t=t,
     body=body,
     waste=waste,
     ratios=ratios ? ratios : [(1 - ratio) / 2, (1 + ratio) / 2],
@@ -573,10 +580,10 @@ blind: ends at JK otherwise CD
 g_shoulder AB, half JK when blind 
 */
 module dove_tail(
-  l = w, // depth of the socket
+  l = w, // of the socket
   l1 = l1,
   w = w,
-  d = d,
+  t = t,
   a = a_dt, // RBA
   a_tail = a_tail, // BSC
   l_tail = l_tail, // length of the tail, < l for blind, ignored when > l
@@ -651,7 +658,7 @@ module dove_tail(
   );
 
   joint_build(
-    d=d,
+    t=t,
     body=body,
     waste=waste,
     ratios=[ratio],
@@ -685,7 +692,7 @@ module dove_socket(
   l1 = l1, // l1 and l2 must be nonzero
   l2 = l2,
   w = w,
-  d = d,
+  t = t,
   a = a_dt,
   a_tail = a_tail,
   l_tail = l_tail, // length of the tail, < w for blind, ignored when > w
@@ -756,7 +763,7 @@ module dove_socket(
   edge_points_v_waste = blind ? [J, K] : undef;
 
   joint_build(
-    d=d,
+    t=t,
     body=body,
     waste=waste,
     ratios=[ratio],
@@ -769,24 +776,24 @@ module dove_socket(
   );
 }
 
-if (test_dt || test_mt || test_halving || test_stool)
+if (test_dovetail || test_mortise_tenon || test_halving || test_stool)
   render() {
     dy = 100;
-    if (test_dt)
+    if (test_dovetail)
       translate(v=[0, 0 * dy, 0])
-        dove_test();
-    if (test_mt)
+        test_dovetail();
+    if (test_mortise_tenon)
       translate(v=[0, 1 * dy, 0])
-        mt_test();
+        test_mortise_tenon();
     if (test_halving)
       translate(v=[0, 2 * dy, 0])
-        halving_test();
+        test_halving();
     if (test_stool)
       translate(v=[-100, 0 * dy, 0])
-        stool();
+        test_stool();
   }
 
-module test_build(m, dx = 0, dy = 0) {
+module test_joint(m, dx = 0, dy = 0) {
   if (test_model == -1 || test_model == m) {
     translate(v=[m * dx, dy, 0]) {
       translate(v=[0, 0, test_explode_z])
@@ -799,33 +806,33 @@ module test_build(m, dx = 0, dy = 0) {
   }
 }
 
-module halving_test() {
+module test_halving() {
   a = a_halving + 17;
 
   dx = 45;
 
-  test_build(m=0, dx=dx) {
+  test_joint(m=0, dx=dx) {
     halving(inner=true, a=-a_halving);
 
     rotate(a=90 + a_halving)
       halving();
   }
 
-  test_build(m=1, dx=dx) {
+  test_joint(m=1, dx=dx) {
     halving(inner=true, a=a);
 
     rotate(a=90 - a)
       halving(a=-a);
   }
 
-  test_build(m=2, dx=dx) {
+  test_joint(m=2, dx=dx) {
     halving(inner=true, a=-a_halving, l2=0);
 
     rotate(a=90 + a_halving)
       halving(l1=0);
   }
 
-  test_build(m=3, dx=dx) {
+  test_joint(m=3, dx=dx) {
     halving(inner=true, a=a, l1=0);
 
     rotate(a=90 - a)
@@ -833,7 +840,7 @@ module halving_test() {
   }
 }
 
-module dove_test() {
+module test_dovetail() {
 
   a = a_dt + 7;
   a_tail = a_tail;
@@ -849,74 +856,74 @@ module dove_test() {
 
   dx = l1_socket + l2_socket + l_socket;
 
-  test_build(m=0, dx=dx) {
+  test_joint(m=0, dx=dx) {
     rotate(a=90 + a_dt)
       dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
     dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
   }
 
-  test_build(m=1, dx=dx) {
+  test_joint(m=1, dx=dx) {
     rotate(a=90 + a)
       dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
     dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
   }
 
-  test_build(m=2, dx=dx) {
+  test_joint(m=2, dx=dx) {
     rotate(a=90 + a_dt)
       dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
     dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
   }
 
-  test_build(m=3, dx=dx) {
+  test_joint(m=3, dx=dx) {
     rotate(a=90 + a)
       dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
     dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
   }
 
-  test_build(m=4, dx=dx) {
+  test_joint(m=4, dx=dx) {
     rotate(a=90 + a_dt)
       dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
 
     dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, l1=l1_socket, l2=l2_socket);
   }
 
-  test_build(m=5, dx=dx) {
+  test_joint(m=5, dx=dx) {
     rotate(a=90 + a)
       dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
 
     dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
   }
 
-  test_build(m=6, dx=dx, dy=20) {
-    d = 60;
+  test_joint(m=6, dx=dx, dy=20) {
+    t = 60;
     w_socket = w_socket / 2;
     l_tail = w_socket / 2;
     rotate(a=90 + a_dt)
-      dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, d=d);
+      dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, t=t);
 
-    dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, d=d, l1=l1_socket, l2=l2_socket);
+    dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, t=t, l1=l1_socket, l2=l2_socket);
   }
 
-  test_build(m=7, dx=dx) {
-    d = 60;
+  test_joint(m=7, dx=dx) {
+    t = 60;
     w_socket = w_socket / 2;
     l_tail = w_socket / 2;
     rotate(a=90 + a)
-      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, d=d);
+      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, t=t);
 
-    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, d=d, l1=l1_socket, l2=l2_socket);
+    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, t=t, l1=l1_socket, l2=l2_socket);
   }
 }
 
-module mt_test() {
+module test_mortise_tenon() {
   all = test_model == -1;
 
   w_tenon = w;
-  d_tenon = d;
+  t_tenon = t;
 
   w_mortise = w;
   l_mortise = w;
@@ -926,11 +933,11 @@ module mt_test() {
 
   dx = 45;
 
-  test_build(m=0, dx=dx) {
+  test_joint(m=0, dx=dx) {
     tenon(
       a=0,
       w=w_tenon,
-      d=d_tenon,
+      t=t_tenon,
       l=w_mortise,
       l1=l1,
       l2=0,
@@ -939,17 +946,17 @@ module mt_test() {
       mortise(
         a=0,
         w=w_mortise,
-        d=d_tenon,
+        t=t_tenon,
         l=l_mortise,
         l1=l1,
         l2=l2,
       );
   }
 
-  test_build(m=1, dx=dx) {
+  test_joint(m=1, dx=dx) {
     tenon(
       w=w_tenon,
-      d=d_tenon,
+      t=t_tenon,
       l=w_mortise,
       l1=l1,
       l2=0
@@ -957,18 +964,18 @@ module mt_test() {
     rotate(a=90 + a_mortise)
       mortise(
         w=w_mortise,
-        d=d_tenon,
+        t=t_tenon,
         l=l_mortise,
         l1=l1,
         l2=l2
       );
   }
 
-  test_build(m=2, dx=dx) {
+  test_joint(m=2, dx=dx) {
     tenon(
       a=0,
       w=w_tenon,
-      d=d_tenon,
+      t=t_tenon,
       l=w_mortise,
       l1=l1,
       l2=l2,
@@ -977,17 +984,17 @@ module mt_test() {
       mortise(
         a=0,
         w=w_mortise,
-        d=d_tenon,
+        t=t_tenon,
         l=l_mortise,
         l1=l1,
         l2=0
       );
   }
 
-  test_build(m=3, dx=dx) {
+  test_joint(m=3, dx=dx) {
     tenon(
       w=w_tenon,
-      d=d_tenon,
+      t=t_tenon,
       l=w_mortise,
       l1=l1,
       l2=l2,
@@ -995,17 +1002,17 @@ module mt_test() {
     rotate(a=90 + a_mortise)
       mortise(
         w=w_mortise,
-        d=d_tenon,
+        t=t_tenon,
         l=l_mortise,
         l1=l1,
         l2=0
       );
   }
 
-  test_build(m=4, dx=dx) {
+  test_joint(m=4, dx=dx) {
     tenon(
       w=w_tenon,
-      d=d_tenon,
+      t=t_tenon,
       l=w_mortise,
       l1=l1,
       l2=0,
@@ -1014,7 +1021,7 @@ module mt_test() {
     rotate(a=90 + a_mortise)
       mortise(
         w=w_mortise,
-        d=d_tenon,
+        t=t_tenon,
         l=l_mortise,
         l1=l1,
         l2=l2,
@@ -1022,10 +1029,10 @@ module mt_test() {
       );
   }
 
-  test_build(m=5, dx=dx) {
+  test_joint(m=5, dx=dx) {
     tenon(
       w=w_tenon,
-      d=d_tenon,
+      t=t_tenon,
       l=w_mortise,
       l1=l1,
       l2=0,
@@ -1033,17 +1040,17 @@ module mt_test() {
     rotate(a=90 + a_mortise)
       mortise(
         w=w_mortise,
-        d=d_tenon,
+        t=t_tenon,
         l=l_mortise,
         l1=0,
         l2=l2,
       );
   }
 
-  test_build(m=6, dx=dx) {
+  test_joint(m=6, dx=dx) {
     tenon(
       w=w_tenon,
-      d=d_tenon,
+      t=t_tenon,
       l=w_mortise,
       l1=l1,
       l2=0,
@@ -1052,7 +1059,7 @@ module mt_test() {
     rotate(a=90 + a_mortise)
       mortise(
         w=w_mortise,
-        d=d_tenon,
+        t=t_tenon,
         l=l_mortise,
         l1=0,
         l2=l2,
@@ -1060,10 +1067,10 @@ module mt_test() {
       );
   }
 
-  test_build(m=7, dx=dx) {
+  test_joint(m=7, dx=dx) {
     tenon(
       w=w_tenon,
-      d=d_tenon,
+      t=t_tenon,
       l=w_mortise,
       l1=l1,
       l2=0,
@@ -1072,7 +1079,7 @@ module mt_test() {
     rotate(a=90 + a_mortise)
       mortise(
         w=w_mortise,
-        d=d_tenon,
+        t=t_tenon,
         l=l_mortise,
         l1=l1,
         l2=l2,
@@ -1080,12 +1087,12 @@ module mt_test() {
   }
 }
 
-module stool() {
+module test_stool() {
   w_cross = 25;
-  d_cross = 17;
+  t_cross = 17;
 
   w_leg = 22;
-  d_leg = d_cross;
+  t_leg = t_cross;
   d1_leg_cap = 2;
   dx_leg_cap = w_cross - 5.5;
 
@@ -1109,17 +1116,17 @@ module stool() {
   show_half4 = true;
   dowels = true;
 
-  dx = d_cross / 2 + l12_halving + w_leg / 2 + l1_tenon;
+  dx = t_cross / 2 + l12_halving + w_leg / 2 + l1_tenon;
 
   module leg(a, blind, l1 = 0, ratio = 1 / 3, ratios = undef) {
 
     rotate(-90 - a) {
       difference() {
-        mortise(a=-a, w=w_leg, d=d_cross, l=w_cross, l1=l1, l2=l2_leg + w_cross / 2, l_tenon=blind, ratio=ratio, ratios=ratios);
+        mortise(a=-a, w=w_leg, t=t_cross, l=w_cross, l1=l1, l2=l2_leg + w_cross / 2, l_tenon=blind, ratio=ratio, ratios=ratios);
 
         translate(v=[l2_leg + w_cross, 0, 0])
           rotate(a)
-            cube([w_cross, w_leg * 2, d_cross], center=true);
+            cube([w_cross, w_leg * 2, t_cross], center=true);
       }
     }
   }
@@ -1129,12 +1136,12 @@ module stool() {
     // cross
     color(c="peru")
       rotate(a=-90, v=[1, 0, 0])
-        halving(a=a_cross, d=w_cross, w=d_cross, l=d_cross, l1=l12_halving, l2=l12_halving, inner=false);
+        halving(a=a_cross, t=w_cross, w=t_cross, l=t_cross, l1=l12_halving, l2=l12_halving, inner=false);
 
     // normal leg
     translate(v=[dx, 0, 0]) {
       color(c="chocolate")
-        tenon(a=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l1_tenon, l2=0);
+        tenon(a=-a_tenon, w=w_cross, t=t_cross, l=w_leg, l1=l1_tenon, l2=0);
 
       if (show_leg)
         color(c="orange")
@@ -1146,7 +1153,7 @@ module stool() {
     translate(v=[-dx, 0, 0]) {
       color(c="saddlebrown")
         mirror(v=[1, 0, 0])
-          tenon(a=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l1_tenon, l2=l2_tenon);
+          tenon(a=-a_tenon, w=w_cross, t=t_cross, l=w_leg, l1=l1_tenon, l2=l2_tenon);
 
       if (show_leg)
         color(c="orange")
@@ -1160,12 +1167,12 @@ module stool() {
     // cross
     color(c="burlywood")
       rotate(a=90, v=[1, 0, 0])
-        halving(a=a_cross, w=d_cross, d=w_cross, l=d_cross, l1=l12_halving, l2=l12_halving);
+        halving(a=a_cross, w=t_cross, t=w_cross, l=t_cross, l1=l12_halving, l2=l12_halving);
 
     // mortise leg
     translate(v=[dx, 0, 0]) {
       color(c="sienna")
-        tenon(a=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l1_tenon, l2=0);
+        tenon(a=-a_tenon, w=w_cross, t=t_cross, l=w_leg, l1=l1_tenon, l2=0);
 
       if (show_leg)
         color(c="orange")
@@ -1176,7 +1183,7 @@ module stool() {
     translate(v=[-dx, 0, 0]) {
       color(c="rosybrown")
         mirror(v=[1, 0, 0])
-          tenon(a=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l1_tenon, l2=0, l_tenon=w_leg * 0.75);
+          tenon(a=-a_tenon, w=w_cross, t=t_cross, l=w_leg, l1=l1_tenon, l2=0, l_tenon=w_leg * 0.75);
 
       if (show_leg)
         color(c="orange")
@@ -1190,12 +1197,12 @@ module stool() {
     // cross
     color(c="peru")
       rotate(a=-90, v=[1, 0, 0])
-        halving(a=a_cross, d=w_cross, w=d_cross, l=d_cross, l1=l12_halving, l2=l12_halving, inner=false);
+        halving(a=a_cross, t=w_cross, w=t_cross, l=t_cross, l1=l12_halving, l2=l12_halving, inner=false);
 
     // fat tenon leg
     translate(v=[dx, 0, 0]) {
       color(c="chocolate")
-        tenon(a=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l1_tenon, l2=0, ratio=1 / 2);
+        tenon(a=-a_tenon, w=w_cross, t=t_cross, l=w_leg, l1=l1_tenon, l2=0, ratio=1 / 2);
 
       if (show_leg)
         color(c="orange")
@@ -1207,7 +1214,7 @@ module stool() {
     translate(v=[-dx, 0, 0]) {
       color(c="saddlebrown")
         mirror(v=[1, 0, 0])
-          tenon(a=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l1_tenon, l2=0, l_tenon=w_leg * 0.75);
+          tenon(a=-a_tenon, w=w_cross, t=t_cross, l=w_leg, l1=l1_tenon, l2=0, l_tenon=w_leg * 0.75);
 
       if (show_leg)
         color(c="orange")
@@ -1221,13 +1228,13 @@ module stool() {
     // cross
     color(c="burlywood")
       rotate(a=90, v=[1, 0, 0])
-        halving(a=a_cross, w=d_cross, d=w_cross, l=d_cross, l1=l12_halving, l2=l12_halving);
+        halving(a=a_cross, w=t_cross, t=w_cross, l=t_cross, l1=l12_halving, l2=l12_halving);
 
     // double mortise leg
     translate(v=[dx, 0, 0]) {
       color(c="sienna")
         tenon(
-          a=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l1_tenon, l2=0,
+          a=-a_tenon, w=w_cross, t=t_cross, l=w_leg, l1=l1_tenon, l2=0,
           ratios=[1 / 5, 2 / 5, 3 / 5, 4 / 5],
         );
 
@@ -1244,7 +1251,7 @@ module stool() {
       color(c="rosybrown")
         mirror(v=[1, 0, 0])
           tenon(
-            a=-a_tenon, w=w_cross, d=d_cross, l=w_leg, l1=l1_tenon, l2=0, l_tenon=w_leg * 1.75,
+            a=-a_tenon, w=w_cross, t=t_cross, l=w_leg, l1=l1_tenon, l2=0, l_tenon=w_leg * 1.75,
             ratios=[1 / 5, 2 / 5, 3 / 5, 4 / 5],
           );
 
@@ -1289,7 +1296,7 @@ module stool() {
 
     // dowels
     if (dowels) {
-      x_dowel = d_cross / 2 + l12_halving + l1_tenon + w_leg / 2;
+      x_dowel = t_cross / 2 + l12_halving + l1_tenon + w_leg / 2;
       l_dowel = w_cross * 1.5;
 
       rotate(a=90, v=[1, 0, 0]) {
