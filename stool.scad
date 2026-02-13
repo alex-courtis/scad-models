@@ -100,6 +100,9 @@ inner_dt = true;
 // accept large epsilon needed exposed joint when a != 0
 EPS_END = 2; // [0:1:100]
 
+// slow to render; doesn't result in any non-manifold issues
+FN_EDGE_SPHERE = 30; // [20:1:200]
+
 COL = [
   ["orange", "wheat"],
   ["navajowhite", "sienna"],
@@ -145,9 +148,9 @@ module joint_build(
       extrude_from_to(pt1=l[0], pt2=l[1])
         circle(r=r_edge);
       translate(v=l[0])
-        sphere(r=r_edge * 1.005);
+        sphere(r=r_edge, $fn=FN_EDGE_SPHERE);
       translate(v=l[1])
-        sphere(r=r_edge * 1.005);
+        sphere(r=r_edge, $fn=FN_EDGE_SPHERE);
     }
   }
 
@@ -158,10 +161,10 @@ module joint_build(
       translate(v=p)
         cylinder(r=r_edge, h=h);
       translate(v=p)
-        sphere(r=r_edge);
+        sphere(r=r_edge, $fn=FN_EDGE_SPHERE);
       translate(v=[0, 0, h])
         translate(v=p)
-          sphere(r=r_edge);
+          sphere(r=r_edge, $fn=FN_EDGE_SPHERE);
     }
   }
 
