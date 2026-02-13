@@ -1,5 +1,3 @@
-include <BOSL2/std.scad>
-
 /**
 Joints centred at the origin, shoulders along the y axis, length along the x axis measured to the midpoints of the shoulders.
 
@@ -54,9 +52,14 @@ test_stool = false;
 // -1 for all
 test_model = -1; // [-1:1:8]
 
+// explode up
 test_explode_z = 0; // [0:1:100]
 
-show_wastes = false;
+// joint waste
+show_waste_layers = false;
+
+// joint h and v edge lines
+show_waste_lines = false;
 
 /* [General Dimensions] */
 
@@ -148,37 +151,47 @@ module joint_build(
 
   // remove inner horizontal edges
   // cut out a cylinder and cap with spheres
-  // accept that a small epsilon is needed to ensure the sphere intersects with the cylinder cleanly
-  module edge_line(l) {
-    if (l[0] && l[1]) {
-      // TODO change to a cylinder to remove BOSL
-      extrude_from_to(pt1=l[0], pt2=l[1])
-        circle(r=r_edge);
-      translate(v=l[0])
+  module edge_line_(A, B) {
+    if (A && B) {
+      a = line_angle(A, B);
+      h = line_distance(A, B);
+      dx = (B[0] + A[0]) / 2;
+      dy = (B[1] + A[1]) / 2;
+
+      translate(v=[dx, dy, 0])
+        rotate(a=a, v=[0, 0, 1])
+          rotate(a=90, v=[0, 1, 0])
+            cylinder(r=r_edge, h=h, center=true);
+
+      translate(v=A)
         sphere(r=r_edge, $fn=FN_EDGE_SPHERE);
-      translate(v=l[1])
+      translate(v=B)
         sphere(r=r_edge, $fn=FN_EDGE_SPHERE);
     }
   }
+  module edge_line(A, B) if (show_waste_lines) #edge_line_(A, B); else edge_line_(A, B);
 
   // remove inner vertical edges
   // these will intersect with the spheres from the horizontals
-  module edge_point(p, h) {
-    if (p) {
-      translate(v=p)
+  module edge_point_(P, h) {
+    if (P) {
+      translate(v=P)
         cylinder(r=r_edge, h=h);
-      translate(v=p)
+      translate(v=P)
         sphere(r=r_edge, $fn=FN_EDGE_SPHERE);
       translate(v=[0, 0, h])
-        translate(v=p)
+        translate(v=P)
           sphere(r=r_edge, $fn=FN_EDGE_SPHERE);
     }
   }
+  module edge_point(P, h) if (show_waste_lines) #edge_point_(P, h); else edge_point_(P, h);
 
-  module waste(h, center) {
+  // waste a layer of thickness h
+  module waste_(h, center) {
     linear_extrude(h=h, center=center)
       polygon(waste);
   }
+  module waste(h, center) if (show_waste_layers) #waste_(h, center); else waste_(h, center);
 
   // material/waste bottom up from origin
   module waste_layers() {
@@ -189,7 +202,7 @@ module joint_build(
       t / 2,
     ];
 
-    // material/waste heights
+    // material/waste thicknesses
     zs = [
       for (i = [0:1:len(dzs) - 2]) dzs[i + 1] - dzs[i],
     ];
@@ -205,15 +218,15 @@ module joint_build(
 
         if (r_edge && edge_lines_h && i > 0)
           for (l = edge_lines_h)
-            edge_line(l=l);
+            edge_line(l[0], l[1]);
 
         if (r_edge && edge_points_v_waste && wasting)
           for (p = edge_points_v_waste)
-            edge_point(p=p, h=zs[i]);
+            edge_point(p, zs[i]);
 
         if (r_edge && edge_points_v_body && !wasting)
           for (p = edge_points_v_body)
-            edge_point(p=p, h=zs[i]);
+            edge_point(p, zs[i]);
       }
   }
 
@@ -223,14 +236,14 @@ module joint_build(
     if (r_edge && edge_points_v_waste)
       for (p = edge_points_v_waste)
         translate(v=[0, 0, -t / 2])
-          edge_point(p=p, h=t);
+          edge_point(p, t);
   }
 
   module waste_none() {
     if (r_edge && edge_points_v_body)
       for (p = edge_points_v_body)
         translate(v=[0, 0, -t / 2])
-          edge_point(p=p, h=t);
+          edge_point(p, t);
   }
 
   difference() {
@@ -241,15 +254,9 @@ module joint_build(
 
     // maybe waste
     if (waste_scope == "all") {
-      if (show_wastes)
-        #waste_all();
-      else
-        waste_all();
+      waste_all();
     } else if (waste_scope == "layers") {
-      if (show_wastes)
-        #waste_layers();
-      else
-        waste_layers();
+      waste_layers();
     } else {
       waste_none();
     }
@@ -346,6 +353,12 @@ function line_intersect(P1, a1, P2, a2) =
       x,
       y,
   ];
+
+// distance between two points
+function line_distance(A, B) = sqrt((B[0] - A[0]) ^ 2 + (B[1] - A[1]) ^ 2);
+
+// angle from x axis between two points
+function line_angle(A, B) = B[1] == A[1] ? 0 : atan((B[1] - A[1]) / (B[0] - A[0]));
 
 // print with cheek facing up
 module halving(
