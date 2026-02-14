@@ -92,14 +92,17 @@ eps_end = 2; // [0:1:100]
 fn_edge_sphere = 30; // [20:1:200]
 
 COL = [
-  ["orange", "wheat"],
-  ["navajowhite", "sienna"],
-  ["chocolate", "rosybrown"],
-  ["sandybrown", "brown"],
-  ["bisque", "darkgoldenrod"],
-  ["burlywood", "maroon"],
-  ["blanchedalmond", "peru"],
-  ["tan", "saddlebrown"],
+  ["orange", "wheat"], // 0
+  ["navajowhite", "sienna"], // 1
+  ["chocolate", "rosybrown"], // 2
+  ["sandybrown", "brown"], // 3
+  ["bisque", "darkgoldenrod"], // 4
+  ["burlywood", "maroon"], // 5
+  ["blanchedalmond", "peru"], // 6
+  ["tan", "saddlebrown"], // 7
+  ["lightsalmon", "indianred"], // 8
+  ["coral", "firebrick"], // 9
+  ["mistyrose", "orangered"], // 10
 ];
 
 /**

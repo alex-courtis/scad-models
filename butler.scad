@@ -14,7 +14,7 @@ show_waste_lines = false;
 show_leg = true;
 show_step_bottom = true;
 show_step_top = true;
-show_half = false;
+show_half = true;
 
 box = false;
 box_x = 250; // [0:1:800]
@@ -33,6 +33,9 @@ r_edge_dt = 0.5; // [0:0.5:5]
 
 scale = 1; // [0.1:0.01:1]
 
+l_tail_abs = 10; // [1:1:100]
+l_tail = l_tail_abs * scale;
+
 l_step_top_abs = 415; // [100:1:1000]
 w_step_top_abs = 147; // [50:1:500]
 w_step_bottom_abs = 147; // [50:1:500]
@@ -40,6 +43,7 @@ d_step_abs = 23; // [5:1:50]
 t_step_top_abs = 23; // [5:1:50]
 l_step_bottom_abs = 349; // [100:1:1000]
 d_leg_abs = 23; // [5:1:50]
+t_leg_abs = 23; // [5:1:50]
 dy_step_bottom_abs = 220; // [100:1:500]
 
 l_step_top = l_step_top_abs * scale;
@@ -49,6 +53,7 @@ d_step = d_step_abs * scale;
 t_step_top = t_step_top_abs * scale;
 l_step_bottom = l_step_bottom_abs * scale;
 d_leg = d_leg_abs * scale; // [5:1:50]
+t_leg = t_leg_abs * scale; // [5:1:50]
 dy_step_bottom = dy_step_bottom_abs * scale; // [100:1:500]
 
 h_dowel = 42; // [0:1:80]
@@ -127,29 +132,25 @@ a_leg_inner = 72.5;
 // DC from x axis
 a_leg_outer = 80;
 
-function leg_points() =
-  let (
-    A = [0, -t_step_top / 2],
-    B = [0, 80 * scale - t_step_top / 2],
-    E = [75 * scale, -t_step_top / 2],
-    D = [
-      cos(a_leg_outer) * 433 * scale + E[0],
-      sin(a_leg_outer) * 433 * scale - t_step_top / 2,
-    ],
-    C = line_intersect(P1=B, a1=a_leg_inner, P2=D, a2=0),
-  ) [
-      point_round(A),
-      point_round(B),
-      point_round(C),
-      point_round(D),
-      point_round(E),
-  ];
-ABCDE = leg_points();
+// ABCDE
+leg_points =
+let (
+  A = [0, -t_step_top / 2],
+  B = [0, 80 * scale - t_step_top / 2],
+  E = [75 * scale, -t_step_top / 2],
+  D = [
+    cos(a_leg_outer) * 433 * scale + E[0],
+    sin(a_leg_outer) * 433 * scale - t_step_top / 2,
+  ],
+  C = line_intersect(P1=B, a1=a_leg_inner, P2=D, a2=0),
+) [point_round(A), point_round(B), point_round(C), point_round(D), point_round(E)];
 
-x_max_leg = ABCDE[3][0] - ABCDE[0][0];
+echo(leg_points=leg_points);
+
+x_max_leg = leg_points[3][0] - leg_points[0][0];
 echo(x_max_leg=x_max_leg);
 
-y_max_leg = ABCDE[3][1] - ABCDE[0][1];
+y_max_leg = leg_points[3][1] - leg_points[0][1];
 echo(y_max_leg=y_max_leg);
 
 // extents from origin that will cover the model
@@ -371,21 +372,97 @@ module butler() {
   //   cube([bounding_x, bounding_y, bounding_z], center = false);
 }
 
-render() {
-  if (box) {
+module step_top_half() {
+  translate(v=[w_step_top / 2, 0, 0])
     intersection() {
-      #cube([box_x, box_y, box_z], center=true);
-      butler();
+
+      // body
+      // TODO z shift
+      translate(v=[0, 0, l_step_top / 8])
+        cube([w_step_top, t_step_top, l_step_top / 2], center=true);
+
+      // top tail covers body
+      rotate(a=90, v=[0, 1, 0])
+        mirror(v=[0, 1, 0])
+          dove_socket(
+            l=t_leg,
+            w=t_step_top,
+            l_tail=l_tail,
+            l1=l_step_top / 2,
+            l2=l_step_top / 2,
+            t=w_step_top * 2,
+            ratio=0,
+            d_dowel=0,
+          );
     }
-  } else {
-    butler();
+}
+
+module step_top() {
+  color(c=COL[9][1])
+    step_top_half();
+
+  if (!show_half)
+    translate(v=[0, 0, l_step_bottom])
+      mirror(v=[0, 0, 1])
+        color(c=COL[8][1])
+          step_top_half();
+}
+
+module leg1() {
+  intersection() {
+
+    // body
+    linear_extrude(h=t_leg, center=true)
+      polygon(leg_points);
+
+    // tail
+    translate(v=[x_max_leg / 2, 0, 0])
+      rotate(a=90, v=[0, 0, -1])
+        rotate(a=90, v=[1, 0, 0])
+          dove_tail(
+            w=t_leg,
+            l=t_step_top,
+            l_tail=l_tail,
+            l1=y_max_leg,
+            t=x_max_leg,
+            ratio=0,
+            d_dowel=0,
+          );
   }
+}
+
+module butler1() {
+  if (show_leg) {
+    translate(v=[0, 0, -explode])
+      color(COL[8][0])
+        leg1();
+
+    // color(COL[9][0])
+    //   leg();
+  }
+
+  if (show_step_top) {
+    step_top();
+  }
+}
+
+render() {
+  // if (box) {
+  //   intersection() {
+  //     #cube([box_x, box_y, box_z], center=true);
+  //     butler();
+  //   }
+  // } else {
+  //   butler();
+  // }
+
+  butler1();
 
   // difference() {
   //   translate(v=[0, 0, 5])
   //     linear_extrude(h=d_leg, center=true)
   //       polygon(leg_poly());
-  //   linear_extrude(h=d_leg, center=true)
-  //     polygon(leg_points());
+  //   linear_extrude(h=t_leg, center=true)
+  //     polygon(leg_points);
   // }
 }
