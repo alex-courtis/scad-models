@@ -36,16 +36,16 @@ d_dowel may be cut through the joint at origin.
 /* [Default Dimensions] */
 
 // -x
-l1 = 25; // [0:1:500]
+l1 = 25; // [1:1:500]
 
 // +x
-l2 = 25; // [0:1:500]
+l2 = 25; // [1:1:500]
 
 // y
-w = 20; // [0:1:500]
+w = 20; // [1:1:500]
 
 // z
-t = 10; // [0:1:500]
+t = 10; // [1:1:500]
 
 /* [Halving - 0.4 Nozzle Cheek Facing Up] */
 g_shoulder_halving = 0.004; // [0:0.001:2]
@@ -354,6 +354,13 @@ module halving(
   d_dowel = d_dowel_v,
   inner = false,
 ) {
+  assert(l > 0);
+  assert(w > 0);
+  assert(t > 0);
+  assert(g_shoulder >= 0);
+  assert(g_cheek >= 0);
+  assert(r_edge >= 0);
+  assert(d_dowel >= 0);
 
   body = skewed_rect(
     y1=w / 2,
@@ -417,6 +424,14 @@ module tenon(
   d_dowel = d_dowel_h,
   inner = true,
 ) {
+  assert(l > 0);
+  assert(w > 0);
+  assert(t > 0);
+  assert(g_shoulder >= 0);
+  assert(g_cheek >= 0);
+  assert(r_edge >= 0);
+  assert(d_dowel >= 0);
+
   blind = l_tenon && l_tenon < l && l2 == 0;
   exposed = l_tenon && l_tenon > l && l2 == 0;
 
@@ -490,6 +505,15 @@ module mortise(
   d_dowel = d_dowel_h,
   inner = false,
 ) {
+  assert(l > 0);
+  assert(w > 0);
+  assert(t > 0);
+  assert(g_shoulder >= 0);
+  assert(g_cheek >= 0);
+  assert(g_side >= 0);
+  assert(r_edge >= 0);
+  assert(d_dowel >= 0);
+
   blind = l_tenon && l_tenon < w;
 
   body = skewed_rect(
@@ -570,7 +594,6 @@ a_dov is BCS and TDA
 blind: ends at JK otherwise CD
 g_shoulder AB, half JK when blind 
 */
-// TODO w=0 fails
 module dove_tail(
   l = w, // of the socket
   l1 = l1,
@@ -586,6 +609,15 @@ module dove_tail(
   d_dowel = d_dowel_v,
   inner = true,
 ) {
+  assert(l > 0);
+  assert(w > 0);
+  assert(t > 0);
+  assert(a_tail > 0);
+  assert(g_shoulder >= 0);
+  assert(g_cheek >= 0);
+  assert(r_edge >= 0);
+  assert(d_dowel >= 0);
+
   blind = l_tail && l_tail > 0 && l_tail < l;
   tail_only = l1 == 0;
 
@@ -599,6 +631,7 @@ module dove_tail(
   );
   Q = QRBA[0];
   R = QRBA[1];
+  echo(QRBA=QRBA);
 
   ABCD = skewed_rect(
     y1=w / 2,
@@ -612,6 +645,7 @@ module dove_tail(
   B = ABCD[1];
   C = ABCD[2];
   D = ABCD[3];
+  echo(ABCD=ABCD);
 
   // AB <-> C
   S = line_intersect(P1=B, a1=90 - a, P2=C, a2=a_tail);
@@ -644,7 +678,7 @@ module dove_tail(
   waste = skewed_rect(
     y1=w / 2,
     y2=w / 2,
-    d1=l / 2 + (tail_only ? 0 : g_shoulder),
+    d1=l / 2 + (tail_only ? eps_end : g_shoulder),
     d2=l / 2 + g_shoulder + eps_end,
     a1=a,
     a2=a,
@@ -685,10 +719,9 @@ B-------------C---------------------------------D-------------E     ^
 A-------------R---------S-------------T---------U-------------F     -
 */
 
-// TODO w==0
 module dove_socket(
   l = w,
-  l1 = l1, // l1 and l2 must be nonzero
+  l1 = l1,
   l2 = l2,
   w = w,
   t = t,
@@ -703,6 +736,16 @@ module dove_socket(
   d_dowel = d_dowel_v,
   inner = false,
 ) {
+  assert(l > 0);
+  assert(w > 0);
+  assert(t > 0);
+  assert(a_tail > 0);
+  assert(g_shoulder >= 0);
+  assert(g_cheek >= 0);
+  assert(g_pin >= 0);
+  assert(r_edge >= 0);
+  assert(d_dowel >= 0);
+
   blind = l_tail && l_tail > 0 && l_tail < w;
 
   ABEF = [

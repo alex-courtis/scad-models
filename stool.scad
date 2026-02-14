@@ -11,18 +11,18 @@ l1 = 12; // [0:1:500]
 l2 = 12; // [0:1:500]
 
 // y
-w = 15; // [0:1:500]
+w = 15; // [1:1:500]
 
 // z
-t = 10; // [0:1:500]
+t = 10; // [1:1:500]
 
-/* [Halving Gaps - Large] */
+/* [Halving - Large Gaps] */
 a_halving = 0; // [-50:0.5:50]
 g_shoulder_halving = 0.1; // [0:0.001:2]
 g_cheek_halving = 0.1; // [0:0.001:2]
 r_edge_halving = 0.25; // [0:0.001:2]
 
-/* [Mortise And Tenon Gaps - Large] */
+/* [Mortise And Tenon - Large Gaps] */
 a_mortise = -8; // [-50:0.5:50]
 a_tenon = 8; // [-50:0.5:50]
 g_shoulder_mt = 0.1; // [0:0.001:2]
@@ -30,15 +30,15 @@ g_cheek_mt = 0.1; // [0:0.001:2]
 g_side_mt = 0.1; // [0:0.001:2]
 r_edge_mt = 0.25; // [0:0.001:2]
 
-/* [Dovetail Gaps - Large] */
+/* [Dovetail - Large Gaps] */
 a_dt = 0; // [-50:0.5:50]
-a_tail = 10; // [0:0.5:30]
+a_tail = 10; // [-10:0.5:30]
 g_shoulder_dt = 0.1; // [0:0.001:2]
 g_cheek_dt = 0.1; // [0:0.001:2]
 g_pin_dt = 0.1; // [0:0.001:2]
 r_edge_dt = 0.25; // [0:0.001:2]
 
-/* [Dowels] */
+/* [Dowels - Large] */
 
 d_dowel_v = 2; // [0:0.05:5]
 d_dowel_h = 3; // [0:0.05:5]
@@ -146,8 +146,8 @@ module test_dovetail() {
   a = a_dt + 4;
   a_tail = a_tail;
 
-  l_socket = w + 3;
-  w_socket = w - 1;
+  l_socket = w;
+  w_socket = w;
 
   l1_tail = l1;
   l_tail = w_socket * 5 / 7;
