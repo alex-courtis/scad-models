@@ -1,15 +1,16 @@
-include <stool.scad>
+include <lib/joints.scad>
 
-/* [Finishing] */
+/* [Debug] */
 
-scale = 0.4; // [0.1:0.01:1]
-d_dowel_v = 2.35; // [0:0.05:5]
-h_dowel = 42; // [0:1:80]
+// dowels
+show_dowel_waste = false;
 
-$fn = 200; // [1:1:2000]
+// joint waste
+show_waste_layers = false;
 
-/* [Testing] */
-show_wastes = false;
+// joint h and v edge lines
+show_waste_lines = false;
+
 show_leg = true;
 show_step_bottom = true;
 show_step_top = true;
@@ -22,12 +23,21 @@ box_z = 80; // [0:1:800]
 
 explode = 0; // [0:1:100]
 
+/* [Dovetail - Debug] */
+g_shoulder_dt = 1; // [0:0.5:5]
+g_cheek_dt = 1; // [0:0.5:5]
+g_pin_dt = 1; // [0:0.5:5]
+r_edge_dt = 0.5; // [0:0.5:5]
+
 /* [General Dimensions] */
+
+scale = 1; // [0.1:0.01:1]
 
 l_step_top_abs = 415; // [100:1:1000]
 w_step_top_abs = 147; // [50:1:500]
 w_step_bottom_abs = 147; // [50:1:500]
 d_step_abs = 23; // [5:1:50]
+t_step_top_abs = 23; // [5:1:50]
 l_step_bottom_abs = 349; // [100:1:1000]
 d_leg_abs = 23; // [5:1:50]
 dy_step_bottom_abs = 220; // [100:1:500]
@@ -36,23 +46,38 @@ l_step_top = l_step_top_abs * scale;
 w_step_top = w_step_top_abs * scale;
 w_step_bottom = w_step_bottom_abs * scale;
 d_step = d_step_abs * scale;
+t_step_top = t_step_top_abs * scale;
 l_step_bottom = l_step_bottom_abs * scale;
-d_leg =d_leg_abs * scale; // [5:1:50]
+d_leg = d_leg_abs * scale; // [5:1:50]
 dy_step_bottom = dy_step_bottom_abs * scale; // [100:1:500]
 
-a_leg_outer = 100;
-a_leg_inner = 162.5;
+h_dowel = 42; // [0:1:80]
 
-/* [Dovetail] */
+/** 
+            E-----A
+           /     / 
+          /      |
+         /      / 
+        /       | 
+       /       /  
+      /        |  
+     /        /   
+    /         |   
+   /         /    
+  /          |    
+ /          /    
+D           |
+|          /
+|          |
+|         /
+O---------B
+*/
 
-g_shoulder_dt = 0.035; // [0:0.001:5]
-g_cheek_dt = 0.12; // [0:0.001:5]
-g_pin_dt = 0.001; // [0:0.001:5]
-r_edge_dt = 0.25; // [0:0.001:5]
-a_tail = 10; // [0:0.5:30]
+// OBA
+alo = 100;
 
-/* [Hidden] */
-test = "none";
+// ODE
+ali = 162.5;
 
 // clockwise from origin
 function leg_poly() =
@@ -60,10 +85,10 @@ function leg_poly() =
     B = [75 * scale, 0],
     D = [0, 80 * scale],
     A = [
-      cos(180 - a_leg_outer) * 433 * scale + B[0],
-      sin(180 - a_leg_outer) * 433 * scale,
+      cos(180 - alo) * 433 * scale + B[0],
+      sin(180 - alo) * 433 * scale,
     ],
-    E = line_intersect(P1=D, a1=a_leg_inner - 90, P2=A, a2=0),
+    E = line_intersect(P1=D, a1=ali - 90, P2=A, a2=0),
   ) [
       [0, 0],
       D,
@@ -71,6 +96,61 @@ function leg_poly() =
       A,
       B,
   ];
+
+echo(leg_poly=leg_poly());
+
+/** 
+            C-----D
+           /     / 
+          /      |
+         /      / 
+        /       | 
+       /       /  
+      /        |  
+     M        N   
+    /         |   
+   /         /    
+  /          |    
+ /          /    
+B           |
+|          /
+O          |
+|         /
+A---------E
+
+OA is t_step_top / 2
+*/
+
+// AB from x axis
+a_leg_inner = 72.5;
+
+// DC from x axis
+a_leg_outer = 80;
+
+function leg_points() =
+  let (
+    A = [0, -t_step_top / 2],
+    B = [0, 80 * scale - t_step_top / 2],
+    E = [75 * scale, -t_step_top / 2],
+    D = [
+      cos(a_leg_outer) * 433 * scale + E[0],
+      sin(a_leg_outer) * 433 * scale - t_step_top / 2,
+    ],
+    C = line_intersect(P1=B, a1=a_leg_inner, P2=D, a2=0),
+  ) [
+      point_round(A),
+      point_round(B),
+      point_round(C),
+      point_round(D),
+      point_round(E),
+  ];
+ABCDE = leg_points();
+
+x_max_leg = ABCDE[3][0] - ABCDE[0][0];
+echo(x_max_leg=x_max_leg);
+
+y_max_leg = ABCDE[3][1] - ABCDE[0][1];
+echo(y_max_leg=y_max_leg);
 
 // extents from origin that will cover the model
 bounding_x = 300;
@@ -109,7 +189,7 @@ module step_half_bottom() {
               l=d_leg,
               l_tail=d_leg / 2,
               l1=(l_step_bottom - d_leg) / 2,
-              d=w_step_bottom,
+              t=w_step_bottom,
               ratio=0,
               d_dowel=0,
             );
@@ -126,14 +206,18 @@ module step_half_bottom() {
           }
 
           // shoulder gap with the inner angle
-          translate(v=[-g_shoulder_dt / cos(180 - a_leg_inner), -dy_step_bottom, d_step / 2])
+          translate(v=[-g_shoulder_dt / cos(180 - ali), -dy_step_bottom, d_step / 2])
             leg_body();
         }
       }
 
-      #translate(v=[0, 0, d_leg * 2])
-        rotate(a=90, v=[0, 1, 0])
-          cylinder(h=h_dowel, d=d_dowel_v, center=true);
+      translate(v=[0, 0, d_leg * 2])
+        rotate(a=90, v=[0, 1, 0]) {
+          if (show_dowel_waste)
+            #cylinder(h=h_dowel, d=d_dowel_v, center=true);
+          else
+            cylinder(h=h_dowel, d=d_dowel_v, center=true);
+        }
     }
   }
 }
@@ -175,7 +259,7 @@ module step_half_top() {
               l_tail=d_step / 2,
               l1=bounding_z,
               l2=bounding_z,
-              d=bounding_x * 2,
+              t=bounding_x * 2,
               ratio=0,
               d_dowel=0,
             );
@@ -184,15 +268,19 @@ module step_half_top() {
       // fill in slot beyond step with a shoulder gap
       difference() {
         body();
-		// x is exact, y not calculated and pushes it out a bit
-        translate(v=[g_shoulder_dt / sin(180 - a_leg_outer), -r_edge_dt, 0])
+        // x is exact, y not calculated and pushes it out a bit
+        translate(v=[g_shoulder_dt / sin(180 - alo), -r_edge_dt, 0])
           legs_hull();
       }
     }
 
-    #translate(v=[0, 0, d_leg * 2])
-      rotate(a=90, v=[0, 1, 0])
-        cylinder(h=h_dowel, d=d_dowel_v, center=true);
+    translate(v=[0, 0, d_leg * 2])
+      rotate(a=90, v=[0, 1, 0]) {
+        if (show_dowel_waste)
+          #cylinder(h=h_dowel, d=d_dowel_v, center=true);
+        else
+          cylinder(h=h_dowel, d=d_dowel_v, center=true);
+      }
   }
 }
 
@@ -221,7 +309,7 @@ module leg() {
               l_tail=d_leg / 2,
               l1=bounding_y,
               l2=bounding_y,
-              d=bounding_x * 2,
+              t=bounding_x * 2,
               ratio=0,
               d_dowel=0,
             );
@@ -234,18 +322,26 @@ module leg() {
             l=d_step,
             l_tail=d_step / 2,
             l1=bounding_y,
-            d=bounding_x * 2,
+            t=bounding_x * 2,
             ratio=0,
             d_dowel=0,
           );
     }
 
-    #translate(v=[0, d_step, 0])
-      rotate(a=90, v=[0, 1, 0])
-        cylinder(h=h_dowel, d=d_dowel_v, center=true);
-    #translate(v=[0, d_step * 3, 0])
-      rotate(a=90, v=[0, 1, 0])
-        cylinder(h=h_dowel, d=d_dowel_v, center=true);
+    translate(v=[0, d_step, 0])
+      rotate(a=90, v=[0, 1, 0]) {
+        if (show_dowel_waste)
+          #cylinder(h=h_dowel, d=d_dowel_v, center=true);
+        else
+          cylinder(h=h_dowel, d=d_dowel_v, center=true);
+      }
+    translate(v=[0, d_step * 3, 0])
+      rotate(a=90, v=[0, 1, 0]) {
+        if (show_dowel_waste)
+          #cylinder(h=h_dowel, d=d_dowel_v, center=true);
+        else
+          cylinder(h=h_dowel, d=d_dowel_v, center=true);
+      }
   }
 }
 
@@ -284,4 +380,12 @@ render() {
   } else {
     butler();
   }
+
+  // difference() {
+  //   translate(v=[0, 0, 5])
+  //     linear_extrude(h=d_leg, center=true)
+  //       polygon(leg_poly());
+  //   linear_extrude(h=d_leg, center=true)
+  //     polygon(leg_points());
+  // }
 }

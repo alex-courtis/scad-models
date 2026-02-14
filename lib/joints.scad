@@ -338,6 +338,8 @@ function line_distance(A, B) = sqrt((B[0] - A[0]) ^ 2 + (B[1] - A[1]) ^ 2);
 // angle from x axis between two points
 function line_angle(A, B) = B[1] == A[1] ? 0 : atan((B[1] - A[1]) / (B[0] - A[0]));
 
+function point_round(P) = [round(P[0]), round(P[1])];
+
 // print with cheek facing up
 module halving(
   l = w,
