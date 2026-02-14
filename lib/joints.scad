@@ -570,6 +570,7 @@ a_dov is BCS and TDA
 blind: ends at JK otherwise CD
 g_shoulder AB, half JK when blind 
 */
+// TODO w=0 fails
 module dove_tail(
   l = w, // of the socket
   l1 = l1,
@@ -586,6 +587,7 @@ module dove_tail(
   inner = true,
 ) {
   blind = l_tail && l_tail > 0 && l_tail < l;
+  tail_only = l1 == 0;
 
   QRBA = skewed_rect(
     y1=w / 2,
@@ -597,17 +599,17 @@ module dove_tail(
   );
   Q = QRBA[0];
   R = QRBA[1];
-  B = QRBA[2];
-  A = QRBA[3];
 
   ABCD = skewed_rect(
     y1=w / 2,
     y2=w / 2,
-    d1=l / 2 + g_shoulder,
+    d1=l / 2 + (tail_only ? 0 : g_shoulder),
     d2=l / 2,
     a1=a,
     a2=a,
   );
+  A = ABCD[0];
+  B = ABCD[1];
   C = ABCD[2];
   D = ABCD[3];
 
@@ -635,18 +637,22 @@ module dove_tail(
   K = blind ? line_intersect(P1=E, a1=90 - a, P2=D, a2=-a_tail) : undef;
 
   body =
-    blind ?
-      [A, Q, R, B, S, J, K, T]
-    : [A, Q, R, B, S, C, D, T];
+    tail_only ?
+      [S, blind ? J : C, blind ? K : D, T]
+    : [A, Q, R, B, S, blind ? J : C, blind ? K : D, T];
 
   waste = skewed_rect(
     y1=w / 2,
     y2=w / 2,
-    d1=l / 2 + g_shoulder,
+    d1=l / 2 + (tail_only ? 0 : g_shoulder),
     d2=l / 2 + g_shoulder + eps_end,
     a1=a,
     a2=a,
   );
+
+  edge_lines_h = tail_only ? undef : [[S, T]];
+
+  edge_points_v_body = tail_only ? undef : [S, T];
 
   joint_build(
     t=t,
@@ -657,8 +663,8 @@ module dove_tail(
     r_edge=r_edge,
     d_dowel=d_dowel,
     inner=inner,
-    edge_lines_h=[[S, T]],
-    edge_points_v_body=[S, T],
+    edge_lines_h=edge_lines_h,
+    edge_points_v_body=edge_points_v_body,
   );
 }
 
@@ -678,6 +684,8 @@ B-------------C---------------------------------D-------------E     ^
 |                      \               /                      |     |
 A-------------R---------S-------------T---------U-------------F     -
 */
+
+// TODO w==0
 module dove_socket(
   l = w,
   l1 = l1, // l1 and l2 must be nonzero
