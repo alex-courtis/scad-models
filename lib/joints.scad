@@ -631,7 +631,6 @@ module dove_tail(
   );
   Q = QRBA[0];
   R = QRBA[1];
-  echo(QRBA=QRBA);
 
   ABCD = skewed_rect(
     y1=w / 2,
@@ -645,7 +644,6 @@ module dove_tail(
   B = ABCD[1];
   C = ABCD[2];
   D = ABCD[3];
-  echo(ABCD=ABCD);
 
   // AB <-> C
   S = line_intersect(P1=B, a1=90 - a, P2=C, a2=a_tail);
