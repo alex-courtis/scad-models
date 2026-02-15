@@ -91,6 +91,9 @@ eps_end = 2; // [0:1:100]
 // spheres are slow to render
 fn_edge_sphere = 30; // [20:1:200]
 
+// keep this low as it can result in non-manfold problems when intersecting
+fn_edge_line = 16; // [20:1:200]
+
 COL = [
   ["orange", "wheat"], // 0
   ["navajowhite", "sienna"], // 1
@@ -142,7 +145,7 @@ module joint_build(
       translate(v=[dx, dy, 0])
         rotate(a=a, v=[0, 0, 1])
           rotate(a=90, v=[0, 1, 0])
-            cylinder(r=r_edge, h=h, center=true);
+            cylinder(r=r_edge, h=h, center=true, $fn=fn_edge_line);
 
       translate(v=A)
         sphere(r=r_edge, $fn=fn_edge_sphere);
@@ -156,7 +159,7 @@ module joint_build(
   // these will intersect with the spheres from the horizontals
   module edge_point_(P, h) {
     if (P) {
-      translate(v=P)
+      translate(v=P, $fn=fn_edge_line)
         cylinder(r=r_edge, h=h);
       translate(v=P)
         sphere(r=r_edge, $fn=fn_edge_sphere);
@@ -731,7 +734,7 @@ module dove_socket(
   a = 0,
   a_tail = a_tail,
   l_tail = undef, // length of the tail, < w for blind, ignored when > w
-  ratio = 1 / 2, // undef or 0 for no vertical waste
+  ratio = 1 / 2, // undef or 0 for all vertical waste
   g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
   g_cheek = g_cheek_dt, // half to each cheek
   g_pin = g_pin_dt, // one to each pin
