@@ -53,6 +53,12 @@ w_step_top = w_step_top_abs * scale;
 t_step_top_abs = 23; // [5:1:50]
 t_step_top = t_step_top_abs * scale;
 
+w_step_bottom_abs = 147; // [50:1:500]
+w_step_bottom = w_step_bottom_abs * scale;
+
+t_step_bottom_abs = 23; // [5:1:50]
+t_step_bottom = t_step_bottom_abs * scale;
+
 t_leg_abs = 23; // [5:1:50]
 t_leg = t_leg_abs * scale; // [5:1:50]
 
@@ -90,45 +96,39 @@ a_leg_inner = 72.5; // [60:1:90]
 // DC from x axis
 a_leg_outer = 80; // [70:1:90]
 
-_A = [0, -t_step_top / 2];
-A = point_round(_A);
+A = [0, -t_step_top / 2];
+echo(A=A);
 
-_B = [0, 80 * scale - t_step_top / 2];
-B = point_round(_B);
+B = [0, 80 * scale - t_step_top / 2];
+echo(B=B);
 
-_E = [75 * scale, A[1]];
-E = point_round(_E);
+E = [75 * scale, A[1]];
+echo(E=E);
 
-_D = [
-  cos(a_leg_outer) * 433 * scale + _E[0],
+D = [
+  cos(a_leg_outer) * 433 * scale + E[0],
   sin(a_leg_outer) * 433 * scale - t_step_top / 2,
 ];
-D = point_round(_D);
+echo(D=D);
 
-_C = line_intersect(P1=_B, a1=a_leg_inner, P2=_D, a2=0);
-C = point_round(_C);
+C = line_intersect(P1=B, a1=a_leg_inner, P2=D, a2=0);
+echo(C=C);
 
-// do not round as these should be exact as per rounded leg
 My = (C[1] + t_step_top / 2) / 2;
 M = line_intersect(P1=B, a1=a_leg_inner, P2=[0, My], a2=0);
-N = line_intersect(P1=E, a1=a_leg_outer, P2=[0, My], a2=0);
-Q = (M + N) / 2;
-
-echo(A=A);
-echo(B=B);
-echo(C=C);
-echo(D=D);
-echo(E=E);
 echo(M=M);
-echo(M=N);
+
+N = line_intersect(P1=E, a1=a_leg_outer, P2=[0, My], a2=0);
+echo(N=N);
+
+Q = (M + N) / 2;
 echo(Q=Q);
 
-// TODO are these necessary?
-x_max_leg = D[0] - A[0];
-echo(x_max_leg=x_max_leg);
+x_leg = D[0] - A[0];
+echo(x_leg=x_leg);
 
-y_max_leg = D[1] - A[1];
-echo(y_max_leg=y_max_leg);
+y_leg = D[1] - A[1];
+echo(y_leg=y_leg);
 
 module leg_poly() {
   polygon([A, B, C, D, E]);
@@ -138,7 +138,7 @@ module step_top_quarter() {
   intersection() {
 
     // body is joint covering entire leg x
-    translate(v=[x_max_leg / 2, 0, 0])
+    translate(v=[x_leg / 2, 0, 0])
       mirror(v=[0, 1, 0])
         rotate(a=90, v=[0, 1, 0])
           dove_socket(
@@ -147,7 +147,7 @@ module step_top_quarter() {
             l_tail=l_tail,
             l1=l_step_bottom / 2,
             l2=(l_step_top - l_step_bottom) / 2 - t_leg,
-            t=x_max_leg,
+            t=x_leg,
             ratio=0,
             d_dowel=0,
           );
@@ -186,7 +186,22 @@ module step_top() {
   }
 }
 
-module step_bottom_quarter(){}
+module step_bottom_quarter() {
+
+// TODO the shoulders do not line up
+
+  // body is halving joint covering entire leg x
+  translate(v=Q)
+    halving(
+      w=t_step_bottom,
+      l=(N - M) [0],
+      l1=M[0] + 10,
+      l2=w_step_bottom - N[0],
+      t=t_leg,
+      a=90 - a_leg_inner,
+      inner=true,
+    );
+}
 
 module step_bottom_half() {
   translate(v=[explode, explode, 0]) {
@@ -224,15 +239,15 @@ module leg() {
       leg_poly();
 
     // tail covers entire leg
-    translate(v=[x_max_leg / 2, 0, 0])
+    translate(v=[x_leg / 2, 0, 0])
       rotate(a=90, v=[0, 0, -1])
         rotate(a=90, v=[1, 0, 0])
           dove_tail(
             w=t_leg,
             l=t_step_top,
             l_tail=l_tail,
-            l1=y_max_leg,
-            t=x_max_leg,
+            l1=y_leg,
+            t=x_leg,
             ratio=0,
             d_dowel=0,
           );
@@ -241,10 +256,11 @@ module leg() {
     translate(v=Q)
       rotate(a=90)
         halving(
-          w=x_max_leg * 2,
+          l=t_step_bottom,
+          w=x_leg * 2,
           t=t_leg,
-          l1=y_max_leg,
-          l2=y_max_leg,
+          l1=y_leg,
+          l2=y_leg,
           inner=false,
         );
   }
@@ -281,8 +297,8 @@ module legs() {
 render() {
 
   if (show_points) {
+    d = 2;
     color(c="yellow") {
-      d = 2;
       translate(v=A)
         cylinder(d=d, h=t_leg * 2, center=true);
       translate(v=B)
@@ -298,6 +314,10 @@ render() {
       translate(v=N)
         cylinder(d=d, h=t_leg * 2, center=true);
       translate(v=Q)
+        cylinder(d=d, h=t_leg * 2, center=true);
+    }
+    color(c="red") {
+      translate(v=[x_leg, y_leg])
         cylinder(d=d, h=t_leg * 2, center=true);
     }
   }
