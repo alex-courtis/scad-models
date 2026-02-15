@@ -33,6 +33,14 @@ r_edge is a sphere capped cylinder usually cut into all concave edges along xy a
 d_dowel may be cut through the joint at origin.
 */
 
+/* [Debug] */
+
+// joint waste
+show_waste_layers = false;
+
+// joint h and v edge lines
+show_waste_lines = false;
+
 /* [Default Dimensions] */
 
 // -x
@@ -59,7 +67,7 @@ g_side_mt = 0.03; // [0:0.001:2]
 r_edge_mt = 0.35; // [0:0.001:2]
 
 /* [Dovetail - 0.4 Nozzle Cheek Facing Up] */
-a_tail = 10; // [0:0.5:30]
+a_tail = 10; // [1:0.5:30]
 g_shoulder_dt = 0.035; // [0:0.001:2]
 g_cheek_dt = 0.12; // [0:0.001:2]
 g_pin_dt = 0.001; // [0:0.001:2]
@@ -67,19 +75,11 @@ r_edge_dt = 0.25; // [0:0.001:2]
 
 /* [Dowels] */
 
-// for printing z (up), 0 for no dowel
-d_dowel_v = 2.35; // [0:0.05:5]
+// for printing z (up), 2.35, 0 for no dowel
+d_dowel_v = 0; // [0:0.05:5]
 
-// for printing x/y (across), 0 for no dowel
-d_dowel_h = 2.05; // [0:0.05:5]
-
-/* [Debug] */
-
-// joint waste
-show_waste_layers = false;
-
-// joint h and v edge lines
-show_waste_lines = false;
+// for printing x/y (across), 2.05, 0 for no dowel
+d_dowel_h = 0; // [0:0.05:5]
 
 /* [Tuning] */
 
