@@ -71,9 +71,9 @@ h_dowel = 42; // [0:1:80]
          /      / 
         /       | 
        /       /  
-      /        |  
+      R        |  
      M   Q    N   
-    /         |   
+    /         S   
    /         /    
   /          |    
  /          /    
@@ -88,6 +88,7 @@ A--------E
 OA is t_step_top / 2
 Mx == Qx == Nx
 My is a bit more than half Cy accounting for the floor being the "middle of a joint"
+QR is perpendicular to BC, QS to DE
 */
 
 // AB from x axis
@@ -124,6 +125,12 @@ echo(N=N);
 Q = (M + N) / 2;
 echo(Q=Q);
 
+R = line_intersect(P1=B, a1=a_leg_inner, P2=Q, a2=90 + a_leg_inner);
+echo(R=R);
+
+S = line_intersect(P1=E, a1=a_leg_outer, P2=Q, a2=90 + a_leg_outer);
+echo(S=S);
+
 x_leg = D[0] - A[0];
 echo(x_leg=x_leg);
 
@@ -136,6 +143,8 @@ module leg_poly() {
 
 module step_top_quarter() {
   intersection() {
+
+    // this would crash openscad starting at b8e0f1906, when the two legs were butted up against each other
 
     // body is joint covering entire leg x
     translate(v=[x_leg / 2, 0, 0])
@@ -188,17 +197,21 @@ module step_top() {
 
 module step_bottom_quarter() {
 
-// TODO the shoulders do not line up
+  // there are a lot of rounding errors here
+  l_inner = line_distance(R, Q);
+  l_outer = line_distance(S, Q);
+  dx = (l_outer - l_inner) / 2;
 
   // body is halving joint covering entire leg x
-  translate(v=Q)
+  translate(v=Q + [dx, 0])
     halving(
       w=t_step_bottom,
-      l=(N - M) [0],
-      l1=M[0] + 10,
+      l=l_inner + l_outer,
+      l1=M[0],
       l2=w_step_bottom - N[0],
       t=t_leg,
-      a=90 - a_leg_inner,
+      a1=90 - a_leg_inner,
+      a2=90 - a_leg_outer,
       inner=true,
     );
 }
@@ -299,22 +312,10 @@ render() {
   if (show_points) {
     d = 2;
     color(c="yellow") {
-      translate(v=A)
-        cylinder(d=d, h=t_leg * 2, center=true);
-      translate(v=B)
-        cylinder(d=d, h=t_leg * 2, center=true);
-      translate(v=C)
-        cylinder(d=d, h=t_leg * 2, center=true);
-      translate(v=D)
-        cylinder(d=d, h=t_leg * 2, center=true);
-      translate(v=E)
-        cylinder(d=d, h=t_leg * 2, center=true);
-      translate(v=M)
-        cylinder(d=d, h=t_leg * 2, center=true);
-      translate(v=N)
-        cylinder(d=d, h=t_leg * 2, center=true);
-      translate(v=Q)
-        cylinder(d=d, h=t_leg * 2, center=true);
+      for (p = [A, B, C, D, E, M, N, Q, R, S]) {
+        translate(v=p)
+          cylinder(d=d, h=t_leg * 2, center=true);
+      }
     }
     color(c="red") {
       translate(v=[x_leg, y_leg])
