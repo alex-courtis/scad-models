@@ -55,6 +55,14 @@ show_waste_lines = false;
 
 $fn = 200; // [10:1:1000]
 
+eps_end = 2; // [0:1:100]
+
+eps_r_sphere_ratio = 1.010; // [1:0.001:1.1]
+
+fn_edge_sphere = 24; // [1:1:200]
+
+fn_edge_line = 12; // [1:1:200]
+
 /* [Testing] */
 
 // explode up

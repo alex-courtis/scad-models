@@ -85,14 +85,17 @@ d_dowel_h = 0; // [0:0.05:5]
 
 $fn = 200; // [10:1:1000]
 
-// accept large epsilon needed exposed joint when a != 0
+// accept large epsilon needed for exposed joints when a != 0
 eps_end = 2; // [0:1:100]
 
+// accept small epsilon for edge spheres when vertices don't line up with the cylinder's, measured visually at fn_edge_sphere:24,fn_edge_line:12, r_edge_dt=0.05-0.5
+eps_r_sphere_ratio = 1.010; // [1:0.001:1.1]
+
 // spheres are slow to render
-fn_edge_sphere = 30; // [20:1:200]
+fn_edge_sphere = 24; // [1:1:200]
 
 // keep this low as it can result in non-manfold problems when intersecting
-fn_edge_line = 16; // [20:1:200]
+fn_edge_line = 12; // [1:1:200]
 
 COL = [
   ["orange", "wheat"], // 0
@@ -148,9 +151,9 @@ module joint_build(
             cylinder(r=r_edge, h=h, center=true, $fn=fn_edge_line);
 
       translate(v=A)
-        sphere(r=r_edge, $fn=fn_edge_sphere);
+        sphere(r=r_edge * eps_r_sphere_ratio, $fn=fn_edge_sphere);
       translate(v=B)
-        sphere(r=r_edge, $fn=fn_edge_sphere);
+        sphere(r=r_edge * eps_r_sphere_ratio, $fn=fn_edge_sphere);
     }
   }
   module edge_line(A, B) if (show_waste_lines) #edge_line_(A, B); else edge_line_(A, B);
@@ -162,10 +165,10 @@ module joint_build(
       translate(v=P, $fn=fn_edge_line)
         cylinder(r=r_edge, h=h);
       translate(v=P)
-        sphere(r=r_edge, $fn=fn_edge_sphere);
+        sphere(r=r_edge * eps_r_sphere_ratio, $fn=fn_edge_sphere);
       translate(v=[0, 0, h])
         translate(v=P)
-          sphere(r=r_edge, $fn=fn_edge_sphere);
+          sphere(r=r_edge * eps_r_sphere_ratio, $fn=fn_edge_sphere);
     }
   }
   module edge_point(P, h) if (show_waste_lines) #edge_point_(P, h); else edge_point_(P, h);
