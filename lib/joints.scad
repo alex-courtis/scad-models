@@ -357,6 +357,8 @@ module halving(
   w = w,
   t = t,
   a = 0,
+  a1 = undef, // overrides a
+  a2 = undef, // overrides a
   ratio = 1 / 2,
   ratios = undef, // overrides ratio
   g_shoulder = g_shoulder_halving, // one to each shoulder
@@ -378,8 +380,8 @@ module halving(
     y2=w / 2,
     d1=l1 ? (l / 2 + l1) : l / 2,
     d2=l2 ? (l / 2 + l2) : l / 2,
-    a1=l1 ? 0 : a,
-    a2=l2 ? 0 : a,
+    a1=l1 ? 0 : a1 ? a1 : a,
+    a2=l2 ? 0 : a2 ? a2 : a,
   );
 
   d1_waste =
@@ -395,8 +397,8 @@ module halving(
     y2=w / 2,
     d1=d1_waste,
     d2=d2_waste,
-    a1=a,
-    a2=a,
+    a1=a1 ? a1 : a,
+    a2=a2 ? a2 : a,
   );
 
   edge_lines_h = [
