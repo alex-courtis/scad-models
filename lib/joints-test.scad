@@ -18,30 +18,30 @@ t = 10; // [1:1:500]
 
 /* [Halving - Large Gaps] */
 a_halving = 0; // [-50:0.5:50]
-g_shoulder_halving = 0.1; // [0:0.001:2]
-g_cheek_halving = 0.1; // [0:0.001:2]
-r_edge_halving = 0.25; // [0:0.001:2]
+g_shoulder_halving = 0.5; // [0:0.001:2]
+g_cheek_halving = 0.5; // [0:0.001:2]
+r_edge_halving = 0.33; // [0:0.001:2]
 
 /* [Mortise And Tenon - Large Gaps] */
 a_mortise = -8; // [-50:0.5:50]
 a_tenon = 8; // [-50:0.5:50]
-g_shoulder_mt = 0.1; // [0:0.001:2]
-g_cheek_mt = 0.1; // [0:0.001:2]
-g_side_mt = 0.1; // [0:0.001:2]
-r_edge_mt = 0.25; // [0:0.001:2]
+g_shoulder_mt = 0.5; // [0:0.001:2]
+g_cheek_mt = 0.5; // [0:0.001:2]
+g_side_mt = 0.5; // [0:0.001:2]
+r_edge_mt = 0.33; // [0:0.001:2]
 
 /* [Dovetail - Large Gaps] */
 a_dt = 0; // [-50:0.5:50]
 a_tail = 10; // [-10:0.5:30]
-g_shoulder_dt = 0.1; // [0:0.001:2]
-g_cheek_dt = 0.1; // [0:0.001:2]
-g_pin_dt = 0.1; // [0:0.001:2]
-r_edge_dt = 0.25; // [0:0.001:2]
+g_shoulder_dt = 0.5; // [0:0.001:2]
+g_cheek_dt = 0.5; // [0:0.001:2]
+g_pin_dt = 0.5; // [0:0.001:2]
+r_edge_dt = 0.33; // [0:0.001:2]
 
 /* [Dowels - Large] */
 
-d_dowel_v = 2; // [0:0.05:5]
-d_dowel_h = 3; // [0:0.05:5]
+d_dowel_v = 2.5; // [0:0.05:5]
+d_dowel_h = 2.0; // [0:0.05:5]
 
 /* [Debug] */
 
@@ -111,7 +111,7 @@ module test_halving() {
     halving(inner=true, a=-a_halving);
 
     rotate(a=90 + a_halving)
-      halving();
+      halving(a=a_halving);
   }
 
   test_joint(m=1, dx=dx) {
@@ -125,7 +125,7 @@ module test_halving() {
     halving(inner=true, a=-a_halving, l2=0);
 
     rotate(a=90 + a_halving)
-      halving(l1=0);
+      halving(a=a_halving, l1=0);
   }
 
   test_joint(m=3, dx=dx) {
@@ -133,6 +133,32 @@ module test_halving() {
 
     rotate(a=90 - a)
       halving(a=-a, l2=0);
+  }
+
+  test_joint(m=4, dx=dx) {
+    halving(a=-a_halving, inner=true, l=w - 5, w=w + 5);
+
+    rotate(a=90 + a_halving)
+      halving(a=a_halving, l=w + 5, w=w - 5);
+  }
+
+  test_joint(m=5, dx=dx) {
+    halving(inner=true, a=a, l=w - 5, w=w + 5);
+
+    rotate(a=90 - a)
+      halving(a=-a, l=w + 5, w=w - 5);
+  }
+
+  test_joint(m=6, dx=dx) {
+    t_lower = t + 7;
+    dz_lower = ( -t + t_lower) / 2;
+    rat_lower = t / 2 / t_lower;
+
+    halving(inner=true, a=a, l=w - 5, w=w + 5);
+
+    rotate(a=90 - a)
+      translate(v=[0, 0, dz_lower])
+        halving(a=-a, l=w + 5, w=w - 5, t=t_lower, ratio=rat_lower);
   }
 }
 
