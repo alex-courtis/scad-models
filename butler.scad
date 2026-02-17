@@ -47,9 +47,6 @@ l_step_top = l_step_top_abs * scale;
 l_step_bottom_abs = 327; // [100:1:1000]
 l_step_bottom = l_step_bottom_abs * scale;
 
-w_step_top_abs = 147; // [50:1:500]
-w_step_top = w_step_top_abs * scale;
-
 t_step_top_abs = 23; // [5:1:50]
 t_step_top = t_step_top_abs * scale;
 
@@ -64,8 +61,8 @@ t_leg = t_leg_abs * scale; // [5:1:50]
 
 ratio_leg_halving = 0.6; // [0.1:0.01:0.9]
 
-h_dowel = 42; // [0:1:80]
-d_dowel = 2.35; // [0:0.05:5]
+h_dowel = 32; // [0:1:80]
+d_dowel = 2.25; // [0:0.05:5]
 
 /** 
             C-----D

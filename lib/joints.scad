@@ -55,6 +55,8 @@ w = 20; // [1:1:500]
 // z
 t = 10; // [1:1:500]
 
+// TODO some toggle for big gaps for debugging
+
 /* [Halving - 0.4 Nozzle Cheek Facing Up] */
 g_shoulder_halving = 0.004; // [0:0.001:2]
 g_cheek_halving = 0.12; // [0:0.001:2]
