@@ -65,6 +65,7 @@ t_leg = t_leg_abs * scale; // [5:1:50]
 ratio_leg_halving = 0.3; // [0.1:0.01:0.9]
 
 h_dowel = 42; // [0:1:80]
+d_dowel = 2.35; // [0:0.05:5]
 
 /** 
             C-----D
@@ -134,6 +135,15 @@ echo(y_leg=y_leg);
 
 module leg_poly() {
   polygon([A, B, C, D, E]);
+}
+
+module dowel() {
+  rotate(a=90, v=[0, 1, 0]) {
+    if (show_dowel_waste)
+      #cylinder(h=h_dowel, d=d_dowel, center=true);
+    else
+      cylinder(h=h_dowel, d=d_dowel, center=true);
+  }
 }
 
 module step_top_quarter() {
@@ -207,33 +217,43 @@ module step_bottom_quarter() {
   t = t_leg + l_step_bottom / 2;
   ratio = t_leg * ratio_leg_halving / t;
 
-  translate(v=[Q[0], Q[1], l_step_bottom / 4]) {
+  // move down
+  translate(v=[0, Q[1], 0]) {
+    difference() {
 
-    // inner halving
-    halving(
-      w=t_step_bottom,
-      l=l_inner,
-      l1=l1_inner,
-      l2=l_bridge,
-      t=t,
-      a1=90 - a_leg_inner,
-      a2=90 - a_leg_outer,
-      inner=true,
-      ratio=ratio,
-    );
+      // move to joint centre
+      translate(v=[Q[0], 0, l_step_bottom / 4]) {
 
-    // outer halving
-    halving(
-      w=t_step_bottom,
-      l=l_outer,
-      l1=l_bridge,
-      l2=l2_outer,
-      t=t,
-      a1=90 - a_leg_inner,
-      a2=90 - a_leg_outer,
-      inner=true,
-      ratio=ratio,
-    );
+        // inner halving
+        halving(
+          w=t_step_bottom,
+          l=l_inner,
+          l1=l1_inner,
+          l2=l_bridge,
+          t=t,
+          a1=90 - a_leg_inner,
+          a2=90 - a_leg_outer,
+          inner=true,
+          ratio=ratio,
+        );
+
+        // outer halving
+        halving(
+          w=t_step_bottom,
+          l=l_outer,
+          l1=l_bridge,
+          l2=l2_outer,
+          t=t,
+          a1=90 - a_leg_inner,
+          a2=90 - a_leg_outer,
+          inner=true,
+          ratio=ratio,
+        );
+      }
+
+      translate(v=[0, 0, t_leg * 1.5])
+        dowel();
+    }
   }
 }
 
@@ -266,38 +286,46 @@ module step_bottom() {
 }
 
 module leg() {
-  intersection() {
+  difference() {
+    intersection() {
 
-    // body
-    linear_extrude(h=t_leg, center=true)
-      leg_poly();
+      // body
+      linear_extrude(h=t_leg, center=true)
+        leg_poly();
 
-    // tail covers entire leg
-    translate(v=[x_leg / 2, 0, 0])
-      rotate(a=90, v=[0, 0, -1])
-        rotate(a=90, v=[1, 0, 0])
-          dove_tail(
-            w=t_leg,
-            l=t_step_top,
-            l_tail=l_tail,
+      // tail covers entire leg
+      translate(v=[x_leg / 2, 0, 0])
+        rotate(a=90, v=[0, 0, -1])
+          rotate(a=90, v=[1, 0, 0])
+            dove_tail(
+              w=t_leg,
+              l=t_step_top,
+              l_tail=l_tail,
+              l1=y_leg,
+              t=x_leg,
+              ratio=0,
+              d_dowel=0,
+            );
+
+      // halving covers entire leg
+      translate(v=Q)
+        rotate(a=90)
+          halving(
+            l=t_step_bottom,
+            w=x_leg * 2,
+            t=t_leg,
             l1=y_leg,
-            t=x_leg,
-            ratio=0,
-            d_dowel=0,
+            l2=y_leg,
+            inner=false,
+            ratio=ratio_leg_halving,
           );
+    }
 
-    // halving covers entire leg
-    translate(v=Q)
-      rotate(a=90)
-        halving(
-          l=t_step_bottom,
-          w=x_leg * 2,
-          t=t_leg,
-          l1=y_leg,
-          l2=y_leg,
-          inner=false,
-          ratio=ratio_leg_halving,
-        );
+    translate(v=[0, t_step_top, 0])
+      dowel();
+
+    translate(v=[0, 2.5 * t_step_top, 0])
+      dowel();
   }
 }
 
