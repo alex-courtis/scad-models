@@ -190,15 +190,18 @@ module step_top() {
 
 module step_bottom_quarter() {
 
-  // maths is hard with compound angles, build it out of two half halvings
+  // body between legs
+  translate(v=[0, Q[1] - t_step_bottom / 2, t_leg / 2])
+    cube([w_step_bottom, t_step_bottom, l_step_bottom / 2 + 2], center=false);
 
+  // maths is hard with compound angles, build it out of two half halvings
   l_inner = (Q - M) [0] * sin(a_leg_inner);
   l1_inner = Q[0] - l_inner;
 
   l_outer = (N - Q) [0] * sin(a_leg_outer);
   l2_outer = w_step_bottom - l_outer - l_inner - l1_inner;
 
-  // inner body
+  // inner halving
   translate(v=Q)
     halving(
       w=t_step_bottom,
@@ -211,7 +214,7 @@ module step_bottom_quarter() {
       inner=true,
     );
 
-  // outer body
+  // outer halving
   translate(v=Q)
     halving(
       w=t_step_bottom,
