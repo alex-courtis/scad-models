@@ -71,9 +71,9 @@ h_dowel = 42; // [0:1:80]
          /      / 
         /       | 
        /       /  
-      R        |  
+      /        |  
      M   Q    N   
-    /         S   
+    /         |   
    /         /    
   /          |    
  /          /    
@@ -88,7 +88,6 @@ A--------E
 OA is t_step_top / 2
 Mx == Qx == Nx
 My is a bit more than half Cy accounting for the floor being the "middle of a joint"
-QR is perpendicular to BC, QS to DE
 */
 
 // AB from x axis
@@ -124,12 +123,6 @@ echo(N=N);
 
 Q = (M + N) / 2;
 echo(Q=Q);
-
-R = line_intersect(P1=B, a1=a_leg_inner, P2=Q, a2=90 + a_leg_inner);
-echo(R=R);
-
-S = line_intersect(P1=E, a1=a_leg_outer, P2=Q, a2=90 + a_leg_outer);
-echo(S=S);
 
 x_leg = D[0] - A[0];
 echo(x_leg=x_leg);
@@ -198,10 +191,11 @@ module step_top() {
 module step_bottom_quarter() {
 
   // maths is hard with compound angles, build it out of two half halvings
-  l_inner = line_distance(R, Q);
-  l_outer = line_distance(S, Q);
 
+  l_inner = (Q - M) [0] * sin(a_leg_inner);
   l1_inner = Q[0] - l_inner;
+
+  l_outer = (N - Q) [0] * sin(a_leg_outer);
   l2_outer = w_step_bottom - l_outer - l_inner - l1_inner;
 
   // inner body
