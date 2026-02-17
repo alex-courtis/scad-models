@@ -197,18 +197,33 @@ module step_top() {
 
 module step_bottom_quarter() {
 
-  // there are a lot of rounding errors here
+  // maths is hard with compound angles, build it out of two half halvings
   l_inner = line_distance(R, Q);
   l_outer = line_distance(S, Q);
-  dx = (l_outer - l_inner) / 2;
 
-  // body is halving joint covering entire leg x
-  translate(v=Q + [dx, 0])
+  l1_inner = Q[0] - l_inner;
+  l2_outer = w_step_bottom - l_outer - l_inner - l1_inner;
+
+  // inner body
+  translate(v=Q)
     halving(
       w=t_step_bottom,
-      l=l_inner + l_outer,
-      l1=M[0],
-      l2=w_step_bottom - N[0],
+      l=l_inner * 2,
+      l1=l1_inner,
+      l2=-l_inner,
+      t=t_leg,
+      a1=90 - a_leg_inner,
+      a2=90 - a_leg_outer,
+      inner=true,
+    );
+
+  // outer body
+  translate(v=Q)
+    halving(
+      w=t_step_bottom,
+      l=l_outer * 2,
+      l1=-l_outer,
+      l2=l2_outer,
       t=t_leg,
       a1=90 - a_leg_inner,
       a2=90 - a_leg_outer,
