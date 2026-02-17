@@ -23,7 +23,7 @@ g_shoulder_halving = 0.004; // [0:0.001:2]
 g_cheek_halving = 0.15; // [0:0.001:2]
 r_edge_halving = 0.20; // [0:0.001:2]
 
-/* [Dovetail - 0.4 Nozzle Cheek Facing Up] */
+/* [Dovetail] */
 a_tail = 10; // [1:0.5:30]
 g_shoulder_dt = 0.020; // [0:0.001:2]
 g_cheek_dt = 0.06; // [0:0.001:2]
@@ -154,17 +154,14 @@ module step_top_quarter() {
 }
 
 module step_top_half() {
-  translate(v=[explode, -explode, 0]) {
+  color(c=COL[2][0])
+    step_top_quarter();
 
-    color(c=COL[2][0])
-      step_top_quarter();
-
-    if (show == "half" || show == "whole") {
-      translate(v=[0, 0, l_step_bottom + t_leg])
-        mirror(v=[0, 0, 1])
-          color(c=COL[2][1])
-            step_top_quarter();
-    }
+  if (show == "half" || show == "whole") {
+    translate(v=[0, 0, l_step_bottom + t_leg])
+      mirror(v=[0, 0, 1])
+        color(c=COL[2][1])
+          step_top_quarter();
   }
 }
 
@@ -229,17 +226,14 @@ module step_bottom_quarter() {
 }
 
 module step_bottom_half() {
-  translate(v=[explode, explode, 0]) {
+  color(c=COL[0][0])
+    step_bottom_quarter();
 
-    color(c=COL[0][0])
-      step_bottom_quarter();
-
-    if (show == "half" || show == "whole") {
-      translate(v=[0, 0, l_step_bottom + t_leg])
-        mirror(v=[0, 0, 1])
-          color(c=COL[0][1])
-            step_bottom_quarter();
-    }
+  if (show == "half" || show == "whole") {
+    translate(v=[0, 0, l_step_bottom + t_leg])
+      mirror(v=[0, 0, 1])
+        color(c=COL[0][1])
+          step_bottom_quarter();
   }
 }
 
@@ -293,16 +287,14 @@ module leg() {
 
 module legs_half() {
   translate(v=[explode, 0, 0]) {
-    translate(v=[0, 0, -explode])
-      color(COL[1][0])
-        leg();
+    color(COL[1][0])
+      leg();
 
     if (show == "half" || show == "whole") {
-      translate(v=[0, 0, explode])
-        translate(v=[0, 0, l_step_bottom + t_leg])
-          mirror(v=[0, 0, 1])
-            color(COL[1][1])
-              leg();
+      translate(v=[0, 0, l_step_bottom + t_leg])
+        mirror(v=[0, 0, 1])
+          color(COL[1][1])
+            leg();
     }
   }
 }
