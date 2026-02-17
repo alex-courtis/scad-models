@@ -21,23 +21,23 @@ show_points = false;
 
 explode = 0; // [0:1:100]
 
-/* [Halving - Debug] */
-g_shoulder_halving = 1; // [0:0.5:5]
-g_cheek_halving = 1; // [0:0.5:5]
-r_edge_halving = 0.5; // [0:0.5:5]
+/* [Halving - 0.4 Nozzle Cheek Facing Up] */
+g_shoulder_halving = 0.004; // [0:0.001:2]
+g_cheek_halving = 0.12; // [0:0.001:2]
+r_edge_halving = 0.15; // [0:0.001:2]
 
-/* [Dovetail - Debug] */
+/* [Dovetail - 0.4 Nozzle Cheek Facing Up] */
 a_tail = 10; // [1:0.5:30]
-g_shoulder_dt = 1; // [0:0.5:5]
-g_cheek_dt = 1; // [0:0.5:5]
-g_pin_dt = 1; // [0:0.5:5]
-r_edge_dt = 0.5; // [0:0.5:5]
+g_shoulder_dt = 0.035; // [0:0.001:2]
+g_cheek_dt = 0.12; // [0:0.001:2]
+g_pin_dt = 0.001; // [0:0.001:2]
+r_edge_dt = 0.25; // [0:0.001:2]
 
 /* [General Dimensions] */
 
-scale = 1; // [0.1:0.01:1]
+scale = 0.4; // [0.1:0.01:1]
 
-l_tail_abs = 10; // [0:0.5:100]
+l_tail_abs = 11; // [0:0.5:100]
 l_tail = l_tail_abs * scale;
 
 l_step_top_abs = 415; // [100:1:1000]
@@ -62,7 +62,7 @@ t_step_bottom = t_step_bottom_abs * scale;
 t_leg_abs = 23; // [5:1:50]
 t_leg = t_leg_abs * scale; // [5:1:50]
 
-ratio_leg_halving = 0.3; // [0.1:0.01:0.9]
+ratio_leg_halving = 0.6; // [0.1:0.01:0.9]
 
 h_dowel = 42; // [0:1:80]
 d_dowel = 2.35; // [0:0.05:5]
@@ -362,7 +362,7 @@ render() {
   if (show_points) {
     d = 2;
     color(c="yellow") {
-      for (p = [A, B, C, D, E, M, N, Q, R, S]) {
+      for (p = [A, B, C, D, E, M, N, Q]) {
         translate(v=p)
           cylinder(d=d, h=t_leg * 2, center=true);
       }
