@@ -62,6 +62,8 @@ t_step_bottom = t_step_bottom_abs * scale;
 t_leg_abs = 23; // [5:1:50]
 t_leg = t_leg_abs * scale; // [5:1:50]
 
+ratio_leg_halving = 0.3; // [0.1:0.01:0.9]
+
 h_dowel = 42; // [0:1:80]
 
 /** 
@@ -190,42 +192,49 @@ module step_top() {
 
 module step_bottom_quarter() {
 
-  // body between legs
-  translate(v=[0, Q[1] - t_step_bottom / 2, t_leg / 2])
-    cube([w_step_bottom, t_step_bottom, l_step_bottom / 2 + 2], center=false);
-
   // maths is hard with compound angles, build it out of two half halvings
-  l_inner = (Q - M) [0] * sin(a_leg_inner);
-  l1_inner = Q[0] - l_inner;
+  l_inner = (Q - M) [0] * sin(a_leg_inner) * 2;
+  l_outer = (N - Q) [0] * sin(a_leg_outer) * 2;
 
-  l_outer = (N - Q) [0] * sin(a_leg_outer);
-  l2_outer = w_step_bottom - l_outer - l_inner - l1_inner;
+  // from 0 to w_step_bottom
+  l1_inner = Q[0] - l_inner / 2;
+  l2_outer = w_step_bottom - l_outer / 2 - l_inner / 2 - l1_inner;
 
-  // inner halving
-  translate(v=Q)
+  // covers inner and outer
+  l_bridge = -min(l_outer, l_inner) / 2;
+
+  // entire length
+  t = t_leg + l_step_bottom / 2;
+  ratio = t_leg * ratio_leg_halving / t;
+
+  translate(v=[Q[0], Q[1], l_step_bottom / 4]) {
+
+    // inner halving
     halving(
       w=t_step_bottom,
-      l=l_inner * 2,
+      l=l_inner,
       l1=l1_inner,
-      l2=-l_inner,
-      t=t_leg,
+      l2=l_bridge,
+      t=t,
       a1=90 - a_leg_inner,
       a2=90 - a_leg_outer,
       inner=true,
+      ratio=ratio,
     );
 
-  // outer halving
-  translate(v=Q)
+    // outer halving
     halving(
       w=t_step_bottom,
-      l=l_outer * 2,
-      l1=-l_outer,
+      l=l_outer,
+      l1=l_bridge,
       l2=l2_outer,
-      t=t_leg,
+      t=t,
       a1=90 - a_leg_inner,
       a2=90 - a_leg_outer,
       inner=true,
+      ratio=ratio,
     );
+  }
 }
 
 module step_bottom_half() {
@@ -287,6 +296,7 @@ module leg() {
           l1=y_leg,
           l2=y_leg,
           inner=false,
+          ratio=ratio_leg_halving,
         );
   }
 }
