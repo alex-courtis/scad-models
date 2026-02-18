@@ -36,10 +36,10 @@ d_dowel may be cut through the joint at origin.
 /* [Debug] */
 
 // joint waste
-show_waste_layers = false;
+debug_waste_layers = false;
 
 // joint h and v edge lines
-show_waste_lines = false;
+debug_waste_lines = false;
 
 // large gaps, edges and dowels
 grd_debug = false;
@@ -168,7 +168,7 @@ module joint_build(
         sphere(r=r_edge * eps_r_sphere_ratio, $fn=fn_edge_sphere);
     }
   }
-  module edge_line(A, B) if (show_waste_lines) #edge_line_(A, B); else edge_line_(A, B);
+  module edge_line(A, B) if (debug_waste_lines) #edge_line_(A, B); else edge_line_(A, B);
 
   // remove inner vertical edges
   // these will intersect with the spheres from the horizontals
@@ -183,14 +183,14 @@ module joint_build(
           sphere(r=r_edge * eps_r_sphere_ratio, $fn=fn_edge_sphere);
     }
   }
-  module edge_point(P, h) if (show_waste_lines) #edge_point_(P, h); else edge_point_(P, h);
+  module edge_point(P, h) if (debug_waste_lines) #edge_point_(P, h); else edge_point_(P, h);
 
   // waste a layer of thickness h
   module waste_(h, center) {
     linear_extrude(h=h, center=center)
       polygon(waste);
   }
-  module waste(h, center) if (show_waste_layers) #waste_(h, center); else waste_(h, center);
+  module waste(h, center) if (debug_waste_layers) #waste_(h, center); else waste_(h, center);
 
   // material/waste bottom up from origin
   module waste_layers() {

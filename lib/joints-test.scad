@@ -3,10 +3,10 @@ include <joints.scad>
 /* [Debug] */
 
 // joint waste
-show_waste_layers = false;
+debug_waste_layers = false;
 
 // joint h and v edge lines
-show_waste_lines = false;
+debug_waste_lines = false;
 
 // large gaps, edges and dowels
 grd_debug = true;

@@ -3,10 +3,22 @@ include <lib/joints.scad>
 /* [Debug] */
 
 // joint waste
-show_waste_layers = false;
+debug_waste_layers = false;
 
 // joint h and v edge lines
-show_waste_lines = false;
+debug_waste_lines = false;
+
+// large gaps, edges and dowels
+grd_debug = false;
+
+// large gaps
+g_debug = 1; // [0:0.1:5]
+
+// large edges
+r_edge_debug = 0.5; // [0:0.1:5]
+
+// large dowels
+d_dowel_debug = 2; // [0:0.1:5]
 
 show_leg = true;
 show_step_bottom = true;
