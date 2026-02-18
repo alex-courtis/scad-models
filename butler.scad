@@ -23,12 +23,13 @@ d_dowel_debug = 2; // [0:0.1:5]
 show_leg = true;
 show_step_bottom = true;
 show_step_top = true;
+show_floating_tenon = true;
 
 show = "quarter"; // ["quarter", "half", "whole"]
 
 show_points = false;
 
-explode = 0; // [0:1:100]
+explode = 0; // [0:1:200]
 
 /* [Halving] */
 g_shoulder_halving = 0.004; // [0:0.001:2]
@@ -41,6 +42,12 @@ g_shoulder_dt = 0.020; // [0:0.001:2]
 g_cheek_dt = 0.06; // [0:0.001:2]
 g_pin_dt = 0.001; // [0:0.001:2]
 r_edge_dt = 0.25; // [0:0.001:2]
+
+/* [Mortise And Tenon ] */
+g_shoulder_mt = 0.07; // [0:0.001:2]
+g_cheek_mt = 0.08; // [0:0.001:2]
+g_side_mt = 0.03; // [0:0.001:2]
+r_edge_mt = 0.35; // [0:0.001:2]
 
 /* [General Dimensions] */
 
@@ -135,6 +142,13 @@ echo(x_leg=x_leg);
 
 y_leg = D[1] - A[1];
 echo(y_leg=y_leg);
+
+// end to end
+l_floating_tenon = (E - A) [0];
+echo(l_floating_tenon=l_floating_tenon);
+
+w_floating_tenon = B[1] / 2 - l_tail / 2;
+echo(w_floating_tenon=w_floating_tenon);
 
 module leg_poly() {
   polygon([A, B, C, D, E]);
@@ -262,6 +276,39 @@ module step_bottom() {
   }
 }
 
+module floating_tenon_quarter() {
+  translate(v=[l_floating_tenon / 2, w_floating_tenon + l_tail, 0])
+    tenon(
+      w=w_floating_tenon,
+      l=l_floating_tenon,
+      l_tenon=l_floating_tenon / 2,
+      t=t_leg,
+      l1=0,
+      l2=0,
+    );
+}
+module floating_tenon_half() {
+  color(COL[3][0])
+    floating_tenon_quarter();
+
+  if (show == "whole") {
+    mirror(v=[1, 0, 0])
+      color(COL[3][1])
+        floating_tenon_quarter();
+  }
+}
+
+module floating_tenon() {
+  if (show_floating_tenon) {
+    floating_tenon_half();
+
+    if (show == "half" || show == "whole") {
+      translate(v=[0, 0, l_step_bottom + t_leg])
+        floating_tenon_half();
+    }
+  }
+}
+
 module leg() {
   intersection() {
 
@@ -293,6 +340,18 @@ module leg() {
           l2=y_leg,
           inner=false,
           ratio=ratio_leg_halving,
+        );
+
+    // mortise covers entire leg
+    translate(v=[x_leg / 2, w_floating_tenon + l_tail, 0])
+      rotate(a=90, v=[0, 0, 1])
+        mortise(
+          w=x_leg,
+          l=w_floating_tenon,
+          l_tenon=l_floating_tenon / 2,
+          t=t_leg,
+          l1=y_leg,
+          l2=y_leg,
         );
   }
 }
@@ -340,6 +399,7 @@ render() {
   }
 
   legs();
+  floating_tenon();
   step_top();
   step_bottom();
 }
