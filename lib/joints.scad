@@ -41,6 +41,18 @@ show_waste_layers = false;
 // joint h and v edge lines
 show_waste_lines = false;
 
+// large gaps, edges and dowels
+grd_debug = false;
+
+// large gaps
+g_debug = 1; // [0:0.1:5]
+
+// large edges
+r_edge_debug = 0.5; // [0:0.1:5]
+
+// large dowels
+d_dowel_debug = 2; // [0:0.1:5]
+
 /* [Default Dimensions] */
 
 // -x
@@ -54,8 +66,6 @@ w = 20; // [1:1:500]
 
 // z
 t = 10; // [1:1:500]
-
-// TODO some toggle for big gaps for debugging
 
 /* [Halving - 0.4 Nozzle Cheek Facing Up] */
 g_shoulder_halving = 0.004; // [0:0.001:2]
@@ -377,48 +387,56 @@ module halving(
   assert(r_edge >= 0);
   assert(d_dowel >= 0);
 
-  body = skewed_rect(
-    y1=w / 2,
-    y2=w / 2,
-    d1=l1 ? (l / 2 + l1) : l / 2,
-    d2=l2 ? (l / 2 + l2) : l / 2,
-    a1=l1 ? 0 : a1 ? a1 : a,
-    a2=l2 ? 0 : a2 ? a2 : a,
-  );
+  let (
+    g_shoulder = grd_debug ? g_debug : g_shoulder,
+    g_cheek = grd_debug ? g_debug : g_cheek,
+    r_edge = grd_debug ? r_edge_debug : r_edge,
+	d_dowel = grd_debug ? d_dowel_debug : d_dowel,
+  ) {
 
-  d1_waste =
-    l1 == 0 ? l / 2 + eps_end
-    : l / 2 + g_shoulder;
+    body = skewed_rect(
+      y1=w / 2,
+      y2=w / 2,
+      d1=l1 ? (l / 2 + l1) : l / 2,
+      d2=l2 ? (l / 2 + l2) : l / 2,
+      a1=l1 ? 0 : a1 ? a1 : a,
+      a2=l2 ? 0 : a2 ? a2 : a,
+    );
 
-  d2_waste =
-    l2 == 0 ? l / 2 + eps_end
-    : l / 2 + g_shoulder;
+    d1_waste =
+      l1 == 0 ? l / 2 + eps_end
+      : l / 2 + g_shoulder;
 
-  waste = skewed_rect(
-    y1=w / 2,
-    y2=w / 2,
-    d1=d1_waste,
-    d2=d2_waste,
-    a1=a1 ? a1 : a,
-    a2=a2 ? a2 : a,
-  );
+    d2_waste =
+      l2 == 0 ? l / 2 + eps_end
+      : l / 2 + g_shoulder;
 
-  edge_lines_h = [
-    l1 ? [waste[0], waste[1]] : undef,
-    l2 ? [waste[2], waste[3]] : undef,
-  ];
+    waste = skewed_rect(
+      y1=w / 2,
+      y2=w / 2,
+      d1=d1_waste,
+      d2=d2_waste,
+      a1=a1 ? a1 : a,
+      a2=a2 ? a2 : a,
+    );
 
-  joint_build(
-    t=t,
-    body=body,
-    waste=waste,
-    ratios=ratios ? ratios : [ratio],
-    g_cheek=g_cheek,
-    r_edge=r_edge,
-    d_dowel=d_dowel,
-    inner=inner,
-    edge_lines_h=edge_lines_h,
-  );
+    edge_lines_h = [
+      l1 ? [waste[0], waste[1]] : undef,
+      l2 ? [waste[2], waste[3]] : undef,
+    ];
+
+    joint_build(
+      t=t,
+      body=body,
+      waste=waste,
+      ratios=ratios ? ratios : [ratio],
+      g_cheek=g_cheek,
+      r_edge=r_edge,
+      d_dowel=d_dowel,
+      inner=inner,
+      edge_lines_h=edge_lines_h,
+    );
+  }
 }
 
 // print with vertical cheeks
@@ -447,58 +465,66 @@ module tenon(
   assert(r_edge >= 0);
   assert(d_dowel >= 0);
 
-  blind = l_tenon && l_tenon < l && l2 == 0;
-  exposed = l_tenon && l_tenon > l && l2 == 0;
+  let (
+    g_shoulder = grd_debug ? g_debug : g_shoulder,
+    g_cheek = grd_debug ? g_debug : g_cheek,
+    r_edge = grd_debug ? r_edge_debug : r_edge,
+	d_dowel = grd_debug ? d_dowel_debug : d_dowel,
+  ) {
 
-  d1_body = l / 2 + l1;
-  d2_body =
-    exposed ? l_tenon - l / 2
-    : blind ? l_tenon - l / 2 - g_shoulder / 2
-    : l / 2 + l2;
+    blind = l_tenon && l_tenon < l && l2 == 0;
+    exposed = l_tenon && l_tenon > l && l2 == 0;
 
-  body = skewed_rect(
-    y1=w / 2,
-    y2=w / 2,
-    d1=d1_body,
-    d2=d2_body,
-    a1=l1 ? 0 : a,
-    a2=(blind || exposed || !l2) ? a : 0,
-  );
+    d1_body = l / 2 + l1;
+    d2_body =
+      exposed ? l_tenon - l / 2
+      : blind ? l_tenon - l / 2 - g_shoulder / 2
+      : l / 2 + l2;
 
-  d1_waste =
-    l1 == 0 ? d1_body + eps_end
-    : l / 2 + g_shoulder;
+    body = skewed_rect(
+      y1=w / 2,
+      y2=w / 2,
+      d1=d1_body,
+      d2=d2_body,
+      a1=l1 ? 0 : a,
+      a2=(blind || exposed || !l2) ? a : 0,
+    );
 
-  d2_waste =
-    exposed ? d2_body + eps_end
-    : l2 == 0 ? d2_body + eps_end
-    : l / 2 + g_shoulder;
+    d1_waste =
+      l1 == 0 ? d1_body + eps_end
+      : l / 2 + g_shoulder;
 
-  waste = skewed_rect(
-    y1=w / 2,
-    y2=w / 2,
-    d1=d1_waste,
-    d2=d2_waste,
-    a1=a,
-    a2=a,
-  );
+    d2_waste =
+      exposed ? d2_body + eps_end
+      : l2 == 0 ? d2_body + eps_end
+      : l / 2 + g_shoulder;
 
-  edge_lines_h = [
-    l1 ? [waste[0], waste[1]] : undef,
-    l2 ? [waste[2], waste[3]] : undef,
-  ];
+    waste = skewed_rect(
+      y1=w / 2,
+      y2=w / 2,
+      d1=d1_waste,
+      d2=d2_waste,
+      a1=a,
+      a2=a,
+    );
 
-  joint_build(
-    t=t,
-    body=body,
-    waste=waste,
-    ratios=ratios ? ratios : [(1 - ratio) / 2, (1 + ratio) / 2],
-    g_cheek=g_cheek,
-    r_edge=r_edge,
-    d_dowel=d_dowel,
-    inner=inner,
-    edge_lines_h=edge_lines_h,
-  );
+    edge_lines_h = [
+      l1 ? [waste[0], waste[1]] : undef,
+      l2 ? [waste[2], waste[3]] : undef,
+    ];
+
+    joint_build(
+      t=t,
+      body=body,
+      waste=waste,
+      ratios=ratios ? ratios : [(1 - ratio) / 2, (1 + ratio) / 2],
+      g_cheek=g_cheek,
+      r_edge=r_edge,
+      d_dowel=d_dowel,
+      inner=inner,
+      edge_lines_h=edge_lines_h,
+    );
+  }
 }
 
 // print with vertical slot
@@ -528,59 +554,67 @@ module mortise(
   assert(g_side >= 0);
   assert(r_edge >= 0);
   assert(d_dowel >= 0);
+  let (
+    g_shoulder = grd_debug ? g_debug : g_shoulder,
+    g_cheek = grd_debug ? g_debug : g_cheek,
+    g_side = grd_debug ? g_debug : g_side,
+    r_edge = grd_debug ? r_edge_debug : r_edge,
+	d_dowel = grd_debug ? d_dowel_debug : d_dowel,
+  ) {
 
-  blind = l_tenon && l_tenon < w;
+    blind = l_tenon && l_tenon < w;
 
-  body = skewed_rect(
-    y1=w / 2,
-    y2=w / 2,
-    d1=l1 ? (l / 2 + l1) : l / 2,
-    d2=l2 ? (l / 2 + l2) : l / 2,
-    a1=l1 ? 0 : a,
-    a2=l2 ? 0 : a,
-  );
+    body = skewed_rect(
+      y1=w / 2,
+      y2=w / 2,
+      d1=l1 ? (l / 2 + l1) : l / 2,
+      d2=l2 ? (l / 2 + l2) : l / 2,
+      a1=l1 ? 0 : a,
+      a2=l2 ? 0 : a,
+    );
 
-  d1_waste =
-    l1 == 0 ? l / 2 + eps_end
-    : l / 2 + g_side;
+    d1_waste =
+      l1 == 0 ? l / 2 + eps_end
+      : l / 2 + g_side;
 
-  d2_waste =
-    l2 == 0 ? l / 2 + eps_end
-    : l / 2 + g_side;
+    d2_waste =
+      l2 == 0 ? l / 2 + eps_end
+      : l / 2 + g_side;
 
-  // full g_shoulder on shoulders, half on blind
-  waste = skewed_rect(
-    y1=w / 2,
-    y2=blind ? l_tenon - w / 2 + g_shoulder / 2 : w / 2,
-    d1=d1_waste,
-    d2=d2_waste,
-    a1=a,
-    a2=a,
-  );
+    // full g_shoulder on shoulders, half on blind
+    waste = skewed_rect(
+      y1=w / 2,
+      y2=blind ? l_tenon - w / 2 + g_shoulder / 2 : w / 2,
+      d1=d1_waste,
+      d2=d2_waste,
+      a1=a,
+      a2=a,
+    );
 
-  edge_lines_h = [
-    l1 ? [waste[0], waste[1]] : undef,
-    l2 ? [waste[2], waste[3]] : undef,
-    blind ? [waste[0], waste[3]] : undef,
-  ];
+    edge_lines_h = [
+      l1 ? [waste[0], waste[1]] : undef,
+      l2 ? [waste[2], waste[3]] : undef,
+      blind ? [waste[0], waste[3]] : undef,
+    ];
 
-  edge_points_v_waste = [
-    (blind && l1) ? waste[0] : undef,
-    (blind && l2) ? waste[3] : undef,
-  ];
+    edge_points_v_waste = [
+      (blind && l1) ? waste[0] : undef,
+      (blind && l2) ? waste[3] : undef,
+    ];
 
-  joint_build(
-    t=t,
-    body=body,
-    waste=waste,
-    ratios=ratios ? ratios : [(1 - ratio) / 2, (1 + ratio) / 2],
-    g_cheek=g_cheek,
-    r_edge=r_edge,
-    d_dowel=d_dowel,
-    inner=inner,
-    edge_lines_h=edge_lines_h,
-    edge_points_v_waste=edge_points_v_waste,
-  );
+    joint_build(
+      t=t,
+      body=body,
+      waste=waste,
+      ratios=ratios ? ratios : [(1 - ratio) / 2, (1 + ratio) / 2],
+      g_cheek=g_cheek,
+      r_edge=r_edge,
+      d_dowel=d_dowel,
+      inner=inner,
+      edge_lines_h=edge_lines_h,
+      edge_points_v_waste=edge_points_v_waste,
+    );
+  }
 }
 
 /**
@@ -633,86 +667,94 @@ module dove_tail(
   assert(r_edge >= 0);
   assert(d_dowel >= 0);
 
-  blind = l_tail && l_tail > 0 && l_tail < l;
-  tail_only = l1 == 0;
+  let (
+    g_shoulder = grd_debug ? g_debug : g_shoulder,
+    g_cheek = grd_debug ? g_debug : g_cheek,
+    r_edge = grd_debug ? r_edge_debug : r_edge,
+	d_dowel = grd_debug ? d_dowel_debug : d_dowel,
+  ) {
 
-  QRBA = skewed_rect(
-    y1=w / 2,
-    y2=w / 2,
-    d1=l / 2 + l1,
-    d2=-l / 2 - g_shoulder,
-    a1=0,
-    a2=a,
-  );
-  Q = QRBA[0];
-  R = QRBA[1];
+    blind = l_tail && l_tail > 0 && l_tail < l;
+    tail_only = l1 == 0;
 
-  ABCD = skewed_rect(
-    y1=w / 2,
-    y2=w / 2,
-    d1=l / 2 + (tail_only ? 0 : g_shoulder),
-    d2=l / 2,
-    a1=a,
-    a2=a,
-  );
-  A = ABCD[0];
-  B = ABCD[1];
-  C = ABCD[2];
-  D = ABCD[3];
+    QRBA = skewed_rect(
+      y1=w / 2,
+      y2=w / 2,
+      d1=l / 2 + l1,
+      d2=-l / 2 - g_shoulder,
+      a1=0,
+      a2=a,
+    );
+    Q = QRBA[0];
+    R = QRBA[1];
 
-  // AB <-> C
-  S = line_intersect(P1=B, a1=90 - a, P2=C, a2=a_tail);
-  // AB <-> D
-  T = line_intersect(P1=A, a1=90 - a, P2=D, a2=-a_tail);
+    ABCD = skewed_rect(
+      y1=w / 2,
+      y2=w / 2,
+      d1=l / 2 + (tail_only ? 0 : g_shoulder),
+      d2=l / 2,
+      a1=a,
+      a2=a,
+    );
+    A = ABCD[0];
+    B = ABCD[1];
+    C = ABCD[2];
+    D = ABCD[3];
 
-  ABFE =
-    blind ? skewed_rect(
-        y1=w / 2,
-        y2=w / 2,
-        d1=l / 2 + g_shoulder,
-        d2=l_tail - l / 2 - g_shoulder / 2,
-        a1=a,
-        a2=a,
-      )
-    : [];
-  F = ABFE[2];
-  E = ABFE[3];
+    // AB <-> C
+    S = line_intersect(P1=B, a1=90 - a, P2=C, a2=a_tail);
+    // AB <-> D
+    T = line_intersect(P1=A, a1=90 - a, P2=D, a2=-a_tail);
 
-  // EF <-> C
-  J = blind ? line_intersect(P1=F, a1=90 - a, P2=C, a2=a_tail) : undef;
-  // EF <-> D
-  K = blind ? line_intersect(P1=E, a1=90 - a, P2=D, a2=-a_tail) : undef;
+    ABFE =
+      blind ? skewed_rect(
+          y1=w / 2,
+          y2=w / 2,
+          d1=l / 2 + g_shoulder,
+          d2=l_tail - l / 2 - g_shoulder / 2,
+          a1=a,
+          a2=a,
+        )
+      : [];
+    F = ABFE[2];
+    E = ABFE[3];
 
-  body =
-    tail_only ?
-      [S, blind ? J : C, blind ? K : D, T]
-    : [A, Q, R, B, S, blind ? J : C, blind ? K : D, T];
+    // EF <-> C
+    J = blind ? line_intersect(P1=F, a1=90 - a, P2=C, a2=a_tail) : undef;
+    // EF <-> D
+    K = blind ? line_intersect(P1=E, a1=90 - a, P2=D, a2=-a_tail) : undef;
 
-  waste = skewed_rect(
-    y1=w / 2,
-    y2=w / 2,
-    d1=l / 2 + (tail_only ? eps_end : g_shoulder),
-    d2=l / 2 + g_shoulder + eps_end,
-    a1=a,
-    a2=a,
-  );
+    body =
+      tail_only ?
+        [S, blind ? J : C, blind ? K : D, T]
+      : [A, Q, R, B, S, blind ? J : C, blind ? K : D, T];
 
-  edge_lines_h = tail_only ? undef : [[S, T]];
+    waste = skewed_rect(
+      y1=w / 2,
+      y2=w / 2,
+      d1=l / 2 + (tail_only ? eps_end : g_shoulder),
+      d2=l / 2 + g_shoulder + eps_end,
+      a1=a,
+      a2=a,
+    );
 
-  edge_points_v_body = tail_only ? undef : [S, T];
+    edge_lines_h = tail_only ? undef : [[S, T]];
 
-  joint_build(
-    t=t,
-    body=body,
-    waste=waste,
-    ratios=[ratio],
-    g_cheek=g_cheek,
-    r_edge=r_edge,
-    d_dowel=d_dowel,
-    inner=inner,
-    edge_lines_h=edge_lines_h,
-    edge_points_v_body=edge_points_v_body,
-  );
+    edge_points_v_body = tail_only ? undef : [S, T];
+
+    joint_build(
+      t=t,
+      body=body,
+      waste=waste,
+      ratios=[ratio],
+      g_cheek=g_cheek,
+      r_edge=r_edge,
+      d_dowel=d_dowel,
+      inner=inner,
+      edge_lines_h=edge_lines_h,
+      edge_points_v_body=edge_points_v_body,
+    );
+  }
 }
 
 /**
@@ -759,74 +801,82 @@ module dove_socket(
   assert(r_edge >= 0);
   assert(d_dowel >= 0);
 
-  blind = l_tail && l_tail > 0 && l_tail < w;
+  let (
+    g_shoulder = grd_debug ? g_debug : g_shoulder,
+    g_cheek = grd_debug ? g_debug : g_cheek,
+    g_pin = grd_debug ? g_debug : g_pin,
+    r_edge = grd_debug ? r_edge_debug : r_edge,
+	d_dowel = grd_debug ? d_dowel_debug : d_dowel,
+  ) {
+    blind = l_tail && l_tail > 0 && l_tail < w;
 
-  ABEF = [
-    [-l / 2 - l1, -w / 2],
-    [-l / 2 - l1, w / 2],
-    [l / 2 + l2, w / 2],
-    [l / 2 + l2, -w / 2],
-  ];
-  A = ABEF[0];
-  B = ABEF[1];
-  E = ABEF[2];
-  F = ABEF[3];
+    ABEF = [
+      [-l / 2 - l1, -w / 2],
+      [-l / 2 - l1, w / 2],
+      [l / 2 + l2, w / 2],
+      [l / 2 + l2, -w / 2],
+    ];
+    A = ABEF[0];
+    B = ABEF[1];
+    E = ABEF[2];
+    F = ABEF[3];
 
-  // no gap for RCDU
-  RCDU_no_gap = skewed_rect(
-    y1=w / 2,
-    y2=w / 2,
-    d1=l / 2,
-    d2=l / 2,
-    a1=-a,
-    a2=-a,
-  );
-  C_no_gap = RCDU_no_gap[1];
-  D_no_gap = RCDU_no_gap[2];
+    // no gap for RCDU
+    RCDU_no_gap = skewed_rect(
+      y1=w / 2,
+      y2=w / 2,
+      d1=l / 2,
+      d2=l / 2,
+      a1=-a,
+      a2=-a,
+    );
+    C_no_gap = RCDU_no_gap[1];
+    D_no_gap = RCDU_no_gap[2];
 
-  // DT <-> O
-  V = line_intersect(P1=D_no_gap, a1=90 + a - a_tail, P2=[0, 0], a2=-a_tail + a);
-  dOV = sqrt(V[0] ^ 2 + V[1] ^ 2) + g_pin;
+    // DT <-> O
+    V = line_intersect(P1=D_no_gap, a1=90 + a - a_tail, P2=[0, 0], a2=-a_tail + a);
+    dOV = sqrt(V[0] ^ 2 + V[1] ^ 2) + g_pin;
 
-  // CS <-> O
-  W = line_intersect(P1=C_no_gap, a1=90 + a + a_tail, P2=[0, 0], a2=a_tail + a);
-  dOW = sqrt(W[0] ^ 2 + W[1] ^ 2) + g_pin;
+    // CS <-> O
+    W = line_intersect(P1=C_no_gap, a1=90 + a + a_tail, P2=[0, 0], a2=a_tail + a);
+    dOW = sqrt(W[0] ^ 2 + W[1] ^ 2) + g_pin;
 
-  SJKT = skewed_rect(
-    y1=blind ? (l_tail - w / 2) + g_shoulder / 2 : w / 2,
-    y2=w / 2,
-    d1=dOW,
-    d2=dOV,
-    a1=-a - a_tail,
-    a2=-a + a_tail,
-  );
-  S = SJKT[0];
-  J = SJKT[1];
-  K = SJKT[2];
-  T = SJKT[3];
+    SJKT = skewed_rect(
+      y1=blind ? (l_tail - w / 2) + g_shoulder / 2 : w / 2,
+      y2=w / 2,
+      d1=dOW,
+      d2=dOV,
+      a1=-a - a_tail,
+      a2=-a + a_tail,
+    );
+    S = SJKT[0];
+    J = SJKT[1];
+    K = SJKT[2];
+    T = SJKT[3];
 
-  body = [A, B, E, F];
+    body = [A, B, E, F];
 
-  waste = [S, J, K, T];
+    waste = [S, J, K, T];
 
-  edge_lines_h = [
-    [S, J],
-    [K, T],
-    blind ? [J, K] : undef,
-  ];
+    edge_lines_h = [
+      [S, J],
+      [K, T],
+      blind ? [J, K] : undef,
+    ];
 
-  edge_points_v_waste = blind ? [J, K] : undef;
+    edge_points_v_waste = blind ? [J, K] : undef;
 
-  joint_build(
-    t=t,
-    body=body,
-    waste=waste,
-    ratios=[ratio],
-    g_cheek=g_cheek,
-    r_edge=r_edge,
-    d_dowel=d_dowel,
-    inner=inner,
-    edge_lines_h=edge_lines_h,
-    edge_points_v_waste=edge_points_v_waste,
-  );
+    joint_build(
+      t=t,
+      body=body,
+      waste=waste,
+      ratios=[ratio],
+      g_cheek=g_cheek,
+      r_edge=r_edge,
+      d_dowel=d_dowel,
+      inner=inner,
+      edge_lines_h=edge_lines_h,
+      edge_points_v_waste=edge_points_v_waste,
+    );
+  }
 }
