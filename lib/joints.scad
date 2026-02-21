@@ -391,7 +391,7 @@ module halving(
     g_shoulder = grd_debug ? g_debug : g_shoulder,
     g_cheek = grd_debug ? g_debug : g_cheek,
     r_edge = grd_debug ? r_edge_debug : r_edge,
-	d_dowel = grd_debug ? d_dowel_debug : d_dowel,
+    d_dowel = grd_debug ? d_dowel_debug : d_dowel,
   ) {
 
     body = skewed_rect(
@@ -469,7 +469,7 @@ module tenon(
     g_shoulder = grd_debug ? g_debug : g_shoulder,
     g_cheek = grd_debug ? g_debug : g_cheek,
     r_edge = grd_debug ? r_edge_debug : r_edge,
-	d_dowel = grd_debug ? d_dowel_debug : d_dowel,
+    d_dowel = grd_debug ? d_dowel_debug : d_dowel,
   ) {
 
     blind = l_tenon && l_tenon < l && l2 == 0;
@@ -559,7 +559,7 @@ module mortise(
     g_cheek = grd_debug ? g_debug : g_cheek,
     g_side = grd_debug ? g_debug : g_side,
     r_edge = grd_debug ? r_edge_debug : r_edge,
-	d_dowel = grd_debug ? d_dowel_debug : d_dowel,
+    d_dowel = grd_debug ? d_dowel_debug : d_dowel,
   ) {
 
     blind = l_tenon && l_tenon < w;
@@ -621,11 +621,15 @@ module mortise(
 |<-------l1-------->|
 .                   .   
 .                   .   
-R---------------------------B-----------------------F-------------C   ^
+T-------------------------------U                                     -
+|                   .          /                                      |
+|                   .         /                                       w1
+|                   .        /                                        |
+S---------------------------B-----------------------M-------------C   -
 |                   .      /                     --J----/        /    |
 |                   .     /              -------/ /             /     |
 |                   .    /       -------/        /             /      |
-|                   .   S-------/               /             /       |
+|                   .   I-------/               /             /       |
 |                   .  /                       /             /        |
 |                   . /                       /             /         |
 |                   ./                       /             /          |
@@ -633,13 +637,17 @@ R---------------------------B-----------------------F-------------C   ^
 |                  /                       /             /            |
 |                 /                       /             /             |
 |                /                       /             /              |
-|               T-----\                 /             /               |
+|               H-----\                 /             /               |
 |              /       ------\         /             /                |
 |           |a/               ------\ /             /                 |
 |           |/                       K-----\       /                  |
-Q-----------A-----------------------E-------------D                   -
+R-----------A-----------------------N-------------D                   -
+|          /                                                          |
+|         /                                                           w2
+|        /                                                            |
+Q-------V                                                             -
 
-a_dov is BCS and TDA
+a_dov is BCI and HDA
 blind: ends at JK otherwise CD
 g_shoulder AB, half JK when blind 
 */
@@ -647,9 +655,11 @@ module dove_tail(
   l = w, // of the socket
   l1 = l1,
   w = w,
+  w1 = 0,
+  w2 = 0,
   t = t,
-  a = 0, // RBA
-  a_tail = a_tail, // BSC
+  a = 0, // SBA
+  a_tail = a_tail, // BIC
   l_tail = undef, // length of the tail, < l for blind, ignored when > l
   ratio = 1 / 2, // undef or 0 for no vertical waste
   g_shoulder = g_shoulder_dt, // one to each shoulder, half to blind end
@@ -671,22 +681,24 @@ module dove_tail(
     g_shoulder = grd_debug ? g_debug : g_shoulder,
     g_cheek = grd_debug ? g_debug : g_cheek,
     r_edge = grd_debug ? r_edge_debug : r_edge,
-	d_dowel = grd_debug ? d_dowel_debug : d_dowel,
+    d_dowel = grd_debug ? d_dowel_debug : d_dowel,
   ) {
 
     blind = l_tail && l_tail > 0 && l_tail < l;
     tail_only = l1 == 0;
 
-    QRBA = skewed_rect(
-      y1=w / 2,
-      y2=w / 2,
+    QTUV = skewed_rect(
+      y1=w / 2 + w1,
+      y2=w / 2 + w2,
       d1=l / 2 + l1,
       d2=-l / 2 - g_shoulder,
       a1=0,
       a2=a,
     );
-    Q = QRBA[0];
-    R = QRBA[1];
+    Q = QTUV[0];
+    T = QTUV[1];
+    U = QTUV[2];
+    V = QTUV[3];
 
     ABCD = skewed_rect(
       y1=w / 2,
@@ -702,11 +714,11 @@ module dove_tail(
     D = ABCD[3];
 
     // AB <-> C
-    S = line_intersect(P1=B, a1=90 - a, P2=C, a2=a_tail);
+    I = line_intersect(P1=B, a1=90 - a, P2=C, a2=a_tail);
     // AB <-> D
-    T = line_intersect(P1=A, a1=90 - a, P2=D, a2=-a_tail);
+    H = line_intersect(P1=A, a1=90 - a, P2=D, a2=-a_tail);
 
-    ABFE =
+    ABMN =
       blind ? skewed_rect(
           y1=w / 2,
           y2=w / 2,
@@ -716,18 +728,18 @@ module dove_tail(
           a2=a,
         )
       : [];
-    F = ABFE[2];
-    E = ABFE[3];
+    M = ABMN[2];
+    N = ABMN[3];
 
-    // EF <-> C
-    J = blind ? line_intersect(P1=F, a1=90 - a, P2=C, a2=a_tail) : undef;
-    // EF <-> D
-    K = blind ? line_intersect(P1=E, a1=90 - a, P2=D, a2=-a_tail) : undef;
+    // NM <-> C
+    J = blind ? line_intersect(P1=M, a1=90 - a, P2=C, a2=a_tail) : undef;
+    // NM <-> D
+    K = blind ? line_intersect(P1=N, a1=90 - a, P2=D, a2=-a_tail) : undef;
 
     body =
       tail_only ?
-        [S, blind ? J : C, blind ? K : D, T]
-      : [A, Q, R, B, S, blind ? J : C, blind ? K : D, T];
+        [I, blind ? J : C, blind ? K : D, H]
+      : [A, V, Q, T, U, B, I, blind ? J : C, blind ? K : D, H];
 
     waste = skewed_rect(
       y1=w / 2,
@@ -738,9 +750,9 @@ module dove_tail(
       a2=a,
     );
 
-    edge_lines_h = tail_only ? undef : [[S, T]];
+    edge_lines_h = tail_only ? undef : [[I, H]];
 
-    edge_points_v_body = tail_only ? undef : [S, T];
+    edge_points_v_body = tail_only ? undef : [I, H];
 
     joint_build(
       t=t,
@@ -806,7 +818,7 @@ module dove_socket(
     g_cheek = grd_debug ? g_debug : g_cheek,
     g_pin = grd_debug ? g_debug : g_pin,
     r_edge = grd_debug ? r_edge_debug : r_edge,
-	d_dowel = grd_debug ? d_dowel_debug : d_dowel,
+    d_dowel = grd_debug ? d_dowel_debug : d_dowel,
   ) {
     blind = l_tail && l_tail > 0 && l_tail < w;
 

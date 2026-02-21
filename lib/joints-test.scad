@@ -218,6 +218,20 @@ module test_dovetail() {
 
     dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
   }
+
+  test_joint(m=6, dx=dx) {
+    rotate(a=90 + a)
+      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, w1=2, w2=-2);
+
+    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
+  }
+
+  test_joint(m=7, dx=dx) {
+    rotate(a=90 + a)
+      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, w1=-2, w2=2);
+
+    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
+  }
 }
 
 module test_mortise_tenon() {
