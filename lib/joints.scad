@@ -439,6 +439,37 @@ module halving(
   }
 }
 
+/**
+|<-------l1-------->|<--------l_tenon--------->|
+.                   .                          .
+.                   .                          .
+H-------------------------------J              .           N----------------O    -
+|                   .          /               .          /                 |    |
+|                   .         /                .         /                  |    w1
+|                   .        /                 .        /                   |    |
+|---------------------------B--------------------------C----------/         |    -
+|                   .      /                   .      /          /          |    |
+|                   .     /                    .     /          /           |    |
+|                   .    /                     .    /          /            |    |
+|                   .   /                      .   /          /             |    |
+|                   .  /                       .  /          /              |    |
+|                   . /                        . /          /               |    |
+|                   ./                         ./          /                |    |
+|                   /                  O       /          /                 |    w
+|                  /                          /          /                  |    |
+|                 /                          /          /                   |    |
+|                /                          /          /                    |    |
+|               /                          /          /                     |    |
+|              /                          /          /                      |    |
+|           |a/                          /          /                       |    |
+|           |/                          /          /                        |    |
+|-----------A--------------------------D----------/                         |    -
+|          /                          /                                     |    |
+|         /                          /                                      |    w2
+|        /                          /                                       |    |
+G-------K                          M----------------------------------------P    -
+*/
+
 // print with vertical cheeks
 // set l2 for a tee bridle
 module tenon(
@@ -446,6 +477,8 @@ module tenon(
   l1 = l1,
   l2 = 0,
   w = w,
+  w1 = 0,
+  w2 = 0,
   t = t,
   a = 0,
   l_tenon = undef, // length of the tenon, < l for blind, > l for exposed, ignored when l2 > 0
@@ -475,47 +508,92 @@ module tenon(
     blind = l_tenon && l_tenon < l && l2 == 0;
     exposed = l_tenon && l_tenon > l && l2 == 0;
 
-    d1_body = l / 2 + l1;
-    d2_body =
-      exposed ? l_tenon - l / 2
-      : blind ? l_tenon - l / 2 - g_shoulder / 2
-      : l / 2 + l2;
-
-    body = skewed_rect(
+    ABCD = skewed_rect(
       y1=w / 2,
       y2=w / 2,
-      d1=d1_body,
-      d2=d2_body,
-      a1=l1 ? 0 : a,
-      a2=(blind || exposed || !l2) ? a : 0,
+      d1=l1 ? l / 2 + g_shoulder : l / 2,
+      d2=blind ?
+        l_tenon - l / 2 - g_shoulder / 2
+      : exposed ?
+        l_tenon - l / 2
+      : l2 ? l / 2 + g_shoulder : l / 2,
+      a1=a,
+      a2=a,
     );
+    A = ABCD[0];
+    B = ABCD[1];
+    C = ABCD[2];
+    D = ABCD[3];
 
-    d1_waste =
-      l1 == 0 ? d1_body + eps_end
-      : l / 2 + g_shoulder;
+    GHJK =
+      l1 ? skewed_rect(
+          y1=w / 2 + w1,
+          y2=w / 2 + w2,
+          d1=l1 + l / 2,
+          d2=-l / 2 - g_shoulder,
+          a1=l1 ? 0 : a,
+          a2=a,
+        )
+      : undef;
+    G = l1 ? GHJK[0] : undef;
+    H = l1 ? GHJK[1] : undef;
+    J = l1 ? GHJK[2] : undef;
+    K = l1 ? GHJK[3] : undef;
 
-    d2_waste =
-      exposed ? d2_body + eps_end
-      : l2 == 0 ? d2_body + eps_end
-      : l / 2 + g_shoulder;
+    MNOP =
+      l2 ? skewed_rect(
+          y1=w / 2 + w1,
+          y2=w / 2 + w2,
+          d1=-l / 2 - g_shoulder,
+          d2=l2 + l / 2,
+          a1=a,
+          a2=l2 ? 0 : a,
+        )
+      : undef;
+    M = l2 ? MNOP[0] : undef;
+    N = l2 ? MNOP[1] : undef;
+    O = l2 ? MNOP[2] : undef;
+    P = l2 ? MNOP[3] : undef;
+
+    bod =
+      (l1 && l2) ?
+        [G, H, J, B, C, N, O, P, M, D, A, K]
+      : l1 ?
+        [G, H, J, B, C, D, A, K]
+      : l2 ?
+        [A, B, C, N, O, P, M, D]
+      : [A, B, C, D];
 
     waste = skewed_rect(
-      y1=w / 2,
-      y2=w / 2,
-      d1=d1_waste,
-      d2=d2_waste,
+      y1=w / 2 + w1,
+      y2=w / 2 + w2,
+      d1=(l1 == 0) ?
+        l / 2 + l1 + eps_end
+      : l / 2 + g_shoulder,
+      d2=exposed ?
+        l_tenon - l / 2 + eps_end
+      : l2 == 0 ?
+        l / 2 + l2 + eps_end
+      : l / 2 + g_shoulder,
       a1=a,
       a2=a,
     );
 
     edge_lines_h = [
-      l1 ? [waste[0], waste[1]] : undef,
-      l2 ? [waste[2], waste[3]] : undef,
+      l1 ? [A, B] : undef,
+      l2 ? [C, D] : undef,
+    ];
+
+    edge_points_v_body = [
+      l1 && w2 ? A : undef,
+      l1 && w1 ? B : undef,
+      l2 && w2 ? C : undef,
+      l2 && w1 ? D : undef,
     ];
 
     joint_build(
       t=t,
-      body=body,
+      body=bod,
       waste=waste,
       ratios=ratios ? ratios : [(1 - ratio) / 2, (1 + ratio) / 2],
       g_cheek=g_cheek,
@@ -523,6 +601,7 @@ module tenon(
       d_dowel=d_dowel,
       inner=inner,
       edge_lines_h=edge_lines_h,
+      edge_points_v_body=edge_points_v_body,
     );
   }
 }
