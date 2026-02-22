@@ -1,4 +1,5 @@
 include <joints.scad>
+include <colours.scad>
 
 /* [Debug] */
 
@@ -91,11 +92,11 @@ module test_joint(m, dx = 0, dy = 0) {
     translate(v=[m * dx, dy, 0]) {
       if (test_child == -1 || test_child == 0)
         translate(v=[0, 0, test_explode_z])
-          color(c=COL[m][0])
+          color(c=brown_pair(m)[0])
             children(0);
 
       if (test_child == -1 || test_child == 1)
-        color(c=COL[m][1])
+        color(c=brown_pair(m)[1])
           children(1);
     }
   }
