@@ -2,6 +2,7 @@ function zero_to_one(n) = min(max(n, 0), 1);
 
 // 24 shades of brown, dark to light
 function brown(i) =
+  assert(i < 24)
   let (
     n = 24, // [4:2:200]
     g_min = 0.30, // [0:0.01:0.5]
@@ -50,6 +51,7 @@ function brown(i) =
 // 12 pairs dark/light brown
 // consecutive pairs contrast well
 function brown_pair(i) =
+  assert(i < 12)
   let (
     n = 24, // [4:2:200]
     row = i % 2 == 0 ?
