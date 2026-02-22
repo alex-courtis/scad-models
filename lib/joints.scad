@@ -109,20 +109,6 @@ fn_edge_sphere = 24; // [1:1:200]
 // keep this low as it can result in non-manfold problems when intersecting
 fn_edge_line = 12; // [1:1:200]
 
-COL = [
-  ["orange", "wheat"], // 0
-  ["navajowhite", "sienna"], // 1
-  ["chocolate", "rosybrown"], // 2
-  ["sandybrown", "brown"], // 3
-  ["bisque", "darkgoldenrod"], // 4
-  ["burlywood", "maroon"], // 5
-  ["blanchedalmond", "peru"], // 6
-  ["tan", "saddlebrown"], // 7
-  ["lightsalmon", "indianred"], // 8
-  ["coral", "firebrick"], // 9
-  ["mistyrose", "orangered"], // 10
-];
-
 /**
 Build a generic joint centred at origin.
 Entire body is z extruded and wasted out.

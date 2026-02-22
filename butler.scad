@@ -1,4 +1,5 @@
 include <lib/joints.scad>
+include <lib/colours.scad>
 
 /* [Debug] */
 
@@ -180,13 +181,13 @@ module step_top_quarter() {
 }
 
 module step_top_half() {
-  color(c=COL[2][0])
+  color(brown_pair(1)[0])
     step_top_quarter();
 
   if (show == "half" || show == "whole") {
     translate(v=[0, 0, l_step_bottom + t_leg])
       mirror(v=[0, 0, 1])
-        color(c=COL[2][1])
+        color(brown_pair(1)[1])
           step_top_quarter();
   }
 }
@@ -252,13 +253,13 @@ module step_bottom_quarter() {
 }
 
 module step_bottom_half() {
-  color(c=COL[0][0])
+  color(brown_pair(2)[0])
     step_bottom_quarter();
 
   if (show == "half" || show == "whole") {
     translate(v=[0, 0, l_step_bottom + t_leg])
       mirror(v=[0, 0, 1])
-        color(c=COL[0][1])
+        color(brown_pair(2)[1])
           step_bottom_quarter();
   }
 }
@@ -288,12 +289,12 @@ module floating_tenon_quarter() {
     );
 }
 module floating_tenon_half() {
-  color(COL[3][0])
+  color(brown_pair(3)[1])
     floating_tenon_quarter();
 
   if (show == "whole") {
     mirror(v=[1, 0, 0])
-      color(COL[3][1])
+      color(brown_pair(3)[0])
         floating_tenon_quarter();
   }
 }
@@ -358,13 +359,13 @@ module leg() {
 
 module legs_half() {
   translate(v=[explode, 0, 0]) {
-    color(COL[1][0])
+    color(brown_pair(0)[1])
       leg();
 
     if (show == "half" || show == "whole") {
       translate(v=[0, 0, l_step_bottom + t_leg])
         mirror(v=[0, 0, 1])
-          color(COL[1][1])
+          color(brown_pair(0)[0])
             leg();
     }
   }
