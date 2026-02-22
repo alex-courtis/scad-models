@@ -4,31 +4,31 @@ function zero_to_one(n) = min(max(n, 0), 1);
 function brown(i) =
   let (
     n = 24, // [4:2:200]
-    g_min = 0.15, // [0:0.01:0.5]
-    g_max = 0.75, // [0.5:0.01:1]
-    dg = 0.056, // [0:0.001:0.5]
-    dr = 0.033, // [0:0.001:0.5]
-    db = 0.056, // [0:0.001:0.5]
+    g_min = 0.30, // [0:0.01:0.5]
+    g_max = 0.88, // [0.5:0.01:1]
+    dg = 0.036, // [0:0.001:0.5]
+    dr = 0.090, // [0:0.001:0.5]
+    db = 0.055, // [0:0.001:0.5]
 
     // green is linear
     g = g_min + i * (g_max - g_min) / (n - 1),
 
     // skew odds by green alternating sign
     dgreen = (i + 1) % 4 == 0 ?
-      -dg
-    : (i + 1) % 2 == 0 ?
       dg
+    : (i + 1) % 2 == 0 ?
+      -dg
     : 0,
 
     // skew odd/even by red for dark
     dred = i % 2 == 0 ?
-      -dr
-    : dr,
+      dr
+    : -dr,
 
     // skew odd/even by blue for light
     dblue = i % 2 == 0 ?
-      -db
-    : db
+      db
+    : -db
   )
 
   (g < 0.5) ?
