@@ -1,0 +1,27 @@
+{
+    "fileFormatVersion": "1",
+    "parameterSets": {
+        "30": {
+            "dx_body": "3",
+            "dz_body": "3",
+            "g_x": "0.02",
+            "g_z": "0.02",
+            "x_ruler": "30",
+            "y_body": "25",
+            "y_stop": "5",
+            "z_ruler": "0.75",
+            "z_stop": "5"
+        },
+        "15": {
+            "dx_body": "3",
+            "dz_body": "3",
+            "g_x": "0.02",
+            "g_z": "0.02",
+            "x_ruler": "15",
+            "y_body": "25",
+            "y_stop": "5",
+            "z_ruler": "0.5",
+            "z_stop": "5"
+        }
+    }
+}
