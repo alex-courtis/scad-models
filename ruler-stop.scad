@@ -1,13 +1,13 @@
 /* [Dimensions] */
-x_ruler = 30; // [1:0.01:30]
-z_ruler = 0.75; // [0.1:0.01:3]
+w_ruler = 30; // [1:0.01:30]
+t_ruler = 0.75; // [0.1:0.01:3]
 
 dx_body = 1.6; // [1:0.01:30]
-y_body = 25; // [1:0.01:30]
-dz_body = 1.6; // [1:0.01:30]
+dy_body = 1.6; // [1:0.01:30]
+z_body = 25; // [1:0.01:30]
 
-y_stop = 6; // [0:0.1:10]
-z_stop = 8; // [0:0.1:10]
+y_stop = 8; // [0:0.1:10]
+z_stop = 6; // [0:0.1:10]
 
 /* [Tolerance] */
 
@@ -23,9 +23,9 @@ t_layer = 0.2; // [0.05:0.01:2]
 $fn = 200; // [0:1:500]
 
 ruler = [
-  x_ruler,
-  round_num(y_body, t_layer),
-  z_ruler,
+  w_ruler,
+  t_ruler,
+  round_num(z_body, t_layer),
 ];
 echo(ruler=ruler);
 
@@ -38,8 +38,8 @@ echo(slot=slot);
 
 body = slot + [
   dx_body * 2,
+  dy_body * 2,
   0,
-  dz_body * 2,
 ];
 echo(body=body);
 
@@ -60,15 +60,14 @@ function round_vec(v, dv) =
   ];
 
 module fillet_stop() {
-  #translate(v=[0, body[1] / 2 - stop[1], body[2] / 2])
+  #translate(v=[0, body[1] / 2, +stop[2] - body[2] / 2])
     rotate(a=90, v=[0, 1, 0])
       cylinder(r=r_fillet_stop, h=stop[0], center=true);
 }
 
 module fillet_ruler(x_dir, y_dir) {
-  #translate(v=[x_dir * slot[0] / 2, 0, y_dir * slot[2] / 2])
-    rotate(a=90, v=[1, 0, 0])
-      cylinder(r=r_fillet_slot, h=y_body, center=true);
+  #translate(v=[x_dir * slot[0] / 2, y_dir * slot[1] / 2, 0])
+    cylinder(r=r_fillet_slot, h=z_body, center=true);
 }
 
 module body() {
@@ -80,8 +79,8 @@ module body() {
       cube(slot, center=true);
   }
 
-  dy_stop = body[1] / 2 - stop[1] / 2;
-  dz_stop = body[2] / 2 + stop[2] / 2;
+  dy_stop = stop[1] / 2 + body[1] / 2;
+  dz_stop = stop[2] / 2 - body[2] / 2;
 
   translate(v=[0, dy_stop, dz_stop])
     color(c="gray")
