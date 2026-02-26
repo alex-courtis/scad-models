@@ -64,7 +64,7 @@ body = slot + [
 ];
 echo(body=body);
 
-top = [body[0], t_flange + t_nut/2, body[2]];
+top = [body[0], round_num(t_flange + t_nut/2, d_filament), body[2]];
 echo(top=top);
 
 // round stop z to account for gaps
