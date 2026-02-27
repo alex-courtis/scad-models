@@ -18,7 +18,7 @@ z_stop = 6; // [0:0.1:10]
 w_nut = 5.5; // [1:0.1:10]
 
 // nut hole width multiplier
-w_nut_multiplier = 1.03; // [1:0.01:2]
+w_nut_multiplier = 0.96; // [0.1:0.001:2]
 
 nut_inset_diameter = w_nut * w_nut_multiplier * 2 / sqrt(3);
 echo(nut_inset_diameter=nut_inset_diameter);
@@ -28,14 +28,14 @@ t_nut = 2.75; // [0:0.01:20]
 
 t_flange = 1.2; // [0.2:0.2:20]
 
-d_bolt = 3.0; // [1:0.05:10]
+d_bolt = 2.9; // [1:0.05:10]
 
 /* [Tolerance] */
 
-g_x = 0.2; // [0:0.01:5]
-g_y = 0.08; // [0:0.01:1]
+g_x = 0.12; // [0:0.01:5]
+g_y = 0.16; // [0:0.01:1]
 
-r_fillet_slot = 0.12; // [0:0.01:1]
+r_fillet_slot = 0.16; // [0:0.01:1]
 r_fillet_stop = 0.15; // [0:0.01:1]
 
 d_filament = 0.4; // [0.2:0.2:0.8]
