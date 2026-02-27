@@ -18,7 +18,7 @@ z_stop = 3; // [0:0.1:10]
 w_nut = 5.5; // [1:0.1:10]
 
 // nut hole width multiplier
-w_nut_multiplier = 0.96; // [0.1:0.001:2]
+w_nut_multiplier = 1.00; // [0.1:0.001:2]
 
 d_nut = w_nut * w_nut_multiplier * 2 / sqrt(3);
 echo(d_nut=d_nut);
@@ -36,7 +36,7 @@ d_bolt = 2.9; // [1:0.05:10]
 g_x = 0.12; // [0:0.01:5]
 g_y = 0.16; // [0:0.01:1]
 
-r_fillet_slot = 0.16; // [0:0.01:1]
+r_fillet_slot = 0.24; // [0:0.01:1]
 
 d_filament = 0.4; // [0.2:0.2:0.8]
 t_layer = 0.2; // [0.05:0.01:2]
@@ -116,7 +116,7 @@ module nut() {
   h = body[1] + top[1] * 2;
 
   color(c="green")
-    translate(v=[0, t_nut, 0])
+    translate(v=[0, t_nut_inset, 0])
       rotate(a=90, v=[1, 0, 0])
         rotate(a=90, v=[0, 0, 1])
           cylinder(d=d_nut, h=h, $fn=6, center=true);
