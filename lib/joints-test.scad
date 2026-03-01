@@ -78,13 +78,13 @@ test_dy = 80; // [0:1:500]
 render() {
   if (test_dovetail)
     translate(v=[0, 0 * test_dy, 0])
-      test_dovetail();
+      test_d();
   if (test_mortise_tenon)
     translate(v=[0, 1 * test_dy, 0])
-      test_mortise_tenon();
+      test_mt();
   if (test_halving)
     translate(v=[0, 2 * test_dy, 0])
-      test_halving();
+      test_h();
 }
 
 module test_joint(m, dx = 0, dy = 0) {
@@ -102,7 +102,7 @@ module test_joint(m, dx = 0, dy = 0) {
   }
 }
 
-module test_halving() {
+module test_h() {
   a = a_halving + 17;
 
   dx = 45 + test_dx;
@@ -162,7 +162,7 @@ module test_halving() {
   }
 }
 
-module test_dovetail() {
+module test_d() {
 
   a = a_dt + 4;
   a_tail = a_tail;
@@ -235,7 +235,7 @@ module test_dovetail() {
   }
 }
 
-module test_mortise_tenon() {
+module test_mt() {
   all = test_model == -1;
 
   w_tenon = w;
