@@ -1,4 +1,5 @@
 include <lib/joints.scad>
+include <lib/geom.scad>
 include <lib/colours.scad>
 
 /* [Debug] */

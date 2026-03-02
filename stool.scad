@@ -1,4 +1,5 @@
 include <lib/joints.scad>
+include <lib/geom.scad>
 
 // joint waste
 debug_waste_layers = false;
