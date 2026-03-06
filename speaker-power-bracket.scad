@@ -1,55 +1,52 @@
+include <BOSL2/std.scad>
+
 l_switch = 61.5;
 w_switch = 30.5;
-d_switch = 22;
+d_switch = 22 - 1;
 
-t = 1.6;
+// l only
+g_l_switch = 1;
 
-l = 82 + 2 * t;
+t = 2.0;
+rounding = t * 2;
+
+l = 82 + 2 + 2 * t;
 w = w_switch + t;
 d = d_switch + t;
 
-d_cable = 8;
-w_cable = (w - t + d_cable) / 2;
+d_cable = d_switch * 1 / 4;
+w_cable = w_switch * 11 / 16;
 
-module side() {
-  translate(v=[0, d / 2 - t / 2, w / 2 - t / 2])
-    rotate(a=90, v=[0, 1, 0])
-      linear_extrude(h=t, center=true)
-        polygon(
-          [
-            [0, 0],
-            [w - t, 0],
-            [w - t, -d / 2 + 0],
-            [0, -d + t],
-          ]
-        );
+$fn = 200;
+
+module cable_void(left) {
+  x = (l - l_switch) / 2 - t;
+  dx = (l - x) / 2 - t * 2;
+
+  y = d;
+  dy = t * 2.5;
+
+  z = w_cable;
+  dz = (z - w_switch) / 2;
+
+  translate(v=[left ? dx : -dx, dy, dz])
+    cube([x, y, z], center=true);
 }
 
 render() {
 
-  color(c="orange")
-    cube([l_switch, d_switch, w_switch], center=true);
+  // color(c="orange")
+  //   cube([l_switch, d_switch, w_switch], center=true);
 
   color(c="green") {
     difference() {
       translate(v=[0, t / 2, t / 2])
-        cube([l, d, w], center=true);
+        cuboid([l, d, w], rounding=rounding, except=[TOP]);
 
-      cube([l, d - t, w - t], center=true);
+      cube([l_switch + 2 * g_l_switch, d_switch, w_switch], center=true);
 
-      translate(v=[(l - d_cable) / 2 - t, t / 2, (w_cable - w_switch) / 2])
-        cube([d_cable, d, w_cable], center=true);
-
-      translate(v=[-(l - d_cable) / 2 + t, t / 2, (w_cable - w_switch) / 2])
-        cube([d_cable, d, w_cable], center=true);
+      cable_void(left=true);
+      cable_void(left=false);
     }
-  }
-
-  color(c="pink") {
-    translate(v=[l / 2 - t / 2, 0, 0])
-      side();
-
-    translate(v=[-l / 2 + t / 2, 0, 0])
-      side();
   }
 }
