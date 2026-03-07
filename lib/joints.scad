@@ -1,3 +1,5 @@
+include <geom.scad>
+
 /**
 Joints centred at the origin, shoulders along the y axis, length along the x axis measured to the midpoints of the shoulders.
 

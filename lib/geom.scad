@@ -9,8 +9,11 @@ function line_angle(A, B) = B[1] == A[1] ? 0 : atan((B[1] - A[1]) / (B[0] - A[0]
 // round a point
 function point_round(P) = [round(P[0]), round(P[1])];
 
-// multiply a point by a scalar
-function point_multiply(V, n) = [V[0] * n, V[1] * n];
+// multiply vector contents by a scalar
+function vector_multiply(v, n) = [for (i = [0:1:len(v) - 1]) v[i] * n];
+
+// add a scalar to vector contents
+function vector_add(v, n) = [for (i = [0:1:len(v) - 1]) v[i] + n];
 
 /**
    Return poly ABCD
@@ -119,10 +122,10 @@ function circle_centre(A, B, r) =
     h = sqrt(r ^ 2 - t_ ^ 2 / 4),
 
     // solution 1
-    c1 = M + point_multiply(n, h / n_),
+    c1 = M + vector_multiply(n, h / n_),
 
     // solution 2
-    c2 = M - point_multiply(n, h / n_),
+    c2 = M - vector_multiply(n, h / n_),
   ) [c1, c2];
 
 if (test_geom) {
