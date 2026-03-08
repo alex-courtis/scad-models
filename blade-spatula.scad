@@ -5,12 +5,12 @@ show_blade = false;
 show_holder = true;
 half_holder = false;
 
-x_blade = 38.6; // [0:0.01:100]
-y_blade = 17.75; // [0:0.01:100]
-z_blade = 1.3; // [0:0.01:5]
+x_blade = 38.4; // [0:0.01:100]
+y_blade = 17.7; // [0:0.01:100]
+z_blade_thick = 1.25; // [0:0.01:5]
+z_blade_thin = 0.98; // [0:0.01:5]
 
 y_blade_channel = 6.25; // [0:0.01:25]
-z_blade_channel = 1; // [0:0.01:5]
 
 x_cutout_mid = 2.1; // [0:0.01:100]
 y_cutout_mid = 5.4; // [0:0.01:100]
@@ -20,7 +20,7 @@ y_cutout_end = 3.1; // [0:0.01:25]
 
 g_y_channel = 0.075; // [0:0.001:2]
 g_y_edge = 0.25; // [0:0.001:2]
-g_z = 0.09; // [0:0.001:2]
+g_z = 0.01; // [0:0.001:2]
 
 z_nub = 0.25; // [0:0.001:2]
 ratio_rounding_nub = 2.0; // [0:0.001:2]
@@ -39,18 +39,18 @@ module blade(cutouts, gaps) {
   body = [
     x_blade,
     y_blade + (gaps ? 2 * g_y_edge : 0),
-    z_blade + (gaps ? 2 * g_z : 0),
+    z_blade_thick + (gaps ? 2 * g_z : 0),
   ];
 
   channel = [
     x_blade,
     y_blade_channel - (gaps ? 2 * g_y_channel : 0),
-    z_blade - z_blade_channel,
+    z_blade_thick - (gaps ? 2 * g_z : 0), // use entire thickness to avoid non-manifold
   ];
 
-  cutout_end = [x_cutout_end, y_cutout_end, z_blade_channel];
+  cutout_end = [x_cutout_end, y_cutout_end, z_blade_thick];
 
-  cutout_mid = [x_cutout_mid, y_cutout_mid, z_blade_channel];
+  cutout_mid = [x_cutout_mid, y_cutout_mid, z_blade_thick];
 
   dx_end = (x_blade - x_cutout_end) / 2;
   dz_nub = cutout_mid[2] - z_nub;
@@ -58,10 +58,10 @@ module blade(cutouts, gaps) {
   difference() {
     cube(body, center=true);
 
-    translate(v=[0, 0, (body[2] - channel[2]) / 2])
+    translate(v=[0, 0, (z_blade_thick + z_blade_thin) / 2])
       cube(channel, center=true);
 
-    translate(v=[0, 0, -(body[2] - channel[2]) / 2])
+    translate(v=[0, 0, -(z_blade_thick + z_blade_thin) / 2])
       cube(channel, center=true);
 
     if (cutouts) {
@@ -104,7 +104,7 @@ module holder() {
     body = [
       x_blade,
       y_blade + t_y + g_y_edge - g_y_channel - (y_blade - y_blade_channel) / 2,
-      z_blade + 2 * (g_z + t_z),
+      z_blade_thick + 2 * (g_z + t_z),
     ];
 
     translate(v=[0, body[1] / 2 - y_blade_channel / 2 + g_y_channel, 0])
