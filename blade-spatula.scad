@@ -4,7 +4,8 @@ include <BOSL2/std.scad>
 show_blade = false;
 flat_blade = false;
 show_holder = true;
-half_holder = false;
+half_holder_y = true;
+half_holder_z = false;
 
 x_blade = 38.4; // [0:0.01:100]
 y_blade = 17.7; // [0:0.01:100]
@@ -31,11 +32,16 @@ g_z_thick = 0.05; // [0:0.001:2]
 g_cutout = 0.1; // [0:0.001:2]
 
 t_nub = 0.40; // [0:0.001:2]
+nub_mid = false;
+nub_end = true;
+nub_joined = true;
 
-t_y = 1.6; // [0:0.01:5]
+d_pin = 2; // [0:0.001:5]
+
+t_y = 4.6; // [0:0.01:5]
 t_half_front = 0.8; // [0:0.01:5]
 t_back = 4.8; // [0:0.01:5]
-t_handle = 3.2; // [0:0.01:5]
+t_handle = 4.0; // [0:0.01:5]
 
 ratio_rounding = 1; // [0:0.01:1]
 
@@ -103,13 +109,17 @@ module blade(cutouts, mask) {
 
     difference() {
       union() {
-        cutout_end_mask(dir=1);
-        cutout_end_mask(dir=-1);
-        cutout_mid_mask();
+        if (!mask || nub_end) {
+          cutout_end_mask(dir=1);
+          cutout_end_mask(dir=-1);
+        }
+        if (!mask || nub_mid) {
+          cutout_mid_mask();
+        }
       }
 
       // cut off nubs
-      if (mask)
+      if (mask && !nub_joined)
         cube(nub_mask, center=true);
     }
   }
@@ -128,10 +138,12 @@ module holder() {
 
   rounding_handle = t_handle * ratio_rounding / 2;
 
+  v_holder = [0, body[1] / 2 - y_blade_channel / 2 + g_y_channel, 0];
+
   difference() {
     union() {
 
-      translate(v=[0, body[1] / 2 - y_blade_channel / 2 + g_y_channel, 0]) {
+      translate(v=v_holder) {
 
         color(c="green")
           translate(
@@ -172,27 +184,44 @@ module holder() {
       }
     }
 
-    blade(cutouts=false, mask=true);
+    color(c="red") {
+      translate(v=v_holder + [0, body[1] / 2 - t_y / 2, 0]) {
+        rotate(a=90, v=[0, 1, 0])
+          cylinder(d=d_pin, h=body[0], center=true);
+
+        translate(v=[0, y_handle + d_pin - rounding_handle, 0])
+          rotate(a=90, v=[0, 1, 0])
+            cylinder(d=d_pin, h=handle[0], center=true);
+
+        translate(v=[0, y_handle / 2, 0])
+          rotate(a=90, v=[0, 1, 0])
+            cylinder(d=d_pin, h=handle[0], center=true);
+      }
+    }
+
+    color(c="pink")
+      blade(cutouts=false, mask=true);
   }
 }
 
 render() {
-  color(c="orange") {
-    if (show_blade) {
-      if (flat_blade) {
-        top_half() {
+  if (show_blade)
+    if (flat_blade)
+      color(c="violet")
+        top_half()
           translate(v=[0, 0, z_blade_thin / 2])
             blade(cutouts=true, mask=false);
-        }
-      } else {
+    else
+      color(c="orange")
         blade(cutouts=true, mask=false);
-      }
-    }
-  }
 
-  bottom_half(z=(half_holder ? 0 : z_blade_thick * 50), s=y_handle * 3) {
-    if (show_holder) {
+  if (show_holder)
+    if (half_holder_z)
+      bottom_half(z=0, s=300)
+        holder();
+    else if (half_holder_y)
+      left_half(x=0, s=300)
+        holder();
+    else
       holder();
-    }
-  }
 }
