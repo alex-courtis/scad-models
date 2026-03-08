@@ -12,7 +12,7 @@ z_blade_thick = 1.25; // [0:0.01:5]
 z_blade_thin = 0.98; // [0:0.01:5]
 
 x_handle = 20; // [0:0.01:200]
-y_handle = 120; // [0:0.01:200]
+y_handle = 100; // [0:0.01:200]
 dz_handle = 0; // [0:0.01:200]
 
 y_blade_channel = 6.25; // [0:0.01:25]
@@ -33,7 +33,9 @@ g_cutout = 0.1; // [0:0.001:2]
 t_nub = 0.40; // [0:0.001:2]
 
 t_y = 1.6; // [0:0.01:5]
-t_z = 1.2; // [0:0.01:5]
+t_half_front = 0.8; // [0:0.01:5]
+t_back = 4.8; // [0:0.01:5]
+t_handle = 3.2; // [0:0.01:5]
 
 ratio_rounding = 1; // [0:0.01:1]
 
@@ -117,32 +119,57 @@ module holder() {
   body = [
     x_blade,
     y_blade + t_y + g_y_edge - g_y_channel - (y_blade - y_blade_channel) / 2,
-    z_blade_thick + 2 * (g_z_thick + t_z),
+    z_blade_thick + 2 * (g_z_thick + t_half_front),
   ];
 
-  handle = [x_handle, y_handle, body[2] + dz_handle * 2];
+  rounding_body = ratio_rounding * body[2] / 2;
 
-  rounding = ratio_rounding * body[2] / 2;
+  handle = [x_handle, y_handle + rounding_body, t_handle];
+
+  rounding_handle = t_handle * ratio_rounding / 2;
 
   difference() {
     union() {
 
-      color(c="green")
-        translate(v=[0, y_handle / 2, 0])
-          cuboid(handle, rounding=rounding);
+      translate(v=[0, body[1] / 2 - y_blade_channel / 2 + g_y_channel, 0]) {
 
-      color(c="slateblue")
-        translate(v=[0, body[1] / 2 - y_blade_channel / 2 + g_y_channel, 0])
-          cuboid(
-            body,
-            rounding=rounding,
-            edges=[
-              FRONT + TOP,
-              FRONT + BOTTOM,
-              BACK + TOP,
-              BACK + BOTTOM,
+        color(c="green")
+          translate(
+            v=[
+              0,
+              handle[1] / 2 + body[1] / 2 - rounding_body,
+              0,
             ]
-          );
+          )
+            cuboid(
+              handle,
+              rounding=rounding_handle,
+              except=[
+                FRONT,
+              ]
+            );
+
+        color(c="slateblue")
+          rotate(a=90, v=[-1, 0, 0])
+            diff()
+              prismoid(
+                [body[0], body[2]],
+                [body[0], t_back],
+                h=body[1],
+                anchor=CENTER,
+              ) {
+                edge_profile(
+                  [
+                    TOP + FRONT,
+                    TOP + BACK,
+                    BOT + FRONT,
+                    BOT + BACK,
+                  ], excess=10, convexity=20
+                ) {
+                  mask2d_roundover(h=rounding_body, mask_angle=$edge_angle);
+                }
+              }
+      }
     }
 
     blade(cutouts=false, mask=true);
@@ -163,7 +190,7 @@ render() {
     }
   }
 
-  bottom_half(z=(half_holder ? 0 : z_blade_thick * 3), s=y_handle * 3) {
+  bottom_half(z=(half_holder ? 0 : z_blade_thick * 50), s=y_handle * 3) {
     if (show_holder) {
       holder();
     }
