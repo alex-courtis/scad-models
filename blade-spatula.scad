@@ -1,7 +1,7 @@
 include <lib/geom.scad>
 include <BOSL2/std.scad>
 
-show_blade = true;
+show_blade = false;
 show_holder = true;
 half_holder = false;
 
@@ -19,24 +19,44 @@ x_cutout_end = 4.5; // [0:0.01:25]
 y_cutout_end = 3.1; // [0:0.01:25]
 
 g_y_channel = 0.075; // [0:0.001:2]
-g_y_edge = 0.2; // [0:0.001:2]
+g_y_edge = 0.25; // [0:0.001:2]
 g_z = 0.09; // [0:0.001:2]
 
+z_nub = 0.25; // [0:0.001:2]
+ratio_rounding_nub = 2.0; // [0:0.001:2]
+rounding_nub = z_nub * ratio_rounding_nub;
+
 t_y = 1.6; // [0:0.01:5]
-t_z = 1.6; // [0:0.01:5]
+t_z = 0.8; // [0:0.01:5]
 
 ratio_rounding = 1; // [0:0.01:10]
 
 rounding = t_z * ratio_rounding;
 
-$fn = 400;
+$fn = 200;
 
-module blade(cutouts = true, dy_channel = 0, dy_edge = 0, dz = 0) {
+module blade(cutouts, gaps) {
+  body = [
+    x_blade,
+    y_blade + (gaps ? 2 * g_y_edge : 0),
+    z_blade + (gaps ? 2 * g_z : 0),
+  ];
+
+  channel = [
+    x_blade,
+    y_blade_channel - (gaps ? 2 * g_y_channel : 0),
+    z_blade - z_blade_channel,
+  ];
+
+  cutout_end = [x_cutout_end, y_cutout_end, z_blade_channel];
+
+  cutout_mid = [x_cutout_mid, y_cutout_mid, z_blade_channel];
+
+  dx_end = (x_blade - x_cutout_end) / 2;
+  dz_nub = cutout_mid[2] - z_nub;
+
   difference() {
-    body = [x_blade, y_blade + dy_edge * 2, z_blade + dz * 2];
     cube(body, center=true);
-
-    channel = [x_blade, y_blade_channel - 2 * dy_channel, z_blade - z_blade_channel];
 
     translate(v=[0, 0, (body[2] - channel[2]) / 2])
       cube(channel, center=true);
@@ -45,16 +65,36 @@ module blade(cutouts = true, dy_channel = 0, dy_edge = 0, dz = 0) {
       cube(channel, center=true);
 
     if (cutouts) {
-      cutout = [x_cutout_end, y_cutout_end, z_blade];
 
-      translate(v=[(x_blade - x_cutout_end) / 2, 0, 0])
-        cube(cutout, center=true);
+      // end
+      translate(v=[dx_end, 0, 0])
+        cube(cutout_end, center=true);
 
-      translate(v=[( -x_blade + x_cutout_end) / 2, 0, 0])
-        cube(cutout, center=true);
+      // end
+      translate(v=[-dx_end, 0, 0])
+        cube(cutout_end, center=true);
 
-      mid = [x_cutout_mid, y_cutout_mid, z_blade];
-      cube(mid, center=true);
+      // mid
+      cube(cutout_mid, center=true);
+    } else if (gaps) {
+
+      // end
+      translate(v=[dx_end, 0, dz_nub])
+        cuboid(cutout_end, rounding=rounding_nub);
+      translate(v=[dx_end, 0, -dz_nub])
+        cuboid(cutout_end, rounding=rounding_nub);
+
+      // end
+      translate(v=[-dx_end, 0, dz_nub])
+        cuboid(cutout_end, rounding=rounding_nub);
+      translate(v=[-dx_end, 0, -dz_nub])
+        cuboid(cutout_end, rounding=rounding_nub);
+
+      // mid
+      translate(v=[0, 0, dz_nub])
+        cuboid(cutout_mid, rounding=rounding_nub);
+      translate(v=[0, 0, -dz_nub])
+        cuboid(cutout_mid, rounding=rounding_nub);
     }
   }
 }
@@ -79,14 +119,14 @@ module holder() {
         ]
       );
 
-    blade(cutouts=false, dy_channel=g_y_channel, dy_edge=g_y_edge, dz=g_z);
+    blade(cutouts=false, gaps=true);
   }
 }
 
 render() {
   color(c="orange") {
     if (show_blade) {
-      blade();
+      blade(cutouts=true, gaps=false);
     }
   }
 
