@@ -11,6 +11,9 @@ y_blade = 17.7; // [0:0.01:100]
 z_blade_thick = 1.25; // [0:0.01:5]
 z_blade_thin = 0.98; // [0:0.01:5]
 
+x_handle = 20; // [0:0.01:200]
+y_handle = 120; // [0:0.01:200]
+
 y_blade_channel = 6.25; // [0:0.01:25]
 
 x_cutout_mid = 2.1; // [0:0.01:100]
@@ -31,9 +34,7 @@ t_nub = 0.40; // [0:0.001:2]
 t_y = 1.6; // [0:0.01:5]
 t_z = 1.2; // [0:0.01:5]
 
-ratio_rounding = 1; // [0:0.01:10]
-
-rounding = t_z * ratio_rounding;
+ratio_rounding = 1; // [0:0.01:1]
 
 $fn = 200;
 
@@ -112,24 +113,36 @@ module blade(cutouts, mask) {
 }
 
 module holder() {
-  difference() {
-    body = [
-      x_blade,
-      y_blade + t_y + g_y_edge - g_y_channel - (y_blade - y_blade_channel) / 2,
-      z_blade_thick + 2 * (g_z_thick + t_z),
-    ];
+  body = [
+    x_blade,
+    y_blade + t_y + g_y_edge - g_y_channel - (y_blade - y_blade_channel) / 2,
+    z_blade_thick + 2 * (g_z_thick + t_z),
+  ];
 
-    translate(v=[0, body[1] / 2 - y_blade_channel / 2 + g_y_channel, 0])
-      cuboid(
-        body,
-        rounding=rounding,
-        edges=[
-          FRONT + TOP,
-          FRONT + BOTTOM,
-          BACK + TOP,
-          BACK + BOTTOM,
-        ]
-      );
+  handle = [x_handle, y_handle, body[2]];
+
+  rounding = ratio_rounding * body[2] / 2;
+
+  difference() {
+    union() {
+
+      color(c="green")
+        translate(v=[0, y_handle / 2, 0])
+          cuboid(handle, rounding=rounding);
+
+      color(c="slateblue")
+        translate(v=[0, body[1] / 2 - y_blade_channel / 2 + g_y_channel, 0])
+          cuboid(
+            body,
+            rounding=rounding,
+            edges=[
+              FRONT + TOP,
+              FRONT + BOTTOM,
+              BACK + TOP,
+              BACK + BOTTOM,
+            ]
+          );
+    }
 
     blade(cutouts=false, mask=true);
   }
@@ -149,11 +162,9 @@ render() {
     }
   }
 
-  color(c="slateblue") {
-    bottom_half(z=(half_holder ? 0 : 50), s=100) {
-      if (show_holder) {
-        holder();
-      }
+  bottom_half(z=(half_holder ? 0 : z_blade_thick * 3), s=y_handle * 3) {
+    if (show_holder) {
+      holder();
     }
   }
 }
