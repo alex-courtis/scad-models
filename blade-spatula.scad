@@ -1,9 +1,10 @@
 include <lib/geom.scad>
 include <BOSL2/std.scad>
 
-show_blade = true;
+show_blade = false;
+flat_blade = false;
 show_holder = true;
-half_holder = true;
+half_holder = false;
 
 x_blade = 38.4; // [0:0.01:100]
 y_blade = 17.7; // [0:0.01:100]
@@ -14,6 +15,7 @@ y_blade_channel = 6.25; // [0:0.01:25]
 
 x_cutout_mid = 2.1; // [0:0.01:100]
 y_cutout_mid = 5.4; // [0:0.01:100]
+dy_cutout_mid = 0; // [-10:0.001:10]
 
 x_cutout_end = 4.5; // [0:0.01:25]
 y_cutout_end = 3.1; // [0:0.01:25]
@@ -23,11 +25,10 @@ g_y_edge = 0.25; // [0:0.001:2]
 g_z_thin = 0.01; // [0:0.001:2]
 g_z_thick = 0.05; // [0:0.001:2]
 
-t_nub = 0.20; // [0:0.001:2]
-rounding_nub = 1.05; // [0:0.001:3]
+t_nub = 0.40; // [0:0.001:2]
 
 t_y = 1.6; // [0:0.01:5]
-t_z = 0.8; // [0:0.01:5]
+t_z = 1.2; // [0:0.01:5]
 
 ratio_rounding = 1; // [0:0.01:10]
 
@@ -35,25 +36,56 @@ rounding = t_z * ratio_rounding;
 
 $fn = 200;
 
-module blade(cutouts, gaps) {
+module blade(cutouts, mask) {
   body = [
     x_blade,
-    y_blade + (gaps ? 2 * g_y_edge : 0),
-    z_blade_thick + (gaps ? 2 * g_z_thick : 0),
+    y_blade + (mask ? 2 * g_y_edge : 0),
+    z_blade_thick + (mask ? 2 * g_z_thick : 0),
   ];
 
   channel = [
     x_blade,
-    y_blade_channel - (gaps ? 2 * g_y_channel : 0),
-    z_blade_thick - (gaps ? 2 * g_z_thin : 0), // use entire thickness to avoid non-manifold
+    y_blade_channel - (mask ? 2 * g_y_channel : 0),
+    z_blade_thick - (mask ? 2 * g_z_thin : 0), // use entire thickness to avoid non-manifold
   ];
 
-  cutout_end = [x_cutout_end, y_cutout_end, z_blade_thick * 2];
+  nub_mask = [
+    x_blade,
+    y_blade,
+    z_blade_thin + g_z_thin * 2 - t_nub * 2,
+  ];
 
-  cutout_mid = [x_cutout_mid, y_cutout_mid, z_blade_thick * 2];
+  module cutout_end_mask(dir) {
+    rect = [
+      x_cutout_end - y_cutout_end,
+      y_cutout_end,
+      z_blade_thick,
+    ];
 
-  dx_end = (x_blade - x_cutout_end) / 2;
-  dz_nub = cutout_end[2] / 2 + z_blade_thin / 2 + g_z_thin - t_nub;
+    translate(v=[(x_blade - rect[0]) / 2 * dir, 0, 0])
+      cube(rect, center=true);
+
+    translate(v=[(x_blade / 2 - rect[0]) * dir, 0, 0])
+      cylinder(d=y_cutout_end, h=rect[2], center=true);
+  }
+
+  module cutout_mid_mask() {
+    rect = [
+      x_cutout_mid,
+      y_cutout_mid - x_cutout_mid,
+      z_blade_thick,
+    ];
+
+    translate(v=[0, dy_cutout_mid, 0]) {
+      cube(rect, center=true);
+
+      translate(v=[0, rect[1] / 2, 0])
+        cylinder(d=x_cutout_mid, h=rect[2], center=true);
+
+      translate(v=[0, -rect[1] / 2, 0])
+        cylinder(d=x_cutout_mid, h=rect[2], center=true);
+    }
+  }
 
   difference() {
     cube(body, center=true);
@@ -64,37 +96,15 @@ module blade(cutouts, gaps) {
     translate(v=[0, 0, -(z_blade_thick + z_blade_thin) / 2])
       cube(channel, center=true);
 
-    if (cutouts) {
+    difference() {
+      union() {
+        cutout_end_mask(dir=1);
+        cutout_end_mask(dir=-1);
+        cutout_mid_mask();
+      }
 
-      // end
-      translate(v=[dx_end, 0, 0])
-        cube(cutout_end, center=true);
-
-      // end
-      translate(v=[-dx_end, 0, 0])
-        cube(cutout_end, center=true);
-
-      // mid
-      cube(cutout_mid, center=true);
-    } else if (gaps) {
-
-      // end
-      translate(v=[dx_end, 0, dz_nub])
-        cuboid(cutout_end, rounding=rounding_nub);
-      translate(v=[dx_end, 0, -dz_nub])
-        cuboid(cutout_end, rounding=rounding_nub);
-
-      // end
-      translate(v=[-dx_end, 0, dz_nub])
-        cuboid(cutout_end, rounding=rounding_nub);
-      translate(v=[-dx_end, 0, -dz_nub])
-        cuboid(cutout_end, rounding=rounding_nub);
-
-      // mid
-      translate(v=[0, 0, dz_nub])
-        cuboid(cutout_mid, rounding=rounding_nub);
-      translate(v=[0, 0, -dz_nub])
-        cuboid(cutout_mid, rounding=rounding_nub);
+      // cut off nubs
+      cube(nub_mask, center=true);
     }
   }
 }
@@ -119,18 +129,25 @@ module holder() {
         ]
       );
 
-    blade(cutouts=false, gaps=true);
+    blade(cutouts=false, mask=true);
   }
 }
 
 render() {
   color(c="orange") {
     if (show_blade) {
-      blade(cutouts=true, gaps=false);
+      if (flat_blade) {
+        top_half() {
+          translate(v=[0, 0, z_blade_thin / 2])
+            blade(cutouts=true, mask=false);
+        }
+      } else {
+        blade(cutouts=true, mask=false);
+      }
     }
   }
 
-  color(c="steelblue") {
+  color(c="slateblue") {
     bottom_half(z=(half_holder ? 0 : 50), s=100) {
       if (show_holder) {
         holder();
