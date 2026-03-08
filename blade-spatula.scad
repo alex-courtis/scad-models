@@ -13,6 +13,7 @@ z_blade_thin = 0.98; // [0:0.01:5]
 
 x_handle = 20; // [0:0.01:200]
 y_handle = 120; // [0:0.01:200]
+dz_handle = 0; // [0:0.01:200]
 
 y_blade_channel = 6.25; // [0:0.01:25]
 
@@ -24,7 +25,7 @@ x_cutout_end = 4.5; // [0:0.01:25]
 y_cutout_end = 3.1; // [0:0.01:25]
 
 g_y_channel = 0.075; // [0:0.001:2]
-g_y_edge = 0.25; // [0:0.001:2]
+g_y_edge = 0.45; // [0:0.001:2]
 g_z_thin = 0.01; // [0:0.001:2]
 g_z_thick = 0.05; // [0:0.001:2]
 g_cutout = 0.1; // [0:0.001:2]
@@ -119,7 +120,7 @@ module holder() {
     z_blade_thick + 2 * (g_z_thick + t_z),
   ];
 
-  handle = [x_handle, y_handle, body[2]];
+  handle = [x_handle, y_handle, body[2] + dz_handle * 2];
 
   rounding = ratio_rounding * body[2] / 2;
 
