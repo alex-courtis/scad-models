@@ -37,6 +37,8 @@ nub_end = true;
 nub_joined = true;
 
 d_pin = 2; // [0:0.001:5]
+l_pin_handle = 14; // [0:0.001:50]
+l_pin_body = 27; // [0:0.001:50]
 
 t_y = 4.6; // [0:0.01:5]
 t_half_front = 0.8; // [0:0.01:5]
@@ -187,15 +189,15 @@ module holder() {
     color(c="red") {
       translate(v=v_holder + [0, body[1] / 2 - t_y / 2, 0]) {
         rotate(a=90, v=[0, 1, 0])
-          cylinder(d=d_pin, h=body[0], center=true);
+          cylinder(d=d_pin, h=l_pin_body, center=true);
 
-        translate(v=[0, y_handle + d_pin - rounding_handle, 0])
+        #translate(v=[0, y_handle + d_pin - rounding_handle, 0])
           rotate(a=90, v=[0, 1, 0])
-            cylinder(d=d_pin, h=handle[0], center=true);
+            cylinder(d=d_pin, h=l_pin_handle, center=true);
 
         translate(v=[0, y_handle / 2, 0])
           rotate(a=90, v=[0, 1, 0])
-            cylinder(d=d_pin, h=handle[0], center=true);
+            cylinder(d=d_pin, h=l_pin_handle, center=true);
       }
     }
 
