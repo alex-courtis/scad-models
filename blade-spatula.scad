@@ -24,6 +24,7 @@ g_y_channel = 0.075; // [0:0.001:2]
 g_y_edge = 0.25; // [0:0.001:2]
 g_z_thin = 0.01; // [0:0.001:2]
 g_z_thick = 0.05; // [0:0.001:2]
+g_cutout = 0.1; // [0:0.001:2]
 
 t_nub = 0.40; // [0:0.001:2]
 
@@ -58,7 +59,7 @@ module blade(cutouts, mask) {
   module cutout_end_mask(dir) {
     rect = [
       x_cutout_end - y_cutout_end,
-      y_cutout_end,
+      y_cutout_end - (mask ? 2 * g_cutout : 0),
       z_blade_thick,
     ];
 
@@ -66,12 +67,12 @@ module blade(cutouts, mask) {
       cube(rect, center=true);
 
     translate(v=[(x_blade / 2 - rect[0]) * dir, 0, 0])
-      cylinder(d=y_cutout_end, h=rect[2], center=true);
+      cylinder(d=rect[1], h=rect[2], center=true);
   }
 
   module cutout_mid_mask() {
     rect = [
-      x_cutout_mid,
+      x_cutout_mid - (mask ? 2 * g_cutout : 0),
       y_cutout_mid - x_cutout_mid,
       z_blade_thick,
     ];
@@ -80,10 +81,10 @@ module blade(cutouts, mask) {
       cube(rect, center=true);
 
       translate(v=[0, rect[1] / 2, 0])
-        cylinder(d=x_cutout_mid, h=rect[2], center=true);
+        cylinder(d=rect[0], h=rect[2], center=true);
 
       translate(v=[0, -rect[1] / 2, 0])
-        cylinder(d=x_cutout_mid, h=rect[2], center=true);
+        cylinder(d=rect[0], h=rect[2], center=true);
     }
   }
 
@@ -104,7 +105,8 @@ module blade(cutouts, mask) {
       }
 
       // cut off nubs
-      cube(nub_mask, center=true);
+      if (mask)
+        cube(nub_mask, center=true);
     }
   }
 }
