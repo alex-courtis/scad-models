@@ -4,31 +4,24 @@ include <BOSL2/std.scad>
 show_blade = false;
 show_holder = false;
 show_cover = true;
-half_y = false;
+half_y = true;
 half_z = false;
 
+/* [Blade Dimensions] */
 x_blade = 38.4; // [0:0.01:100]
 y_blade = 17.7; // [0:0.01:100]
 z_blade_thick = 1.25; // [0:0.01:5]
 z_blade_thin = 0.98; // [0:0.01:5]
-
-x_handle = 20; // [0:0.01:200]
-y_handle = 100; // [0:0.01:200]
-
-dx_cover = 3; // [0:0.01:10]
-dy_cover = 4.5; // [0:0.01:10]
-t_cover = 7.2; // [0:0.01:10]
-g_x_cover = 1; // [0:0.01:10]
-g_y_cover = 2.5; // [0:0.01:10]
-z_blade_cover = 2.60; // [0:0.01:5]
-dy_clip = 5.6; // [0:0.001:10]
-y_cover_clip = 2; // [0:0.001:10]
-dz_cover_clip = 0.8; // [0:0.001:10]
-y_cover_split = 12.0; // [0:0.001:100]
-z_cover_split = 0.4; // [0:0.001:10]
-
 y_blade_channel = 6.25; // [0:0.01:25]
 
+/* [Blade Gaps] */
+g_y_channel = 0.075; // [0:0.001:2]
+g_y_edge = 0.45; // [0:0.001:2]
+g_z_thin = 0.01; // [0:0.001:2]
+g_z_thick = 0.05; // [0:0.001:2]
+g_cutout = 0.125; // [0:0.001:2]
+
+/* [Blade Holes] */
 x_cutout_mid = 2.1; // [0:0.01:100]
 y_cutout_mid = 5.4; // [0:0.01:100]
 dy_cutout_mid = 0; // [-10:0.001:10]
@@ -36,28 +29,47 @@ dy_cutout_mid = 0; // [-10:0.001:10]
 x_cutout_end = 4.5; // [0:0.01:25]
 y_cutout_end = 3.1; // [0:0.01:25]
 
-g_y_channel = 0.075; // [0:0.001:2]
-g_y_edge = 0.45; // [0:0.001:2]
-g_z_thin = 0.01; // [0:0.001:2]
-g_z_thick = 0.05; // [0:0.001:2]
-g_cutout = 0.125; // [0:0.001:2]
+/* [Holder Dimensions] */
+t_y = 4.6; // [0:0.01:5]
+t_half_front = 0.45; // [0:0.01:10]
+t_back = 4.8; // [0:0.01:10]
+t_handle = 4.64; // [0:0.01:10]
+ratio_rounding_body = 1; // [0:0.01:1]
 
+/* [Nubs] */
 t_nub = 0.40; // [0:0.001:2]
 nub_mid = false;
 nub_end = true;
 nub_joined = true;
 
+/* [Handle] */
+x_handle = 20; // [0:0.01:200]
+y_handle = 100; // [0:0.01:200]
+
+/* [Cover Dimensions] */
+dx_cover = 3; // [0:0.01:10]
+dy_cover = 4.5; // [0:0.01:10]
+t_cover = 7.2; // [0:0.01:10]
+z_blade_cover = 2.60; // [0:0.01:5]
+ratio_rounding_cover = 0.5; // [0:0.01:1]
+
+/* [Cover Gaps] */
+g_x_cover = 1; // [0:0.01:10]
+g_y_cover = 2.5; // [0:0.01:10]
+
+/* [Cover Clip] */
+y_cover_clip = 2; // [0:0.001:10]
+dy_clip = 5.6; // [0:0.001:10]
+dz_cover_clip = 0.8; // [0:0.001:10]
+
+/* [Cover Split] */
+y_cover_split = 12.0; // [0:0.001:100]
+z_cover_split = 0.4; // [0:0.001:10]
+
+/* [Pins] */
 d_pin = 2.08; // [0:0.001:5]
 l_pin_handle = 14; // [0:0.001:50]
 l_pin_body = 27; // [0:0.001:50]
-
-t_y = 4.6; // [0:0.01:5]
-t_half_front = 0.45; // [0:0.01:10]
-t_back = 4.8; // [0:0.01:10]
-t_handle = 4.64; // [0:0.01:10]
-
-ratio_rounding_body = 1; // [0:0.01:1]
-ratio_rounding_cover = 0.5; // [0:0.01:1]
 
 $fn = 200;
 
