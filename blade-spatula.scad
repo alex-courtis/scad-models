@@ -16,12 +16,16 @@ x_handle = 20; // [0:0.01:200]
 y_handle = 100; // [0:0.01:200]
 
 dx_cover = 3; // [0:0.01:10]
-dy_cover = 3; // [0:0.01:10]
+dy_cover = 4.5; // [0:0.01:10]
 t_cover = 7.2; // [0:0.01:10]
 g_x_cover = 1; // [0:0.01:10]
-g_y_cover = 1; // [0:0.01:10]
-z_blade_cover = 2.40; // [0:0.01:5]
-dy_clip = 5.05; // [0:0.001:10]
+g_y_cover = 2.5; // [0:0.01:10]
+z_blade_cover = 2.60; // [0:0.01:5]
+dy_clip = 5.6; // [0:0.001:10]
+y_cover_clip = 2; // [0:0.001:10]
+dz_cover_clip = 0.8; // [0:0.001:10]
+y_cover_split = 12.0; // [0:0.001:100]
+z_cover_split = 0.4; // [0:0.001:10]
 
 y_blade_channel = 6.25; // [0:0.01:25]
 
@@ -255,6 +259,31 @@ module cover() {
       translate(v=[-g_x_cover, 0, 0])
         holder(blade_cutout=false, pins=false);
     }
+
+    color(c="saddlebrown")
+      translate(v=[0, body[1] / 2 - dy_cover / 2 + dy_clip / 2 - y_cover_clip / 2, 0])
+        cube(
+          [
+            body[0] - 2 * dx_cover + g_x_cover * 2,
+            y_cover_clip,
+            t_back - dz_cover_clip,
+          ], center=true
+        );
+
+    color(c="chocolate")
+      translate(v=[0, body[1] / 2 - dy_cover / 2 + dy_clip / 2 - y_cover_split / 2, 0])
+        cube(
+          [
+            body[0],
+            y_cover_split,
+            z_cover_split,
+          ], center=true
+        );
+
+    color(c="indigo")
+      translate(v=[0, body[1] / 2 - dy_cover / 2 + dy_clip / 2 - y_cover_split, 0])
+        rotate(a=90, v=[0, 1, 0])
+          cylinder(d=z_cover_split * 2, h=body[0], center=true);
   }
 }
 
@@ -263,7 +292,7 @@ render() {
     color(c="orange")
       blade(cutouts=true, mask=false);
 
-  if (show_holder)
+  color(c="slategray") if (show_holder)
     if (half_z)
       bottom_half(z=0, s=300)
         holder();
