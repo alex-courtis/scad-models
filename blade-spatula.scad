@@ -2,9 +2,9 @@ include <lib/geom.scad>
 include <BOSL2/std.scad>
 
 show_blade = false;
-show_holder = true;
+show_holder = false;
 show_cover = true;
-half_y = true;
+half_y = false;
 half_z = false;
 
 x_blade = 38.4; // [0:0.01:100]
@@ -17,11 +17,11 @@ y_handle = 100; // [0:0.01:200]
 
 dx_cover = 3; // [0:0.01:10]
 dy_cover = 3; // [0:0.01:10]
-dy_body_cover = 0.40; // [0:0.01:10]
 t_cover = 7.2; // [0:0.01:10]
 g_x_cover = 1; // [0:0.01:10]
 g_y_cover = 1; // [0:0.01:10]
-z_blade_cover = 1.30; // [0:0.01:5]
+z_blade_cover = 2.40; // [0:0.01:5]
+dy_clip = 5.05; // [0:0.001:10]
 
 y_blade_channel = 6.25; // [0:0.01:25]
 
@@ -169,7 +169,7 @@ module body_holder_prismoid() {
       }
 }
 
-module holder() {
+module holder(blade_cutout = true, pins = true) {
 
   handle = [x_handle, y_handle + rounding_body, t_handle];
 
@@ -201,40 +201,44 @@ module holder() {
       }
     }
 
-    color(c="red") {
-      translate(v=v_holder + [0, body_holder[1] / 2 - t_y / 2, 0]) {
-        rotate(a=90, v=[0, 1, 0])
-          cylinder(d=d_pin, h=l_pin_body, center=true);
-
-        translate(v=[0, y_handle - 2 * d_pin, 0])
+    if (pins) {
+      color(c="red") {
+        translate(v=v_holder + [0, body_holder[1] / 2 - t_y / 2, 0]) {
           rotate(a=90, v=[0, 1, 0])
-            cylinder(d=d_pin, h=l_pin_handle, center=true);
+            cylinder(d=d_pin, h=l_pin_body, center=true);
 
-        translate(v=[0, y_handle / 2, 0])
-          rotate(a=90, v=[0, 1, 0])
-            cylinder(d=d_pin, h=l_pin_handle, center=true);
+          translate(v=[0, y_handle - 2 * d_pin, 0])
+            rotate(a=90, v=[0, 1, 0])
+              cylinder(d=d_pin, h=l_pin_handle, center=true);
+
+          translate(v=[0, y_handle / 2, 0])
+            rotate(a=90, v=[0, 1, 0])
+              cylinder(d=d_pin, h=l_pin_handle, center=true);
+        }
       }
     }
 
-    color(c="pink")
-      blade(cutouts=true, mask=true);
+    if (blade_cutout)
+      color(c="pink")
+        blade(cutouts=true, mask=true);
   }
 }
 
 module cover() {
   body = [
     x_blade + dx_cover * 2,
-    y_blade + dy_cover * 2,
+    y_blade + dy_cover + dy_clip,
     t_cover,
   ];
 
   difference() {
     color(c="slategray")
-      cuboid(
-        body,
-        rounding=rounding_cover,
-        except=[BACK],
-      );
+      translate(v=[0, -dy_cover / 2 + dy_clip / 2, 0])
+        cuboid(
+          body,
+          rounding=rounding_cover,
+          except=[BACK],
+        );
 
     color(c="salmon")
       cube(
@@ -246,10 +250,10 @@ module cover() {
       );
 
     color(c="red") {
-      translate(v=v_holder + [g_x_cover, -dy_body_cover, 0])
-        body_holder_prismoid();
-      translate(v=v_holder + [-g_x_cover, -dy_body_cover, 0])
-        body_holder_prismoid();
+      translate(v=[g_x_cover, 0, 0])
+        holder(blade_cutout=false, pins=false);
+      translate(v=[-g_x_cover, 0, 0])
+        holder(blade_cutout=false, pins=false);
     }
   }
 }
