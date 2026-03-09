@@ -4,7 +4,7 @@ include <BOSL2/std.scad>
 show_blade = false;
 show_holder = false;
 show_cover = true;
-half_y = true;
+half_y = false;
 half_z = false;
 
 /* [Blade Dimensions] */
@@ -48,14 +48,14 @@ y_handle = 100; // [0:0.01:200]
 
 /* [Cover Dimensions] */
 dx_cover = 3; // [0:0.01:10]
-dy_cover = 4.5; // [0:0.01:10]
+dy_cover = 5; // [0:0.01:10]
 t_cover = 7.2; // [0:0.01:10]
-z_blade_cover = 2.60; // [0:0.01:5]
+z_blade_cover = 1.90; // [0:0.01:5]
 ratio_rounding_cover = 0.5; // [0:0.01:1]
 
 /* [Cover Gaps] */
 g_x_cover = 1; // [0:0.01:10]
-g_y_cover = 2.5; // [0:0.01:10]
+g_y_cover = 3; // [0:0.01:10]
 
 /* [Cover Clip] */
 y_cover_clip = 2; // [0:0.001:10]
@@ -64,7 +64,7 @@ dz_cover_clip = 0.8; // [0:0.001:10]
 
 /* [Cover Split] */
 y_cover_split = 12.0; // [0:0.001:100]
-z_cover_split = 0.4; // [0:0.001:10]
+z_cover_split = 0.45; // [0:0.001:10]
 
 /* [Pins] */
 d_pin = 2.08; // [0:0.001:5]
