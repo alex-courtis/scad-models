@@ -14,7 +14,6 @@ z_blade_thin = 0.98; // [0:0.01:5]
 
 x_handle = 20; // [0:0.01:200]
 y_handle = 100; // [0:0.01:200]
-dz_handle = 0; // [0:0.01:200]
 
 y_blade_channel = 6.25; // [0:0.01:25]
 
@@ -36,14 +35,14 @@ nub_mid = false;
 nub_end = true;
 nub_joined = true;
 
-d_pin = 2; // [0:0.001:5]
+d_pin = 2.1; // [0:0.001:5]
 l_pin_handle = 14; // [0:0.001:50]
 l_pin_body = 27; // [0:0.001:50]
 
 t_y = 4.6; // [0:0.01:5]
-t_half_front = 0.8; // [0:0.01:5]
-t_back = 4.8; // [0:0.01:5]
-t_handle = 4.0; // [0:0.01:5]
+t_half_front = 0.8; // [0:0.01:10]
+t_back = 4.8; // [0:0.01:10]
+t_handle = 4.65; // [0:0.01:10]
 
 ratio_rounding = 1; // [0:0.01:1]
 
@@ -70,7 +69,7 @@ module blade(cutouts, mask) {
 
   module cutout_end_mask(dir) {
     rect = [
-      x_cutout_end - y_cutout_end,
+      x_cutout_end - y_cutout_end / 2,
       y_cutout_end - (mask ? 2 * g_cutout : 0),
       z_blade_thick,
     ];
@@ -191,7 +190,7 @@ module holder() {
         rotate(a=90, v=[0, 1, 0])
           cylinder(d=d_pin, h=l_pin_body, center=true);
 
-        #translate(v=[0, y_handle + d_pin - rounding_handle, 0])
+        translate(v=[0, y_handle - 2 * d_pin, 0])
           rotate(a=90, v=[0, 1, 0])
             cylinder(d=d_pin, h=l_pin_handle, center=true);
 
