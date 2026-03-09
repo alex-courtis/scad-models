@@ -283,7 +283,7 @@ module cover() {
     color(c="indigo")
       translate(v=[0, body[1] / 2 - dy_cover / 2 + dy_clip / 2 - y_cover_split, 0])
         rotate(a=90, v=[0, 1, 0])
-          cylinder(d=z_cover_split * 2, h=body[0], center=true);
+          cylinder(d=z_cover_split * 3, h=body[0], center=true);
   }
 }
 
@@ -292,7 +292,7 @@ render() {
     color(c="orange")
       blade(cutouts=true, mask=false);
 
-  color(c="slategray") if (show_holder)
+  if (show_holder)
     if (half_z)
       bottom_half(z=0, s=300)
         holder();
