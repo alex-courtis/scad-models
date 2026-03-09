@@ -16,10 +16,12 @@ x_handle = 20; // [0:0.01:200]
 y_handle = 100; // [0:0.01:200]
 
 dx_cover = 3; // [0:0.01:10]
+dy_cover = 3; // [0:0.01:10]
+dy_body_cover = 0.40; // [0:0.01:10]
+t_cover = 7.2; // [0:0.01:10]
 y_cover_end = 3; // [0:0.01:10]
-dy_cover = -1; // [-10:0.01:10]
 g_x_cover = 1; // [0:0.01:10]
-g_y_cover = 0.5; // [0:0.01:10]
+g_y_cover = 1; // [0:0.01:10]
 z_blade_cover = 1.30; // [0:0.01:5]
 
 y_blade_channel = 6.25; // [0:0.01:25]
@@ -61,6 +63,7 @@ body_holder = [
   z_blade_thick + 2 * (g_z_thick + t_half_front),
 ];
 rounding_body = ratio_rounding * body_holder[2] / 2;
+rounding_cover = ratio_rounding * t_cover / 2;
 v_holder = [0, body_holder[1] / 2 - y_blade_channel / 2 + g_y_channel, 0];
 
 module blade(cutouts, mask) {
@@ -220,34 +223,32 @@ module holder() {
 
 module cover() {
   body = [
-    x_blade + (dx_cover + g_x_cover) * 2,
-    y_blade + y_cover_end - g_y_cover,
-    t_handle,
+    x_blade + dx_cover * 2,
+    y_blade + dy_cover * 2,
+    t_cover,
   ];
 
   difference() {
     color(c="slategray")
-      translate(v=[0, -body[1] / 2 + y_blade / 2 + dy_cover, 0])
-        cuboid(
-          body,
-          rounding=rounding_body,
-          except=[BACK],
-        );
+      cuboid(
+        body,
+        rounding=rounding_cover,
+        except=[BACK],
+      );
 
     color(c="salmon")
-      translate(v=[0, 0, 0])
-        cube(
-          [
-            x_blade + g_x_cover * 2,
-            y_blade + g_y_cover * 2,
-            z_blade_cover,
-          ], center=true
-        );
+      cube(
+        [
+          x_blade + g_x_cover * 2,
+          y_blade + g_y_cover * 2,
+          z_blade_cover,
+        ], center=true
+      );
 
     color(c="red") {
-      translate(v=v_holder + [g_x_cover, -g_y_cover, 0])
+      translate(v=v_holder + [g_x_cover, -dy_body_cover, 0])
         body_holder_prismoid();
-      translate(v=v_holder + [-g_x_cover, -g_y_cover, 0])
+      translate(v=v_holder + [-g_x_cover, -dy_body_cover, 0])
         body_holder_prismoid();
     }
   }
