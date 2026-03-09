@@ -19,7 +19,6 @@ dx_cover = 3; // [0:0.01:10]
 dy_cover = 3; // [0:0.01:10]
 dy_body_cover = 0.40; // [0:0.01:10]
 t_cover = 7.2; // [0:0.01:10]
-y_cover_end = 3; // [0:0.01:10]
 g_x_cover = 1; // [0:0.01:10]
 g_y_cover = 1; // [0:0.01:10]
 z_blade_cover = 1.30; // [0:0.01:5]
@@ -53,7 +52,8 @@ t_half_front = 0.45; // [0:0.01:10]
 t_back = 4.8; // [0:0.01:10]
 t_handle = 4.64; // [0:0.01:10]
 
-ratio_rounding = 1; // [0:0.01:1]
+ratio_rounding_body = 1; // [0:0.01:1]
+ratio_rounding_cover = 0.5; // [0:0.01:1]
 
 $fn = 200;
 
@@ -62,8 +62,8 @@ body_holder = [
   y_blade + t_y + g_y_edge - g_y_channel - (y_blade - y_blade_channel) / 2,
   z_blade_thick + 2 * (g_z_thick + t_half_front),
 ];
-rounding_body = ratio_rounding * body_holder[2] / 2;
-rounding_cover = ratio_rounding * t_cover / 2;
+rounding_body = ratio_rounding_body * body_holder[2] / 2;
+rounding_cover = ratio_rounding_cover * t_cover / 2;
 v_holder = [0, body_holder[1] / 2 - y_blade_channel / 2 + g_y_channel, 0];
 
 module blade(cutouts, mask) {
@@ -173,7 +173,7 @@ module holder() {
 
   handle = [x_handle, y_handle + rounding_body, t_handle];
 
-  rounding_handle = t_handle * ratio_rounding / 2;
+  rounding_handle = t_handle * ratio_rounding_body / 2;
 
   difference() {
     union() {
