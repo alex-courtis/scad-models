@@ -29,6 +29,20 @@ dy_cutout_mid = 0; // [-10:0.001:10]
 x_cutout_end = 4.5; // [0:0.01:25]
 y_cutout_end = 3.1; // [0:0.01:25]
 
+x_cutout_back = 2.86; // [0:0.01:25]
+dx_cutout_back = [-6.50, 6.75]; // [0:0.01:25]
+y_cutout_back = 4.1; // [0:0.01:25]
+
+dx_cutout_hole1 = -12.625; // [-10:0.001:10]
+dy_cutout_hole1 = 4.925; // [-10:0.001:10]
+d_cutout_hole1 = 2.65; // [-10:0.001:10]
+d_cutout_drill_hole1 = 2.4;
+
+dx_cutout_hole2 = 12.625; // [-10:0.001:10]
+dy_cutout_hole2 = 1.925; // [-10:0.001:10]
+d_cutout_hole2 = 2.65; // [-10:0.001:10]
+d_cutout_drill_hole2 = 2.4;
+
 /* [Holder Dimensions] */
 t_y = 4.6; // [0:0.01:5]
 t_half_front = 0.45; // [0:0.01:10]
@@ -40,7 +54,9 @@ ratio_rounding_body = 1; // [0:0.01:1]
 t_nub = 0.40; // [0:0.001:2]
 nub_mid = false;
 nub_end = true;
+nub_back = false;
 nub_joined = true;
+drill_holes = false;
 
 /* [Handle] */
 x_handle = 20; // [0:0.01:200]
@@ -67,6 +83,7 @@ y_cover_split = 12.0; // [0:0.001:100]
 z_cover_split = 0.45; // [0:0.001:10]
 
 /* [Pins] */
+drill_pins = false;
 d_pin = 2.08; // [0:0.001:5]
 l_pin_handle = 14; // [0:0.001:50]
 l_pin_body = 27; // [0:0.001:50]
@@ -133,6 +150,38 @@ module blade(cutouts, mask) {
     }
   }
 
+  module cutout_hole1_mask() {
+    if (d_cutout_hole1) {
+      translate(v=[dx_cutout_hole1, dy_cutout_hole1, 0])
+        cylinder(d=mask ? d_cutout_drill_hole1 : d_cutout_hole1, h=t_back, center=true);
+    }
+  }
+
+  module cutout_hole2_mask() {
+    if (d_cutout_hole2) {
+      translate(v=[dx_cutout_hole2, dy_cutout_hole2, 0])
+        cylinder(d=mask ? d_cutout_drill_hole2 : d_cutout_hole2, h=t_back, center=true);
+    }
+  }
+
+  module cutout_back_mask(n) {
+    if (x_cutout_back) {
+      rect = [
+        x_cutout_back - (mask ? 2 * g_cutout : 0),
+        y_cutout_back - x_cutout_back / 2 + g_y_edge,
+        z_blade_thick,
+      ];
+
+      translate(v=[dx_cutout_back[n], y_blade / 2 + g_y_edge, 0]) {
+        translate(v=[0, -rect[1] / 2, 0])
+          cube(rect, center=true);
+
+        translate(v=[0, -rect[1], 0])
+          cylinder(d=rect[0], h=rect[2], center=true);
+      }
+    }
+  }
+
   difference() {
     cube(body, center=true);
 
@@ -153,6 +202,16 @@ module blade(cutouts, mask) {
           if (!mask || nub_mid) {
             cutout_mid_mask();
           }
+
+          if (!mask) {
+            cutout_hole1_mask();
+            cutout_hole2_mask();
+          }
+
+          if (!mask || nub_back) {
+            cutout_back_mask(0);
+            cutout_back_mask(1);
+          }
         }
 
         // cut off nubs
@@ -160,6 +219,11 @@ module blade(cutouts, mask) {
           cube(nub_mask, center=true);
       }
     }
+  }
+
+  if (mask && drill_holes) {
+    cutout_hole1_mask();
+    cutout_hole2_mask();
   }
 }
 
@@ -230,7 +294,7 @@ module holder(blade_cutout = true, pins = true) {
       }
     }
 
-    if (pins) {
+    if (pins && drill_pins) {
       color(c="orange") {
         translate(v=v_holder + [0, body_holder[1] / 2 - t_y / 2, 0]) {
           // body
