@@ -187,30 +187,43 @@ module body_holder_prismoid() {
 
 module holder(blade_cutout = true, pins = true) {
 
-  handle = [x_handle, y_handle + rounding_body, t_handle];
+  handle = [x_handle, y_handle + rounding_body - x_handle / 2, t_handle];
 
   rounding_handle = t_handle * ratio_rounding_body / 2;
+
+  module pin_chamfer() {
+    translate(v=[-d_pin / 4, 0, 0])
+      rotate(a=90, v=[0, 1, 0])
+        cylinder(d1=d_pin, d2=d_pin * 5 / 4, h=d_pin / 2, center=true);
+  }
 
   difference() {
     union() {
 
       translate(v=v_holder) {
 
-        color(c="green")
-          translate(
-            v=[
-              0,
-              handle[1] / 2 + body_holder[1] / 2 - rounding_body,
-              0,
-            ]
-          )
+        translate(
+          v=[
+            0,
+            handle[1] / 2 + body_holder[1] / 2 - rounding_body,
+            0,
+          ]
+        ) {
+
+          color(c="lightgreen")
+            translate(v=[0, handle[1] / 2, 0])
+              cyl(h=handle[2], d=x_handle, center=true, rounding=rounding_handle);
+
+          color(c="green")
             cuboid(
               handle,
               rounding=rounding_handle,
               except=[
                 FRONT,
+                BACK,
               ]
             );
+        }
 
         color(c="slateblue")
           body_holder_prismoid();
@@ -218,18 +231,29 @@ module holder(blade_cutout = true, pins = true) {
     }
 
     if (pins) {
-      color(c="red") {
+      color(c="orange") {
         translate(v=v_holder + [0, body_holder[1] / 2 - t_y / 2, 0]) {
+          // body
           rotate(a=90, v=[0, 1, 0])
             cylinder(d=d_pin, h=l_pin_body, center=true);
 
-          translate(v=[0, y_handle - 2 * d_pin, 0])
+          pin_chamfer();
+
+          // end
+          translate(v=[0, y_handle - 2 * d_pin, 0]) {
             rotate(a=90, v=[0, 1, 0])
               cylinder(d=d_pin, h=l_pin_handle, center=true);
 
-          translate(v=[0, y_handle / 2, 0])
+            pin_chamfer();
+          }
+
+          // mid
+          translate(v=[0, y_handle / 2, 0]) {
             rotate(a=90, v=[0, 1, 0])
               cylinder(d=d_pin, h=l_pin_handle, center=true);
+
+            pin_chamfer();
+          }
         }
       }
     }
