@@ -6,6 +6,7 @@ show_holder = false;
 show_cover = true;
 half_y = false;
 half_z = false;
+split_holder = false;
 
 /* [Blade Dimensions] */
 x_blade = 38.4; // [0:0.01:100]
@@ -399,6 +400,14 @@ render() {
     else if (half_y)
       left_half(x=0, s=300)
         holder();
+    else if (split_holder) {
+      translate(v=[-10, 0, 0])
+        left_half(x=0, s=300)
+          holder();
+      translate(v=[10, 0, 0])
+        right_half(x=0, s=300)
+          holder();
+    }
     else
       holder();
 
