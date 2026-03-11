@@ -37,12 +37,12 @@ y_cutout_back = 4.1; // [0:0.01:25]
 dx_cutout_hole1 = -12.625; // [-10:0.001:10]
 dy_cutout_hole1 = 4.925; // [-10:0.001:10]
 d_cutout_hole1 = 2.65; // [-10:0.001:10]
-d_cutout_drill_hole1 = 2.4;
+d_cutout_drill_hole1 = 2.3; // [0:0.001:10]
 
 dx_cutout_hole2 = 12.625; // [-10:0.001:10]
 dy_cutout_hole2 = 1.925; // [-10:0.001:10]
 d_cutout_hole2 = 2.65; // [-10:0.001:10]
-d_cutout_drill_hole2 = 2.4;
+d_cutout_drill_hole2 = 2.3; // [0:0.001:10]
 
 /* [Holder Dimensions] */
 t_y = 4.6; // [0:0.01:5]
@@ -64,14 +64,14 @@ x_handle = 20; // [0:0.01:200]
 y_handle = 100; // [0:0.01:200]
 
 /* [Cover Dimensions] */
-dx_cover = 3; // [0:0.01:10]
+dx_cover = 2.5; // [0:0.01:10]
 dy_cover = 5; // [0:0.01:10]
 t_cover = 7.2; // [0:0.01:10]
 z_blade_cover = 1.90; // [0:0.01:5]
 ratio_rounding_cover = 0.5; // [0:0.01:1]
 
 /* [Cover Gaps] */
-g_x_cover = 1; // [0:0.01:10]
+g_x_cover = 0.5; // [0:0.01:10]
 g_y_cover = 3; // [0:0.01:10]
 
 /* [Cover Clip] */
@@ -237,15 +237,17 @@ module body_holder_prismoid() {
         h=body_holder[1],
         anchor=CENTER,
       ) {
-        edge_profile(
-          [
-            TOP + FRONT,
-            TOP + BACK,
-            BOT + FRONT,
-            BOT + BACK,
-          ], excess=10, convexity=20
-        ) {
-          mask2d_roundover(h=rounding_body, mask_angle=$edge_angle);
+        if (rounding_body > 0) {
+          edge_profile(
+            [
+              TOP + FRONT,
+              TOP + BACK,
+              BOT + FRONT,
+              BOT + BACK,
+            ], excess=10, convexity=20
+          ) {
+            mask2d_roundover(h=rounding_body, mask_angle=$edge_angle);
+          }
         }
       }
 }
@@ -303,6 +305,8 @@ module holder(blade_cutout = true, pins = true) {
             cylinder(d=d_pin, h=l_pin_body, center=true);
 
           pin_chamfer();
+          mirror(v=[1, 0, 0])
+            pin_chamfer();
 
           // end
           translate(v=[0, y_handle - 2 * d_pin, 0]) {
@@ -310,6 +314,8 @@ module holder(blade_cutout = true, pins = true) {
               cylinder(d=d_pin, h=l_pin_handle, center=true);
 
             pin_chamfer();
+            mirror(v=[1, 0, 0])
+              pin_chamfer();
           }
 
           // mid
@@ -318,6 +324,8 @@ module holder(blade_cutout = true, pins = true) {
               cylinder(d=d_pin, h=l_pin_handle, center=true);
 
             pin_chamfer();
+            mirror(v=[1, 0, 0])
+              pin_chamfer();
           }
         }
       }
