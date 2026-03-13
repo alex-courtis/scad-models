@@ -10,6 +10,7 @@ split_holder = false;
 
 /* [Blade Dimensions] */
 x_blade = 38.4; // [0:0.01:100]
+x_blade_back = 0; // [0:0.01:100]
 y_blade = 17.7; // [0:0.01:100]
 z_blade_thick = 1.25; // [0:0.01:5]
 z_blade_thin = 0.98; // [0:0.01:5]
@@ -30,19 +31,19 @@ dy_cutout_mid = 0; // [-10:0.001:10]
 x_cutout_end = 4.5; // [0:0.01:25]
 y_cutout_end = 3.1; // [0:0.01:25]
 
-x_cutout_back = 2.86; // [0:0.01:25]
-dx_cutout_back = [-6.50, 6.75]; // [0:0.01:25]
-y_cutout_back = 4.1; // [0:0.01:25]
+x_cutout_back = 0; // [0:0.01:25]
+dx_cutout_back = [0, 0]; // [-25:0.01:25]
+y_cutout_back = 0; // [0:0.01:25]
 
-dx_cutout_hole1 = -12.625; // [-10:0.001:10]
-dy_cutout_hole1 = 4.925; // [-10:0.001:10]
-d_cutout_hole1 = 2.65; // [-10:0.001:10]
-d_cutout_drill_hole1 = 2.3; // [0:0.001:10]
+dx_cutout_hole1 = 0; // [-20:0.001:20]
+dy_cutout_hole1 = 0; // [-10:0.001:20]
+d_cutout_hole1 = 0; // [0:0.001:10]
+d_cutout_drill_hole1 = 0; // [0:0.001:10]
 
-dx_cutout_hole2 = 12.625; // [-10:0.001:10]
-dy_cutout_hole2 = 1.925; // [-10:0.001:10]
-d_cutout_hole2 = 2.65; // [-10:0.001:10]
-d_cutout_drill_hole2 = 2.3; // [0:0.001:10]
+dx_cutout_hole2 = 0; // [-10:0.001:20]
+dy_cutout_hole2 = 0; // [-10:0.001:20]
+d_cutout_hole2 = 0; // [0:0.001:10]
+d_cutout_drill_hole2 = 0; // [0:0.001:10]
 
 /* [Holder Dimensions] */
 t_y = 4.6; // [0:0.01:5]
@@ -101,11 +102,17 @@ rounding_cover = ratio_rounding_cover * t_cover / 2;
 v_holder = [0, body_holder[1] / 2 - y_blade_channel / 2 + g_y_channel, 0];
 
 module blade(cutouts, mask) {
-  body = [
-    x_blade,
-    y_blade + (mask ? 2 * g_y_edge : 0),
-    z_blade_thick + (mask ? 2 * g_z_thick : 0),
+  // TODO adjust for angle
+  dy_blade = (mask ? g_y_edge : 0);
+
+  poly_blade = [
+    [-x_blade / 2, -y_blade / 2 + dy_blade],
+    [-(x_blade_back ? x_blade_back : x_blade) / 2, y_blade / 2 + dy_blade],
+    [(x_blade_back ? x_blade_back : x_blade) / 2, y_blade / 2 + dy_blade],
+    [x_blade / 2, -y_blade / 2 + dy_blade],
   ];
+
+  z_blade = z_blade_thick + (mask ? 2 * g_z_thick : 0);
 
   channel = [
     x_blade,
@@ -184,7 +191,8 @@ module blade(cutouts, mask) {
   }
 
   difference() {
-    cube(body, center=true);
+    linear_extrude(h=z_blade, center=true)
+      polygon(poly_blade);
 
     translate(v=[0, 0, (z_blade_thick + z_blade_thin) / 2])
       cube(channel, center=true);
