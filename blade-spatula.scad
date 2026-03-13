@@ -10,13 +10,14 @@ split_holder = false;
 
 /* [Blade Dimensions] */
 x_blade = 38.4; // [0:0.01:100]
-x_blade_back = 0; // [0:0.01:100]
+a_blade = 0; // [-80:0.01:80]
 y_blade = 17.7; // [0:0.01:100]
 z_blade_thick = 1.25; // [0:0.01:5]
 z_blade_thin = 0.98; // [0:0.01:5]
 y_blade_channel = 6.25; // [0:0.01:25]
 
 /* [Blade Gaps] */
+g_dx_edge = 0; // [0:0.001:2]
 g_y_channel = 0.075; // [0:0.001:2]
 g_y_edge = 0.45; // [0:0.001:2]
 g_z_thin = 0.01; // [0:0.001:2]
@@ -102,17 +103,20 @@ rounding_cover = ratio_rounding_cover * t_cover / 2;
 v_holder = [0, body_holder[1] / 2 - y_blade_channel / 2 + g_y_channel, 0];
 
 module blade(cutouts, mask) {
-  // TODO adjust for angle
+  dx_blade = (mask ? g_dx_edge : 0);
   dy_blade = (mask ? g_y_edge : 0);
 
-  poly_blade = [
-    [-x_blade / 2, -y_blade / 2 + dy_blade],
-    [-(x_blade_back ? x_blade_back : x_blade) / 2, y_blade / 2 + dy_blade],
-    [(x_blade_back ? x_blade_back : x_blade) / 2, y_blade / 2 + dy_blade],
-    [x_blade / 2, -y_blade / 2 + dy_blade],
-  ];
+  x_front = x_blade + dx_blade * 2;
+  x_back =
+    a_blade ? x_blade - 2 * y_blade / tan(a_blade) + dx_blade * 2
+    : x_blade + dx_blade * 2;
 
-  z_blade = z_blade_thick + (mask ? 2 * g_z_thick : 0);
+  poly_blade = [
+    [-x_front / 2, -y_blade / 2 + dy_blade],
+    [-x_back / 2, y_blade / 2 + dy_blade],
+    [x_back / 2, y_blade / 2 + dy_blade],
+    [x_front / 2, -y_blade / 2 + dy_blade],
+  ];
 
   channel = [
     x_blade,
@@ -191,7 +195,7 @@ module blade(cutouts, mask) {
   }
 
   difference() {
-    linear_extrude(h=z_blade, center=true)
+    linear_extrude(h=z_blade_thick + (mask ? 2 * g_z_thick : 0), center=true)
       polygon(poly_blade);
 
     translate(v=[0, 0, (z_blade_thick + z_blade_thin) / 2])
