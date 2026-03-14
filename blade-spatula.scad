@@ -424,10 +424,10 @@ render() {
       left_half(x=0, s=300)
         holder();
     else if (split_holder) {
-      translate(v=[-x_holder, 0, 0])
+      translate(v=[-body_holder[0], 0, 0])
         left_half(x=0, s=300)
           holder();
-      translate(v=[x_holder, 0, 0])
+      translate(v=[body_holder[0], 0, 0])
         right_half(x=0, s=300)
           holder();
     }
