@@ -14,7 +14,7 @@ a_blade = 90; // [0:0.01:90]
 y_blade = 17.7; // [0:0.01:100]
 z_blade_thick = 1.25; // [0:0.01:5]
 z_blade_thin = 0.98; // [0:0.01:5]
-y_blade_channel = 6.25; // [0:0.01:25]
+y_blade_channel = 6.25; // [-25:0.01:25]
 
 /* [Blade Gaps] */
 g_x_edge = 0; // [0:0.001:2]
@@ -27,7 +27,7 @@ g_cutout = 0.125; // [0:0.001:2]
 /* [Blade Holes] */
 x_cutout_mid = 2.1; // [0:0.01:100]
 y_cutout_mid = 5.4; // [0:0.01:100]
-dy_cutout_mid = 0; // [-10:0.001:10]
+dy_cutout_mid = 0; // [-10:0.001:50]
 
 x_cutout_end = 4.5; // [0:0.01:25]
 y_cutout_end = 3.1; // [0:0.01:25]
@@ -47,8 +47,10 @@ d_cutout_hole2 = 0; // [0:0.001:10]
 d_cutout_drill_hole2 = 0; // [0:0.001:10]
 
 /* [Holder Dimensions] */
+dx_holder = 0; // [0:0.01:100]
 t_y = 4.6; // [0:0.01:50]
 t_half_front = 0.45; // [0:0.01:10]
+t_front = 0; // [0:0.01:10]
 t_back = 4.8; // [0:0.01:10]
 t_handle = 4.64; // [0:0.01:10]
 ratio_rounding_body = 1; // [0:0.01:1]
@@ -64,6 +66,7 @@ drill_holes = false;
 /* [Handle] */
 x_handle = 20; // [0:0.01:200]
 y_handle = 100; // [0:0.01:200]
+ratio_rounding_handle = 1; // [0:0.01:1]
 
 /* [Cover Dimensions] */
 dx_cover = 2.5; // [0:0.01:10]
@@ -94,13 +97,19 @@ l_pin_body = 27; // [0:0.001:100]
 $fn = 200;
 
 body_holder = [
-  x_blade,
+  x_blade + 2 * dx_holder,
   y_blade + t_y + g_y_edge - g_y_channel - (y_blade - y_blade_channel) / 2,
-  z_blade_thick + 2 * (g_z_thick + t_half_front),
+  t_front ? t_front : z_blade_thick + 2 * (g_z_thick + t_half_front),
 ];
 rounding_body = ratio_rounding_body * body_holder[2] / 2;
-rounding_cover = ratio_rounding_cover * t_cover / 2;
 v_holder = [0, body_holder[1] / 2 - y_blade_channel / 2 + g_y_channel, 0];
+
+body_cover = [
+  body_holder[0] + dx_cover * 2,
+  y_blade + dy_cover + dy_clip,
+  t_cover,
+];
+rounding_cover = ratio_rounding_cover * t_cover / 2;
 
 module blade(cutouts, mask) {
   dx_blade = (mask ? g_x_edge - g_y_edge / tan(a_blade) : 0);
@@ -239,6 +248,13 @@ module blade(cutouts, mask) {
 }
 
 module body_holder_prismoid() {
+
+  round_edges = [
+    t_back == t_handle ? [0, 0, 0] : TOP + FRONT,
+    t_back == t_handle ? [0, 0, 0] : TOP + BACK,
+    BOT + FRONT,
+    BOT + BACK,
+  ];
   rotate(a=90, v=[-1, 0, 0])
     diff()
       prismoid(
@@ -249,12 +265,7 @@ module body_holder_prismoid() {
       ) {
         if (rounding_body > 0) {
           edge_profile(
-            [
-              TOP + FRONT,
-              TOP + BACK,
-              BOT + FRONT,
-              BOT + BACK,
-            ], excess=10, convexity=20
+            round_edges, excess=10, convexity=20
           ) {
             mask2d_roundover(h=rounding_body, mask_angle=$edge_angle);
           }
@@ -266,7 +277,7 @@ module holder(blade_cutout = true, pins = true) {
 
   handle = [x_handle, y_handle + rounding_body - x_handle / 2, t_handle];
 
-  rounding_handle = t_handle * ratio_rounding_body / 2;
+  rounding_handle = t_handle * ratio_rounding_handle / 2;
 
   module pin_chamfer() {
     translate(v=[-d_pin / 4, 0, 0])
@@ -282,7 +293,7 @@ module holder(blade_cutout = true, pins = true) {
         translate(
           v=[
             0,
-            handle[1] / 2 + body_holder[1] / 2 - rounding_body,
+            handle[1] / 2 + body_holder[1] / 2 - rounding_handle,
             0,
           ]
         ) {
@@ -348,17 +359,11 @@ module holder(blade_cutout = true, pins = true) {
 }
 
 module cover() {
-  body = [
-    x_blade + dx_cover * 2,
-    y_blade + dy_cover + dy_clip,
-    t_cover,
-  ];
-
   difference() {
     color(c="slategray")
       translate(v=[0, -dy_cover / 2 + dy_clip / 2, 0])
         cuboid(
-          body,
+          body_cover,
           rounding=rounding_cover,
           except=[BACK],
         );
@@ -366,7 +371,7 @@ module cover() {
     color(c="salmon")
       cube(
         [
-          x_blade + g_x_cover * 2,
+          body_holder[0] + g_x_cover * 2,
           y_blade + g_y_cover * 2,
           z_blade_cover,
         ], center=true
@@ -380,29 +385,29 @@ module cover() {
     }
 
     color(c="saddlebrown")
-      translate(v=[0, body[1] / 2 - dy_cover / 2 + dy_clip / 2 - y_cover_clip / 2, 0])
+      translate(v=[0, body_cover[1] / 2 - dy_cover / 2 + dy_clip / 2 - y_cover_clip / 2, 0])
         cube(
           [
-            body[0] - 2 * dx_cover + g_x_cover * 2,
+            body_cover[0] - 2 * dx_cover + g_x_cover * 2,
             y_cover_clip,
             t_back - dz_cover_clip,
           ], center=true
         );
 
     color(c="chocolate")
-      translate(v=[0, body[1] / 2 - dy_cover / 2 + dy_clip / 2 - y_cover_split / 2, 0])
+      translate(v=[0, body_cover[1] / 2 - dy_cover / 2 + dy_clip / 2 - y_cover_split / 2, 0])
         cube(
           [
-            body[0],
+            body_cover[0],
             y_cover_split,
             z_cover_split,
           ], center=true
         );
 
     color(c="indigo")
-      translate(v=[0, body[1] / 2 - dy_cover / 2 + dy_clip / 2 - y_cover_split, 0])
+      translate(v=[0, body_cover[1] / 2 - dy_cover / 2 + dy_clip / 2 - y_cover_split, 0])
         rotate(a=90, v=[0, 1, 0])
-          cylinder(d=z_cover_split * 3, h=body[0], center=true);
+          cylinder(d=z_cover_split * 3, h=body_cover[0], center=true);
   }
 }
 
@@ -419,10 +424,10 @@ render() {
       left_half(x=0, s=300)
         holder();
     else if (split_holder) {
-      translate(v=[-x_blade, 0, 0])
+      translate(v=[-x_holder, 0, 0])
         left_half(x=0, s=300)
           holder();
-      translate(v=[x_blade, 0, 0])
+      translate(v=[x_holder, 0, 0])
         right_half(x=0, s=300)
           holder();
     }
