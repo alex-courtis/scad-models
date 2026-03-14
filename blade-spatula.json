@@ -177,7 +177,7 @@
             "d_cutout_hole2": "0",
             "d_pin": "2.0800000000000001",
             "drill_holes": "true",
-            "drill_pins": "false",
+            "drill_pins": "true",
             "dx_cover": "4",
             "dx_cutout_back": "[-3.265, 3.265]",
             "dx_cutout_hole1": "0",
