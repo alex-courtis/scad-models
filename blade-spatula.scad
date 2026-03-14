@@ -141,7 +141,7 @@ module blade(cutouts, mask) {
     rect = [
       x_cutout_end - y_cutout_end / 2,
       y_cutout_end - (mask ? 2 * g_cutout : 0),
-      z_blade_thick,
+      z_blade_thick + g_z_thick * 2,
     ];
 
     translate(v=[(x_blade - rect[0]) / 2 * dir, 0, 0])
@@ -155,7 +155,7 @@ module blade(cutouts, mask) {
     rect = [
       x_cutout_mid - (mask ? 2 * g_cutout : 0),
       y_cutout_mid - x_cutout_mid,
-      z_blade_thick,
+      z_blade_thick + g_z_thick * 2,
     ];
 
     translate(v=[0, dy_cutout_mid, 0]) {
@@ -188,7 +188,7 @@ module blade(cutouts, mask) {
       rect = [
         x_cutout_back - (mask ? 2 * g_cutout : 0),
         y_cutout_back - x_cutout_back / 2 + g_y_edge,
-        z_blade_thick,
+        z_blade_thick + g_z_thick * 2,
       ];
 
       translate(v=[dx_cutout_back[n], y_blade / 2 + g_y_edge, 0]) {
