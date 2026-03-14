@@ -1,11 +1,11 @@
 include <lib/geom.scad>
 include <BOSL2/std.scad>
 
-show_blade = false;
-show_holder = false;
+show_blade = true;
+show_holder = true;
 show_cover = true;
 half_y = false;
-half_z = false;
+half_z = true;
 split_holder = false;
 
 /* [Blade Dimensions] */
@@ -419,10 +419,10 @@ render() {
       left_half(x=0, s=300)
         holder();
     else if (split_holder) {
-      translate(v=[-10, 0, 0])
+      translate(v=[-x_blade, 0, 0])
         left_half(x=0, s=300)
           holder();
-      translate(v=[10, 0, 0])
+      translate(v=[x_blade, 0, 0])
         right_half(x=0, s=300)
           holder();
     }
