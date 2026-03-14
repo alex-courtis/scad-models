@@ -10,14 +10,14 @@ split_holder = false;
 
 /* [Blade Dimensions] */
 x_blade = 38.4; // [0:0.01:100]
-a_blade = 0; // [-80:0.01:80]
+a_blade = 90; // [0:0.01:90]
 y_blade = 17.7; // [0:0.01:100]
 z_blade_thick = 1.25; // [0:0.01:5]
 z_blade_thin = 0.98; // [0:0.01:5]
 y_blade_channel = 6.25; // [0:0.01:25]
 
 /* [Blade Gaps] */
-g_dx_edge = 0; // [0:0.001:2]
+g_x_edge = 0; // [0:0.001:2]
 g_y_channel = 0.075; // [0:0.001:2]
 g_y_edge = 0.45; // [0:0.001:2]
 g_z_thin = 0.01; // [0:0.001:2]
@@ -47,7 +47,7 @@ d_cutout_hole2 = 0; // [0:0.001:10]
 d_cutout_drill_hole2 = 0; // [0:0.001:10]
 
 /* [Holder Dimensions] */
-t_y = 4.6; // [0:0.01:5]
+t_y = 4.6; // [0:0.01:50]
 t_half_front = 0.45; // [0:0.01:10]
 t_back = 4.8; // [0:0.01:10]
 t_handle = 4.64; // [0:0.01:10]
@@ -78,7 +78,7 @@ g_y_cover = 3; // [0:0.01:10]
 
 /* [Cover Clip] */
 y_cover_clip = 2; // [0:0.001:10]
-dy_clip = 5.6; // [0:0.001:10]
+dy_clip = 5.6; // [0:0.001:50]
 dz_cover_clip = 0.8; // [0:0.001:10]
 
 /* [Cover Split] */
@@ -88,8 +88,8 @@ z_cover_split = 0.45; // [0:0.001:10]
 /* [Pins] */
 drill_pins = false;
 d_pin = 2.08; // [0:0.001:5]
-l_pin_handle = 14; // [0:0.001:50]
-l_pin_body = 27; // [0:0.001:50]
+l_pin_handle = 14; // [0:0.001:100]
+l_pin_body = 27; // [0:0.001:100]
 
 $fn = 200;
 
@@ -103,13 +103,11 @@ rounding_cover = ratio_rounding_cover * t_cover / 2;
 v_holder = [0, body_holder[1] / 2 - y_blade_channel / 2 + g_y_channel, 0];
 
 module blade(cutouts, mask) {
-  dx_blade = (mask ? g_dx_edge : 0);
+  dx_blade = (mask ? g_x_edge - g_y_edge / tan(a_blade) : 0);
   dy_blade = (mask ? g_y_edge : 0);
 
   x_front = x_blade + dx_blade * 2;
-  x_back =
-    a_blade ? x_blade - 2 * y_blade / tan(a_blade) + dx_blade * 2
-    : x_blade + dx_blade * 2;
+  x_back = x_blade - 2 * y_blade / tan(a_blade) + dx_blade * 2;
 
   poly_blade = [
     [-x_front / 2, -y_blade / 2 + dy_blade],
