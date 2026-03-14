@@ -33,7 +33,7 @@ x_cutout_end = 4.5; // [0:0.01:25]
 y_cutout_end = 3.1; // [0:0.01:25]
 
 x_cutout_back = 0; // [0:0.01:25]
-dx_cutout_back = [0, 0]; // [-25:0.01:25]
+dx_cutout_back = [0, 0]; // [-25:0.001:25]
 y_cutout_back = 0; // [0:0.01:25]
 
 dx_cutout_hole1 = 0; // [-20:0.001:20]
@@ -69,7 +69,7 @@ y_handle = 100; // [0:0.01:200]
 dx_cover = 2.5; // [0:0.01:10]
 dy_cover = 5; // [0:0.01:10]
 t_cover = 7.2; // [0:0.01:10]
-z_blade_cover = 1.90; // [0:0.01:5]
+z_blade_cover = 2.15; // [0:0.01:5]
 ratio_rounding_cover = 0.5; // [0:0.01:1]
 
 /* [Cover Gaps] */
