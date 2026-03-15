@@ -1,9 +1,9 @@
 $fn = 400;
 
 content = "17 Systrum St";
-z_base = 2.4;
-z_text = 0.8;
-dz_text = 1.6;
+z_base = 2.2;
+z_text = 0.6;
+dz_text = 1.3;
 
 dx_base = 16;
 dy_base = 14;
@@ -49,9 +49,9 @@ module plate() {
       );
 }
 
-module lettering() {
-  translate(v=[0, 0, dz_text])
-    linear_extrude(h=z_text, center=false)
+module lettering(z, dz) {
+  translate(v=[0, 0, dz])
+    linear_extrude(h=z, center=false)
       text(
         font=font,
         size=font_size,
@@ -87,11 +87,11 @@ render() {
       color(c="red")
         holes();
       color(c="orange")
-        lettering();
+        lettering(z=z_base, dz=dz_text);
     }
   }
   if (show_lettering) {
     color(c="white")
-      lettering();
+      lettering(z=z_text, dz=dz_text);
   }
 }
