@@ -5,8 +5,8 @@ show_blade = true;
 show_holder = true;
 show_cover = true;
 half_y = false;
-half_z = true;
-split_holder = false;
+half_z = false;
+split_holder = true;
 
 /* [Blade Dimensions] */
 x_blade = 38.4; // [0:0.01:100]
@@ -48,7 +48,7 @@ d_cutout_drill_hole2 = 0; // [0:0.001:10]
 
 /* [Holder Dimensions] */
 t_y = 4.6; // [0:0.01:50]
-t_half_front = 0.45; // [0:0.01:10]
+t_front = 2.25; // [0:0.01:10]
 t_back = 4.8; // [0:0.01:10]
 t_handle = 4.64; // [0:0.01:10]
 ratio_rounding_body = 1; // [0:0.01:1]
@@ -96,7 +96,7 @@ $fn = 200;
 body_holder = [
   x_blade,
   y_blade + t_y + g_y_edge - g_y_channel - (y_blade - y_blade_channel) / 2,
-  z_blade_thick + 2 * (g_z_thick + t_half_front),
+  t_front,
 ];
 rounding_body = ratio_rounding_body * body_holder[2] / 2;
 rounding_cover = ratio_rounding_cover * t_cover / 2;
