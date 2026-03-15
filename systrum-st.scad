@@ -1,9 +1,9 @@
 $fn = 400;
 
 content = "17 Systrum St";
-z_base = 1.8;
-z_text = 1.8;
-dz_text = 1.0;
+z_base = 2.4;
+z_text = 0.8;
+dz_text = 1.6;
 
 dx_base = 16;
 dy_base = 14;
