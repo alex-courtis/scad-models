@@ -1,0 +1,91 @@
+$fn = 400;
+
+content = "17 Systrum St";
+z_base = 1.8;
+z_text = 1.8;
+
+dx_base = 18;
+dy_base = 18;
+
+d_hole_inner = 3;
+d_hole_outer = 6.4;
+z_hole = 0.8;
+
+font = "Hack Nerd Font Mono";
+font_size = 26;
+
+font_metrics = fontmetrics(font=font, size=font_size);
+echo(font_metrics=font_metrics);
+
+text_metrics = textmetrics(
+  font=font,
+  size=font_size,
+  text=content,
+  valign="center",
+  halign="center"
+);
+echo(text_metrics=text_metrics);
+
+module plate() {
+  translate(v=[0, 0, 0])
+    translate(
+      v=[
+        text_metrics.position[0] - dx_base / 2,
+        text_metrics.position[1] - dy_base / 2,
+        0,
+      ]
+    )
+      cube(
+        [
+          text_metrics.size[0] + dx_base,
+          text_metrics.size[1] + dy_base,
+          z_base,
+        ],
+        center=false
+      );
+}
+
+module lettering() {
+  translate(v=[0, 0, z_base])
+    linear_extrude(h=z_text, center=false)
+      text(
+        font=font,
+        size=font_size,
+        text=content,
+        valign="center",
+        halign="center",
+      );
+}
+module holes() {
+  y = (text_metrics.size[1] + dy_base) / 2;
+  x = (text_metrics.size[0] + dx_base) / 2 - y;
+
+  h_outer = z_base - z_hole;
+
+  translate(v=[-x, 0, 0]) {
+    cylinder(h=h_outer, d=d_hole_inner, center=false);
+    translate(v=[0, 0, h_outer])
+      cylinder(h=z_hole, d=d_hole_outer, center=false);
+  }
+
+  translate(v=[x, 0, 0]) {
+    cylinder(h=h_outer, d=d_hole_inner, center=false);
+    translate(v=[0, 0, h_outer])
+      cylinder(h=z_hole, d=d_hole_outer, center=false);
+  }
+}
+
+render() {
+  difference() {
+    union() {
+      color(c="gray")
+        plate();
+
+      color(c="white")
+        lettering();
+    }
+
+    color(c="red")
+      holes();
+  }
+}
