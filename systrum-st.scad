@@ -3,6 +3,7 @@ $fn = 400;
 content = "17 Systrum St";
 z_base = 1.8;
 z_text = 1.8;
+dz_text = 1.0;
 
 dx_base = 16;
 dy_base = 14;
@@ -10,6 +11,9 @@ dy_base = 14;
 d_hole_inner = 3;
 d_hole_outer = 6.5;
 z_hole = 1;
+
+show_plate = true;
+show_lettering = false;
 
 font = "Hack Nerd Font Mono";
 font_size = 26;
@@ -46,7 +50,7 @@ module plate() {
 }
 
 module lettering() {
-  translate(v=[0, 0, z_base])
+  translate(v=[0, 0, dz_text])
     linear_extrude(h=z_text, center=false)
       text(
         font=font,
@@ -76,16 +80,18 @@ module holes() {
 }
 
 render() {
-  difference() {
-    union() {
+  if (show_plate) {
+    difference() {
       color(c="gray")
         plate();
-
-      color(c="white")
+      color(c="red")
+        holes();
+      color(c="orange")
         lettering();
     }
-
-    color(c="red")
-      holes();
+  }
+  if (show_lettering) {
+    color(c="white")
+      lettering();
   }
 }
