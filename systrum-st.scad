@@ -4,12 +4,12 @@ content = "17 Systrum St";
 z_base = 1.8;
 z_text = 1.8;
 
-dx_base = 18;
-dy_base = 18;
+dx_base = 16;
+dy_base = 14;
 
 d_hole_inner = 3;
-d_hole_outer = 6.4;
-z_hole = 0.8;
+d_hole_outer = 6.5;
+z_hole = 1;
 
 font = "Hack Nerd Font Mono";
 font_size = 26;
