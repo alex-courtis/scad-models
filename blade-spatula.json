@@ -264,7 +264,7 @@
             "g_z_thick": "0.029999999999999999",
             "g_z_thin": "0.029999999999999999",
             "half_y": "false",
-            "half_z": "false",
+            "half_z": "true",
             "l_pin_body": "27",
             "l_pin_handle": "14",
             "nub_back": "false",
