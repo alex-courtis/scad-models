@@ -14,7 +14,7 @@ t_base = 1;
 t_top = 4.5;
 
 // including base and top
-t_shroud = 6;
+t_shroud = 8;
 
 // centre to point
 dy_tongue_left = 10.3 + 3.6;
@@ -36,10 +36,10 @@ y_bottom_brace = 18;
 r_brace = 1.0;
 
 // centre of the knob
-d_knob = 23.5;
+d_knob = 23.00;
 
 // from centre of knob
-d_shroud = 25;
+d_shroud = 24.75;
 
 debug = false;
 
