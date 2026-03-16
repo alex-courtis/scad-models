@@ -18,22 +18,9 @@ t_shroud = 8;
 
 // centre to point
 dy_tongue_left = 10.3 + 3.6;
-// left point to shoulder
-dy_tongue_brace = 5.25 - 0.5;
+
 // center to corner
 dy_tongue_right = 6.25 + 1;
-
-// centre of the tongue to the edge
-dx_bottom_brace = d_tongue_base / 2 + 3.5;
-
-// centre of the tongue to the top
-dx_top_brace = 20.5;
-
-// length of the top and bottom braces
-y_bottom_brace = 18;
-
-// brace corner rounding
-r_brace = 1.0;
 
 // centre of the knob
 d_knob = 23.250;
@@ -41,28 +28,18 @@ d_knob = 23.250;
 // from centre of knob
 d_shroud = 24.875;
 
-debug = false;
+debug = true;
 
 $fn = 400;
 
 A = [-d_tongue_base / 2, -dy_tongue_left + d_tongue_base / 2];
 B = [d_tongue_base / 2, -dy_tongue_right + d_tongue_base / 2];
 
-D = A - [0, -dy_tongue_brace];
-
 C_knob = circle_centre(
   A=A,
   B=B,
   r=d_knob / 2
 )[0];
-
-module knob() {
-
-  color(c="red") {
-    translate(v=C_knob)
-      cylinder(d=d_shroud - (d_shroud - d_knob) / 2, h=(t_base + t_top) * 2, center=true);
-  }
-}
 
 module top() {
 
@@ -72,14 +49,8 @@ module top() {
     t_top,
   ];
 
-  brace = [
-    dx_bottom_brace + dx_top_brace,
-    y_bottom_brace,
-    t_top,
-  ];
-
-  color(c="green")
-    translate(v=[0, (d_tongue_top - tongue[1]) / 2, 0])
+  color(c="lightblue")
+    translate(v=[0, (d_tongue_top - tongue[1]) / 2, tongue[2] / 2])
       cuboid(
         tongue,
         rounding=d_tongue_top / 2,
@@ -88,28 +59,6 @@ module top() {
           RIGHT + BACK,
         ]
       );
-
-  // color(c="blue")
-  //   translate(
-  //     v=[
-  //       brace[0] / 2 - dx_bottom_brace,
-  //       D[1] - brace[1] / 2,
-  //       0,
-  //     ]
-  //   )
-  //     cuboid(
-  //       brace,
-  //       rounding=r_brace,
-  //       edges=[
-  //         LEFT + BACK,
-  //         LEFT + FRONT,
-  //         RIGHT + BACK,
-  //         RIGHT + FRONT,
-  //         TOP + FRONT,
-  //         TOP + LEFT,
-  //         TOP + RIGHT,
-  //       ]
-  //     );
 }
 
 module base() {
@@ -123,7 +72,7 @@ module base() {
     ];
 
     translate(
-      v=[0, (d_tongue_base - tongue[1]) / 2, 0]
+      v=[0, (d_tongue_base - tongue[1]) / 2, tongue[2] / 2]
     )
       cuboid(
         tongue,
@@ -131,49 +80,49 @@ module base() {
         edges=[
           LEFT + BACK,
           RIGHT + BACK,
-        ]
+        ],
       );
   }
 }
 
 module shroud() {
-  color(c="pink")
+  color(c="royalblue")
     translate(v=C_knob) {
       tube(
         od=d_shroud,
         id=d_knob,
         h=t_shroud,
         rounding2=(d_shroud - d_knob) / 4,
-        center=true,
+        center=false,
       );
     }
+}
+
+module knob_mask() {
+  color(c="red")
+    translate(v=C_knob)
+      cylinder(d=d_shroud, h=t_shroud, center=false);
 }
 
 render() {
   if (debug) {
     color(c="red")
       translate(v=C_knob)
-        cylinder(h=t_top + 1, r=0.05, center=false);
+        cylinder(h=t_shroud + 1, r=0.05, center=false);
     color(c="green")
       translate(v=A)
-        cylinder(h=t_top + 1, r=0.05, center=false);
+        cylinder(h=t_shroud + 1, r=0.05, center=false);
     color(c="yellow")
       translate(v=B)
-        cylinder(h=t_top + 1, r=0.05, center=false);
-    color(c="orange")
-      translate(v=D)
-        cylinder(h=t_top + 1, r=0.05, center=false);
+        cylinder(h=t_shroud + 1, r=0.05, center=false);
   }
 
   difference() {
     union() {
-      translate(v=[0, 0, t_base / 2])
-        base();
-      translate(v=[0, 0, t_top / 2])
-        top();
+      base();
+      top();
     }
-    knob();
+    knob_mask();
   }
-  translate(v=[0, 0, t_shroud / 2])
-    shroud();
+  shroud();
 }
