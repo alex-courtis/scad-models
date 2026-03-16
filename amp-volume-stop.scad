@@ -16,18 +16,18 @@ t_top = 4.5;
 // centre to point
 dy_tongue_left = 10.3 + 3.6;
 // left point to shoulder
-dy_tongue_brace = 5.25;
+dy_tongue_brace = 5.25 - 0.5;
 // center to corner
 dy_tongue_right = 6.25 + 1;
 
 // centre of the tongue to the edge
-x_bottom_brace = d_tongue_base / 2 + 3.5;
+dx_bottom_brace = d_tongue_base / 2 + 3.5;
 
 // centre of the tongue to the top
 dx_top_brace = 20.5;
 
 // length of the top and bottom braces
-y_bottom_brace = 8;
+y_bottom_brace = 18;
 
 // brace corner rounding
 r_brace = 1.0;
@@ -36,7 +36,7 @@ r_brace = 1.0;
 d_knob = 23;
 
 // from centre of knob
-d_shroud = 24.5;
+d_shroud = 25.5;
 
 debug = false;
 
@@ -70,7 +70,7 @@ module top() {
   ];
 
   brace = [
-    x_bottom_brace + dx_top_brace,
+    dx_bottom_brace + dx_top_brace,
     y_bottom_brace,
     t_top,
   ];
@@ -86,14 +86,14 @@ module top() {
         ]
       );
 
-  translate(
-    v=[
-      brace[0] / 2 - x_bottom_brace,
-      D[1] - brace[1] / 2,
-      0,
-    ]
-  )
-    color(c="blue")
+  color(c="blue")
+    translate(
+      v=[
+        brace[0] / 2 - dx_bottom_brace,
+        D[1] - brace[1] / 2,
+        0,
+      ]
+    )
       cuboid(
         brace,
         rounding=r_brace,
@@ -110,14 +110,6 @@ module top() {
       translate(v=C_knob) {
         cylinder(d=d_shroud, h=t_top, center=true);
       }
-    translate(
-      v=[
-        d_shroud / 2,
-        d_shroud / 2 + D[1] - y_bottom_brace,
-        0,
-      ]
-    )
-      cube([2 * d_shroud, d_shroud, t_top], center=true);
   }
 }
 
