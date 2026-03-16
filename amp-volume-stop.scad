@@ -13,6 +13,9 @@ t_base = 1;
 // thickness of the top including base
 t_top = 4.5;
 
+// including base and top
+t_shroud = 6;
+
 // centre to point
 dy_tongue_left = 10.3 + 3.6;
 // left point to shoulder
@@ -33,10 +36,10 @@ y_bottom_brace = 18;
 r_brace = 1.0;
 
 // centre of the knob
-d_knob = 23;
+d_knob = 23.5;
 
 // from centre of knob
-d_shroud = 25.5;
+d_shroud = 25;
 
 debug = false;
 
@@ -57,7 +60,7 @@ module knob() {
 
   color(c="red") {
     translate(v=C_knob)
-      cylinder(d=d_knob, h=(t_base + t_top) * 2, center=true);
+      cylinder(d=d_shroud - (d_shroud - d_knob) / 2, h=(t_base + t_top) * 2, center=true);
   }
 }
 
@@ -102,15 +105,11 @@ module top() {
           LEFT + FRONT,
           RIGHT + BACK,
           RIGHT + FRONT,
+          TOP + FRONT,
+          TOP + LEFT,
+          TOP + RIGHT,
         ]
       );
-
-  intersection() {
-    color(c="pink")
-      translate(v=C_knob) {
-        cylinder(d=d_shroud, h=t_top, center=true);
-      }
-  }
 }
 
 module base() {
@@ -135,6 +134,19 @@ module base() {
         ]
       );
   }
+}
+
+module shroud() {
+  color(c="pink")
+    translate(v=C_knob) {
+      tube(
+        od=d_shroud,
+        id=d_knob,
+        h=t_shroud,
+        rounding2=(d_shroud - d_knob) / 4,
+        center=true,
+      );
+    }
 }
 
 render() {
@@ -162,4 +174,6 @@ render() {
     }
     knob();
   }
+  translate(v=[0, 0, t_shroud / 2])
+    shroud();
 }
