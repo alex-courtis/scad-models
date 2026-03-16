@@ -8,10 +8,10 @@ d_tongue_base = 7.75 + 0.25;
 d_tongue_top = 5.75;
 
 // thickness of the base
-t_base = 1;
+t_base = 2;
 
 // thickness of the top including base
-t_top = 4.5;
+t_top = 4;
 
 // including base and top
 t_shroud = 8;
@@ -36,10 +36,10 @@ y_bottom_brace = 18;
 r_brace = 1.0;
 
 // centre of the knob
-d_knob = 23.00;
+d_knob = 23.250;
 
 // from centre of knob
-d_shroud = 24.75;
+d_shroud = 24.875;
 
 debug = false;
 
@@ -89,27 +89,27 @@ module top() {
         ]
       );
 
-  color(c="blue")
-    translate(
-      v=[
-        brace[0] / 2 - dx_bottom_brace,
-        D[1] - brace[1] / 2,
-        0,
-      ]
-    )
-      cuboid(
-        brace,
-        rounding=r_brace,
-        edges=[
-          LEFT + BACK,
-          LEFT + FRONT,
-          RIGHT + BACK,
-          RIGHT + FRONT,
-          TOP + FRONT,
-          TOP + LEFT,
-          TOP + RIGHT,
-        ]
-      );
+  // color(c="blue")
+  //   translate(
+  //     v=[
+  //       brace[0] / 2 - dx_bottom_brace,
+  //       D[1] - brace[1] / 2,
+  //       0,
+  //     ]
+  //   )
+  //     cuboid(
+  //       brace,
+  //       rounding=r_brace,
+  //       edges=[
+  //         LEFT + BACK,
+  //         LEFT + FRONT,
+  //         RIGHT + BACK,
+  //         RIGHT + FRONT,
+  //         TOP + FRONT,
+  //         TOP + LEFT,
+  //         TOP + RIGHT,
+  //       ]
+  //     );
 }
 
 module base() {
