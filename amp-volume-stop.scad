@@ -8,19 +8,22 @@ d_tongue_base = 7.75 + 0.25;
 d_tongue_top = 5.75;
 
 // thickness of the base
-t_base = 2;
+z_base = 1.5;
 
 // thickness of the top including base
-t_top = 4;
+z_top = 2.8;
 
 // including base and top
-t_shroud = 8;
+z_shroud = 12.35;
+
+// upper base and top
+rounding_base_top = 0.4;
 
 // centre to point
-dy_tongue_left = 10.3 + 3.6;
+dy_tongue_long = 10.3 + 3.6;
 
 // center to corner
-dy_tongue_right = 6.25 + 1;
+dy_tongue_short = 6.25 + 1;
 
 // centre of the knob
 d_knob = 23.250;
@@ -28,12 +31,24 @@ d_knob = 23.250;
 // from centre of knob
 d_shroud = 24.875;
 
+// from base
+dz_rim = z_shroud - 2;
+
+// height of the rim
+z_rim = 0.60;
+
+// inset of the rim
+d_rim = d_knob - 0.60;
+
 debug = true;
 
 $fn = 400;
 
-A = [-d_tongue_base / 2, -dy_tongue_left + d_tongue_base / 2];
-B = [d_tongue_base / 2, -dy_tongue_right + d_tongue_base / 2];
+// knob with top of tongue
+A = [-d_tongue_base / 2, -dy_tongue_long + d_tongue_base / 2];
+
+// knob with top of tongue
+B = [d_tongue_base / 2, -dy_tongue_short + d_tongue_base / 2];
 
 C_knob = circle_centre(
   A=A,
@@ -45,20 +60,27 @@ module top() {
 
   tongue = [
     d_tongue_top,
-    dy_tongue_left + d_tongue_top / 2,
-    t_top,
+    dy_tongue_long - d_tongue_top / 2,
+    z_top,
   ];
 
-  color(c="lightblue")
-    translate(v=[0, (d_tongue_top - tongue[1]) / 2, tongue[2] / 2])
+  color(c="lightblue") {
+    translate(v=[0, -tongue[1] / 2, tongue[2] / 2])
       cuboid(
         tongue,
-        rounding=d_tongue_top / 2,
+        rounding=rounding_base_top,
         edges=[
-          LEFT + BACK,
-          RIGHT + BACK,
+          TOP,
         ]
       );
+
+    cyl(
+      h=z_top,
+      d=d_tongue_top,
+      rounding2=rounding_base_top,
+      center=false
+    );
+  }
 }
 
 module base() {
@@ -67,54 +89,70 @@ module base() {
 
     tongue = [
       d_tongue_base,
-      dy_tongue_left + d_tongue_base / 2,
-      t_base,
+      dy_tongue_long - d_tongue_base / 2,
+      z_base,
     ];
 
     translate(
-      v=[0, (d_tongue_base - tongue[1]) / 2, tongue[2] / 2]
+      v=[0, -tongue[1] / 2, tongue[2] / 2]
     )
       cuboid(
         tongue,
-        rounding=d_tongue_base / 2,
+        rounding=rounding_base_top,
         edges=[
-          LEFT + BACK,
-          RIGHT + BACK,
+          TOP,
         ],
       );
+
+    cyl(
+      h=z_base,
+      d=d_tongue_base,
+      rounding2=rounding_base_top,
+      center=false
+    );
   }
 }
 
 module shroud() {
-  color(c="royalblue")
-    translate(v=C_knob) {
+  translate(v=C_knob) {
+    color(c="royalblue")
       tube(
         od=d_shroud,
         id=d_knob,
-        h=t_shroud,
+        h=z_shroud,
         rounding2=(d_shroud - d_knob) / 4,
         center=false,
       );
-    }
+
+    color(c="green")
+      translate(v=[0, 0, dz_rim])
+        tube(
+          od=d_knob,
+          id=d_rim,
+          h=z_rim,
+          irounding=z_rim / 2,
+          center=false
+        );
+  }
 }
 
 module knob_mask() {
   color(c="red")
     translate(v=C_knob)
-      cylinder(d=d_shroud, h=t_shroud, center=false);
+      cylinder(d=d_shroud, h=z_shroud, center=false);
 }
 
 render() {
   if (debug) {
     color(c="red")
       translate(v=C_knob)
-        cylinder(h=t_shroud + 1, r=0.05, center=false);
+        cylinder(h=z_shroud + 1, r=0.05, center=false);
     color(c="green")
       translate(v=A)
-        cylinder(h=t_shroud + 1, r=0.05, center=false);
+        cylinder(h=z_shroud + 1, r=0.05, center=false);
     color(c="yellow")
       translate(v=B)
-        cylinder(h=t_shroud + 1, r=0.05, center=false);
+        cylinder(h=z_shroud + 1, r=0.05, center=false);
   }
 
   difference() {
