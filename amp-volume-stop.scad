@@ -41,10 +41,10 @@ d_shroud_upper = d_shroud_lower + 0.5;
 dz_rim = z_shroud_upper - 2.25;
 
 // height of the rim
-z_rim = 0.10;
+z_rim = 0.30;
 
 // inset of the rim
-d_rim = d_knob - 0.40;
+d_rim = d_knob - 0.20;
 
 // around centre
 y_cutout = 16;
@@ -53,7 +53,7 @@ y_cutout = 16;
 z1_cutout = z_shroud_lower; // + (d_shroud_upper - d_shroud_lower);
 
 // from base
-z2_cutout = dz_rim;
+z2_cutout = dz_rim - 0.25;
 
 // from base
 dz_clip = z_shroud_lower;
@@ -185,7 +185,7 @@ module shroud() {
           od=d_knob,
           id=d_rim,
           h=z_rim,
-          irounding=z_rim / 2,
+          irounding=(d_knob - d_rim) / 2,
           center=false
         );
   }
