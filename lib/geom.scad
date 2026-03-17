@@ -128,6 +128,19 @@ function circle_centre(A, B, r) =
     c2 = M - vector_multiply(n, h / n_),
   ) [c1, c2];
 
+// white cylinder marking a point, text size based on r
+module point_marker(P, r, h, t) {
+  color(c="white") {
+    translate(v=P) {
+      cylinder(h=h, r=r, center=false);
+
+      translate(v=[0, 0, h])
+        linear_extrude(h=r)
+          text(size=r * 10, text=t);
+    }
+  }
+}
+
 if (test_geom) {
   echo("TEST circle_centre");
 
