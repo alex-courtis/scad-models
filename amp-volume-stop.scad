@@ -70,19 +70,6 @@ dy_clip = 9.5;
 // height of the clip
 z_clip = 3;
 
-t_shroud_upper = (d_shroud_upper - d_knob) / 2;
-
-r_shroud_mid = (d_knob + d_shroud_upper) / 4;
-
-// length of the tongue side brace
-x_brace1 = d_knob - 0.5;
-
-// width of the tongue side brace from the shroud edge
-y_brace1 = 2;
-
-// from the base
-z_brace1 = z_top;
-
 // top sides of the clip
 rounding_clip = 1.25;
 
@@ -91,6 +78,9 @@ d_clip_bolt = 2;
 
 // centre of knob to bolt
 dy_clip_bolt = 15.0;
+
+// above z_top, meets shroud chamfer
+dz_tongue_top = z_shroud_lower - z_top + (d_shroud_upper - d_shroud_lower) / 2;
 
 // from x axis
 a_cutout_start = [320, 140];
@@ -102,6 +92,9 @@ debug = false;
 
 $fn = 400;
 
+t_shroud_upper = (d_shroud_upper - d_knob) / 2;
+
+r_shroud_mid = (d_knob + d_shroud_upper) / 4;
 M = [
   r_shroud_mid * cos(a_cutout_start[0]),
   r_shroud_mid * sin(a_cutout_start[0]),
@@ -145,43 +138,41 @@ module tongue() {
     z_tongue_top,
   ];
 
-  back_half(y=Q[1]) {
-    translate(v=vector_multiply(C_knob, -1)) {
-      color(c="gray") {
-        translate(v=[0, -base[1] / 2, base[2] / 2])
-          cuboid(
-            base,
-            rounding=rounding_base_top,
-            edges=[
-              TOP,
-            ],
-          );
-
-        cyl(
-          h=z_base,
-          d=d_tongue_base,
-          rounding2=rounding_base_top,
-          center=false
+  translate(v=vector_multiply(C_knob, -1)) {
+    color(c="gray") {
+      translate(v=[0, -base[1] / 2, base[2] / 2])
+        cuboid(
+          base,
+          rounding=rounding_base_top,
+          edges=[
+            TOP,
+          ],
         );
-      }
 
-      color(c="orange") {
-        translate(v=[0, -top[1] / 2, top[2] / 2])
-          cuboid(
-            top,
-            rounding=rounding_base_top,
-            edges=[
-              TOP,
-            ]
-          );
+      cyl(
+        h=z_base,
+        d=d_tongue_base,
+        rounding2=rounding_base_top,
+        center=false
+      );
+    }
 
-        cyl(
-          d=top[0],
-          h=top[2],
-          rounding2=rounding_base_top,
-          center=false
+    color(c="orange") {
+      translate(v=[0, -top[1] / 2, top[2] / 2])
+        cuboid(
+          top,
+          rounding=rounding_base_top,
+          edges=[
+            TOP,
+          ]
         );
-      }
+
+      cyl(
+        d=top[0],
+        h=top[2],
+        rounding2=rounding_base_top,
+        center=false
+      );
     }
   }
 }
@@ -253,22 +244,9 @@ module clip() {
     }
 }
 
-module braces() {
-  brace1 = [x_brace1, y_brace1, z_brace1];
-
-  translate(v=[0, brace1[1] / 2 + Q[1] - t_shroud_upper / 2, brace1[2] / 2])
-    cuboid(
-      brace1,
-      rounding=rounding_base_top,
-      except=[
-        BOTTOM,
-      ],
-    );
-}
-
 module knob_mask() {
   color(c="deeppink")
-    cylinder(d=d_knob, h=z_shroud_upper, center=false);
+    cylinder(d=d_shroud_lower, h=z_shroud_upper, center=false);
 }
 
 module cutout_mask() {
@@ -325,17 +303,18 @@ render() {
 
   difference() {
     union() {
-      tongue();
-      clip();
-      braces();
+      difference() {
+        union() {
+          tongue();
+          // base();
+          // top();
+          clip();
+        }
+        knob_mask();
+      }
+      shroud();
     }
-    knob_mask();
-  }
-
-  difference() {
-    shroud();
     cutout_mask();
   }
-
   cutout_edges();
 }
