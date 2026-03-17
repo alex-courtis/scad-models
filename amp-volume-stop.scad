@@ -38,16 +38,19 @@ d_shroud_lower = 24.875;
 d_shroud_upper = d_shroud_lower + 0.5;
 
 // height of the rim
-z_rim = 0.60;
+z_rim = 0.80;
 
 // from base to mid rim
-dz_rim = z_shroud_upper  - z_rim / 2 - 2.05;
+dz_rim = z_shroud_upper - z_rim / 2 - 2.05;
 
 // inset of the rim
-d_rim = d_knob - 0.5;
+d_rim = d_knob - 0.7;
 
-// around centre
-y_cutout = 16;
+// from x axis
+a_cutout_1 = [40, 320];
+
+// from x axis
+a_cutout_2 = a_cutout_1 + [180, 180];
 
 // from base
 dz_clip = z_shroud_lower;
@@ -82,7 +85,7 @@ dy_clip_bolt = 15.0;
 // above z_top, meets shroud chamfer
 dz_tongue_top = z_shroud_lower - z_top + (d_shroud_upper - d_shroud_lower) / 2;
 
-debug = false;
+debug = true;
 
 $fn = 400;
 
@@ -97,6 +100,10 @@ C_knob = circle_centre(
   B=B,
   r=d_knob / 2
 )[0];
+
+// TODO centre the whole thing 
+// cutout 1
+M = [6 * sin(a_cutout_1[0]), 6 * cos(a_cutout_1[0])];
 
 module top() {
 
@@ -232,25 +239,36 @@ module knob_mask() {
 }
 
 module cutout_mask() {
-  cutout = [d_shroud_upper, y_cutout, z_shroud_upper * 2];
+  translate(v=C_knob) {
 
-  color(c="blue")
-    translate(v=C_knob)
-      translate(v=[0, 0, 0])
-        cube(cutout, center=true);
+    color(c="blue")
+      rotate(-a_cutout_1[0])
+        pie_slice(
+          d=d_shroud_upper * 2,
+          h=z_shroud_upper * 2,
+          ang=a_cutout_1[0] + 360 - a_cutout_1[1],
+          center=true,
+        );
+
+    color(c="green")
+      rotate(-a_cutout_2[0])
+        pie_slice(
+          d=d_shroud_upper * 2,
+          h=z_shroud_upper * 2,
+          ang=a_cutout_2[0] + 360 - a_cutout_2[1],
+          center=true,
+        );
+  }
 }
 
 render() {
   if (debug) {
-    color(c="red")
-      translate(v=C_knob)
-        cylinder(h=z_shroud_lower + 1, r=0.05, center=false);
-    color(c="green")
-      translate(v=A)
-        cylinder(h=z_shroud_lower + 1, r=0.05, center=false);
-    color(c="yellow")
-      translate(v=B)
-        cylinder(h=z_shroud_lower + 1, r=0.05, center=false);
+    h = z_shroud_upper + 2;
+    r = 0.075;
+    point_marker(P=C_knob, h=h, r=r, t="C");
+    point_marker(P=A, h=h, r=r, t="A");
+    point_marker(P=B, h=h, r=r, t="B");
+    point_marker(P=M, h=h, r=r, t="M");
   }
 
   difference() {
