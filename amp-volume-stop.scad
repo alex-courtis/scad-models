@@ -14,7 +14,10 @@ z_base = 1.35;
 z_top = 2.8;
 
 // including base and top
-z_shroud = 12.35;
+z_shroud_lower = z_top + 0.15;
+
+// including base and top
+z_shroud_upper = 12.35;
 
 // upper base and top
 rounding_base_top = 0.4;
@@ -29,28 +32,31 @@ dy_tongue_short = 6.25 + 1;
 d_knob = 23.250;
 
 // from centre of knob
-d_shroud = 24.875;
+d_shroud_lower = 24.875;
+
+// from centre of knob
+d_shroud_upper = d_shroud_lower + 0.5;
 
 // from base
-dz_rim = z_shroud - 1.75;
+dz_rim = z_shroud_upper - 2.25;
 
 // height of the rim
-z_rim = 0.60;
+z_rim = 0.30;
 
 // inset of the rim
 d_rim = d_knob - 0.40;
 
 // from base
-dz_clip = z_shroud - 5;
+dz_clip = z_shroud_lower;
 
 // width of clip close to rim
-x1_clip = 15;
+x1_clip = 12;
 
 // width of clip far from rim
-x2_clip = 5.5;
+x2_clip = 4.5;
 
 // additional to d_rim
-y_clip = 9;
+y_clip = 7.0;
 
 // from knob centre to left of clip
 dy_clip = 9.5;
@@ -65,9 +71,9 @@ rounding_clip = 0.75;
 d_clip_bolt = 2;
 
 // centre of knob to bolt
-dy_clip_bolt = 15.5;
+dy_clip_bolt = 14.6;
 
-debug = true;
+debug = false;
 
 $fn = 400;
 
@@ -91,7 +97,7 @@ module top() {
     z_top,
   ];
 
-  color(c="lightblue") {
+  color(c="orange") {
     translate(v=[0, -tongue[1] / 2, tongue[2] / 2])
       cuboid(
         tongue,
@@ -142,16 +148,26 @@ module base() {
 
 module shroud() {
   translate(v=C_knob) {
-    color(c="royalblue")
+    color(c="pink")
       tube(
-        od=d_shroud,
+        od=d_shroud_lower,
         id=d_knob,
-        h=z_shroud,
-        rounding2=(d_shroud - d_knob) / 4,
+        h=z_shroud_lower,
         center=false,
       );
 
-    color(c="green")
+    color(c="royalblue")
+      translate(v=[0, 0, z_shroud_lower])
+        tube(
+          od=d_shroud_upper,
+          id=d_knob,
+          h=z_shroud_upper - z_shroud_lower,
+          rounding2=(d_shroud_upper - d_knob) / 4,
+          ochamfer1=(d_shroud_upper - d_shroud_lower) / 2,
+          center=false,
+        );
+
+    color(c="maroon")
       translate(v=[0, 0, dz_rim])
         tube(
           od=d_knob,
@@ -167,7 +183,7 @@ module clip() {
 
   translate(v=C_knob)
     difference() {
-      color(c="pink") {
+      color(c="yellow") {
         translate([0, -dy_clip, z_clip / 2 + dz_clip])
           diff() {
             prismoid(
@@ -194,7 +210,7 @@ module clip() {
 
       color(c="red") {
         translate(v=[0, -dy_clip_bolt, 0])
-          cylinder(h=z_shroud, d=d_clip_bolt, center=false);
+          cylinder(h=z_shroud_upper, d=d_clip_bolt, center=false);
       }
     }
 }
@@ -202,20 +218,20 @@ module clip() {
 module knob_mask() {
   color(c="red")
     translate(v=C_knob)
-      cylinder(d=d_shroud, h=z_shroud, center=false);
+      cylinder(d=d_shroud_lower, h=z_shroud_upper, center=false);
 }
 
 render() {
   if (debug) {
     color(c="red")
       translate(v=C_knob)
-        cylinder(h=z_shroud + 1, r=0.05, center=false);
+        cylinder(h=z_shroud_lower + 1, r=0.05, center=false);
     color(c="green")
       translate(v=A)
-        cylinder(h=z_shroud + 1, r=0.05, center=false);
+        cylinder(h=z_shroud_lower + 1, r=0.05, center=false);
     color(c="yellow")
       translate(v=B)
-        cylinder(h=z_shroud + 1, r=0.05, center=false);
+        cylinder(h=z_shroud_lower + 1, r=0.05, center=false);
   }
 
   difference() {
