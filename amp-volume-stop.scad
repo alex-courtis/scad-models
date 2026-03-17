@@ -37,38 +37,32 @@ d_shroud_lower = 24.875;
 // from centre of knob
 d_shroud_upper = d_shroud_lower + 0.5;
 
-// from base
-dz_rim = z_shroud_upper - 2.25;
-
 // height of the rim
-z_rim = 0.30;
+z_rim = 0.60;
+
+// from base to mid rim
+dz_rim = z_shroud_upper  - z_rim / 2 - 2.05;
 
 // inset of the rim
-d_rim = d_knob - 0.20;
+d_rim = d_knob - 0.5;
 
 // around centre
 y_cutout = 16;
 
 // from base
-z1_cutout = z_shroud_lower; // + (d_shroud_upper - d_shroud_lower);
-
-// from base
-z2_cutout = dz_rim - 0.25;
-
-// from base
 dz_clip = z_shroud_lower;
 
 // width of clip close to rim
-x1_clip = 14;
+x1_clip = 13.5;
 
 // width of clip far from rim
-x2_clip = 6.5;
+x2_clip = 5.5;
 
 // from centre
-dx_clip = -1;
+dx_clip = -1.05;
 
 // additional to d_rim
-y_clip = 8.0;
+y_clip = 7.6;
 
 // from knob centre to left of clip
 dy_clip = 9.5;
@@ -84,6 +78,9 @@ d_clip_bolt = 2;
 
 // centre of knob to bolt
 dy_clip_bolt = 15.0;
+
+// above z_top, meets shroud chamfer
+dz_tongue_top = z_shroud_lower - z_top + (d_shroud_upper - d_shroud_lower) / 2;
 
 debug = false;
 
@@ -106,7 +103,7 @@ module top() {
   tongue = [
     d_tongue_top,
     dy_tongue_long - d_tongue_top / 2,
-    z_top,
+    z_top + dz_tongue_top,
   ];
 
   color(c="orange") {
@@ -120,8 +117,8 @@ module top() {
       );
 
     cyl(
-      h=z_top,
-      d=d_tongue_top,
+      d=tongue[0],
+      h=tongue[2],
       rounding2=rounding_base_top,
       center=false
     );
@@ -235,11 +232,11 @@ module knob_mask() {
 }
 
 module cutout_mask() {
-  cutout = [d_shroud_upper, y_cutout, z2_cutout - z1_cutout];
+  cutout = [d_shroud_upper, y_cutout, z_shroud_upper * 2];
 
   color(c="blue")
     translate(v=C_knob)
-      translate(v=[0, 0, cutout[2] / 2 + z1_cutout])
+      translate(v=[0, 0, 0])
         cube(cutout, center=true);
 }
 
