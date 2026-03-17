@@ -41,22 +41,34 @@ d_shroud_upper = d_shroud_lower + 0.5;
 dz_rim = z_shroud_upper - 2.25;
 
 // height of the rim
-z_rim = 0.30;
+z_rim = 0.10;
 
 // inset of the rim
 d_rim = d_knob - 0.40;
+
+// around centre
+y_cutout = 16;
+
+// from base
+z1_cutout = z_shroud_lower; // + (d_shroud_upper - d_shroud_lower);
+
+// from base
+z2_cutout = dz_rim;
 
 // from base
 dz_clip = z_shroud_lower;
 
 // width of clip close to rim
-x1_clip = 12;
+x1_clip = 14;
 
 // width of clip far from rim
-x2_clip = 4.5;
+x2_clip = 6.5;
+
+// from centre
+dx_clip = -1;
 
 // additional to d_rim
-y_clip = 7.0;
+y_clip = 8.0;
 
 // from knob centre to left of clip
 dy_clip = 9.5;
@@ -65,13 +77,13 @@ dy_clip = 9.5;
 z_clip = 3;
 
 // top sides of the clip
-rounding_clip = 0.75;
+rounding_clip = 1.25;
 
 // inner bolt
 d_clip_bolt = 2;
 
 // centre of knob to bolt
-dy_clip_bolt = 14.6;
+dy_clip_bolt = 15.0;
 
 debug = false;
 
@@ -182,43 +194,53 @@ module shroud() {
 module clip() {
 
   translate(v=C_knob)
-    difference() {
-      color(c="yellow") {
-        translate([0, -dy_clip, z_clip / 2 + dz_clip])
-          diff() {
-            prismoid(
-              size1=[x1_clip, z_clip],
-              size2=[x2_clip, z_clip],
-              h=y_clip,
-              orient=FRONT,
-            )
+    translate(v=[dx_clip, 0, 0])
+      difference() {
+        color(c="yellow") {
+          translate([0, -dy_clip, z_clip / 2 + dz_clip])
+            diff() {
+              prismoid(
+                size1=[x1_clip, z_clip],
+                size2=[x2_clip, z_clip],
+                h=y_clip,
+                orient=FRONT,
+              )
 
-              edge_profile(
-                [
-                  BACK + TOP,
-                  BACK + LEFT,
-                  BACK + RIGHT,
-                  TOP + LEFT,
-                  TOP + RIGHT,
-                ],
-                excess=10,
-              ) {
-                mask2d_roundover(h=rounding_clip, mask_angle=$edge_angle);
-              }
-          }
-      }
+                edge_profile(
+                  [
+                    BACK + TOP,
+                    BACK + LEFT,
+                    BACK + RIGHT,
+                    TOP + LEFT,
+                    TOP + RIGHT,
+                  ],
+                  excess=10,
+                ) {
+                  mask2d_roundover(h=rounding_clip, mask_angle=$edge_angle);
+                }
+            }
+        }
 
-      color(c="red") {
-        translate(v=[0, -dy_clip_bolt, 0])
-          cylinder(h=z_shroud_upper, d=d_clip_bolt, center=false);
+        color(c="red") {
+          translate(v=[0, -dy_clip_bolt, 0])
+            cylinder(h=z_shroud_upper, d=d_clip_bolt, center=false);
+        }
       }
-    }
 }
 
 module knob_mask() {
   color(c="red")
     translate(v=C_knob)
       cylinder(d=d_shroud_lower, h=z_shroud_upper, center=false);
+}
+
+module cutout_mask() {
+  cutout = [d_shroud_upper, y_cutout, z2_cutout - z1_cutout];
+
+  color(c="blue")
+    translate(v=C_knob)
+      translate(v=[0, 0, cutout[2] / 2 + z1_cutout])
+        cube(cutout, center=true);
 }
 
 render() {
@@ -236,11 +258,16 @@ render() {
 
   difference() {
     union() {
-      base();
-      top();
-      clip();
+      difference() {
+        union() {
+          base();
+          top();
+          clip();
+        }
+        knob_mask();
+      }
+      shroud();
     }
-    knob_mask();
+    cutout_mask();
   }
-  shroud();
 }
