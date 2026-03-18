@@ -13,9 +13,6 @@ z_base = 1.35;
 // thickness of the top including base
 z_top = 2.8;
 
-// thickness of the top of the tongue including base
-z_tongue_top = 5;
-
 // including base and top
 z_shroud_lower = z_top + 0.20;
 
@@ -40,6 +37,9 @@ d_shroud_lower = 24.875;
 // from centre of knob
 d_shroud_upper = d_shroud_lower + 0.5;
 
+// thickness of the top of the tongue including base
+z_tongue_top = z_shroud_lower;
+
 // height of the rim
 z_rim = 0.80;
 
@@ -51,6 +51,9 @@ d_rim = d_knob - 0.7;
 
 // from base
 dz_clip = z_shroud_lower;
+
+// width of clip far from rim
+x1_clip = 5.5;
 
 // width of clip far from rim
 x2_clip = 5.5;
@@ -134,55 +137,67 @@ V = [
   min(M[1], R[1]),
 ];
 
+W = [
+  0,
+  min(N[1], Q[1]),
+];
+X = [
+  0,
+  -U[1],
+];
+
 module tongue() {
 
-  base = [
-    d_tongue_base,
-    dy_tongue_long - d_tongue_base / 2,
-    z_base,
-  ];
+  back_half(y=Q[1]) {
 
-  top = [
-    d_tongue_top,
-    dy_tongue_long - d_tongue_top / 2,
-    z_tongue_top,
-  ];
+    base = [
+      d_tongue_base,
+      dy_tongue_long - d_tongue_base / 2,
+      z_base,
+    ];
 
-  translate(v=vector_multiply(C_knob, -1)) {
-    color(c="gray") {
-      translate(v=[0, -base[1] / 2, base[2] / 2])
-        cuboid(
-          base,
-          rounding=rounding_base_top,
-          edges=[
-            TOP,
-          ],
+    top = [
+      d_tongue_top,
+      dy_tongue_long - d_tongue_top / 2,
+      z_tongue_top,
+    ];
+
+    translate(v=vector_multiply(C_knob, -1)) {
+      color(c="gray") {
+        translate(v=[0, -base[1] / 2, base[2] / 2])
+          cuboid(
+            base,
+            rounding=rounding_base_top,
+            edges=[
+              TOP,
+            ],
+          );
+
+        cyl(
+          h=z_base,
+          d=d_tongue_base,
+          rounding2=rounding_base_top,
+          center=false
         );
+      }
 
-      cyl(
-        h=z_base,
-        d=d_tongue_base,
-        rounding2=rounding_base_top,
-        center=false
-      );
-    }
+      color(c="orange") {
+        translate(v=[0, -top[1] / 2, top[2] / 2])
+          cuboid(
+            top,
+            rounding=rounding_base_top,
+            edges=[
+              TOP,
+            ]
+          );
 
-    color(c="orange") {
-      translate(v=[0, -top[1] / 2, top[2] / 2])
-        cuboid(
-          top,
-          rounding=rounding_base_top,
-          edges=[
-            TOP,
-          ]
+        cyl(
+          d=top[0],
+          h=top[2],
+          rounding2=rounding_base_top,
+          center=false
         );
-
-      cyl(
-        d=top[0],
-        h=top[2],
-        rounding2=rounding_base_top,
-        center=false
-      );
+      }
     }
   }
 }
@@ -217,10 +232,10 @@ module shroud() {
       );
 }
 
-module clip() {
+module clip(bolt, x) {
 
   inner = [M[0] - R[0], z_shroud_upper - z_clip];
-  outer = [x2_clip, z_clip];
+  outer = [x, z_clip];
 
   dz = (outer[1] - inner[1]) / 2;
 
@@ -256,11 +271,13 @@ module clip() {
           }
       }
 
-      color(c="deeppink") {
-        translate(v=[0, -dy_clip_bolt, 0])
-          cylinder(h=z_shroud_upper, d=d_clip_bolt, center=false);
-        translate(v=[0, -dy_clip_bolt, z_shroud_lower + z_clip_head])
-          cylinder(h=z_shroud_upper, d=d_clip_head, center=false);
+      if (bolt) {
+        color(c="deeppink") {
+          translate(v=[0, -dy_clip_bolt, 0])
+            cylinder(h=z_shroud_upper, d=d_clip_bolt, center=false);
+          translate(v=[0, -dy_clip_bolt, z_shroud_lower + z_clip_head])
+            cylinder(h=z_shroud_upper, d=d_clip_head, center=false);
+        }
       }
     }
 }
@@ -271,10 +288,11 @@ module knob_mask() {
 }
 
 module cutout_mask() {
+  // epsilon is needed as pie is a bunch of triangles, not a circle
   color(c="deeppink") {
     rotate(a_cutout_start[0])
       pie_slice(
-        d=d_shroud_upper * 2,
+        d=d_shroud_upper + 0.001,
         h=z_shroud_upper * 2,
         ang=a_cutout_sweep[0],
         center=true,
@@ -282,7 +300,7 @@ module cutout_mask() {
 
     rotate(a_cutout_start[1])
       pie_slice(
-        d=d_shroud_upper * 2,
+        d=d_shroud_upper + 0.001,
         h=z_shroud_upper * 2,
         ang=a_cutout_sweep[1],
         center=true,
@@ -328,6 +346,8 @@ render() {
     point_marker(P=T, h=h, r=r, t="T");
     point_marker(P=U, h=h, r=r, t="U");
     point_marker(P=V, h=h, r=r, t="V");
+    point_marker(P=W, h=h, r=r, t="W");
+    point_marker(P=X, h=h, r=r, t="X");
   }
 
   difference() {
@@ -335,7 +355,9 @@ render() {
       difference() {
         union() {
           tongue();
-          clip();
+          clip(bolt=true, x=x2_clip);
+          mirror(v=[0, 1, 0])
+            clip(bolt=false, x=x1_clip);
         }
         knob_mask();
       }
