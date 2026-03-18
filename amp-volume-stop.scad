@@ -8,7 +8,7 @@ d_tongue_base = 7.75 + 0.25;
 d_tongue_top = 5.75;
 
 // thickness of the base
-z_base = 1.35;
+z_base = 1.38;
 
 // thickness of the top including base
 z_top = 2.8;
@@ -35,7 +35,7 @@ d_knob = 23.250;
 d_shroud_lower = 24.875;
 
 // from centre of knob
-d_shroud_upper = d_shroud_lower + 0.5;
+d_shroud_upper = d_shroud_lower + 1.55;
 
 // thickness of the top of the tongue including base
 z_tongue_top = z_shroud_lower;
@@ -83,10 +83,10 @@ dy_clip_bolt = 15.0;
 dy_clip_outer = -2.1;
 
 // from x axis
-a_cutout_start = [315.5, 140];
+a_cutout_start = [315.5, 142.5];
 
 // clockwise
-a_cutout_sweep = [84.5, 80];
+a_cutout_sweep = [82.0, 77.5];
 
 debug = false;
 
