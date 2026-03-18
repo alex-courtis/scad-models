@@ -17,7 +17,7 @@ z_top = 2.8;
 z_tongue_top = 5;
 
 // including base and top
-z_shroud_lower = z_top + 0.15;
+z_shroud_lower = z_top + 0.20;
 
 // including base and top
 z_shroud_upper = 12.35;
@@ -52,23 +52,14 @@ d_rim = d_knob - 0.7;
 // from base
 dz_clip = z_shroud_lower;
 
-// width of clip close to rim
-x1_clip = 13.5;
-
 // width of clip far from rim
 x2_clip = 5.5;
 
 // from centre
 dx_clip = -1.05;
 
-// additional to d_rim
-y_clip = 7.6;
-
-// from knob centre to left of clip
-dy_clip = 9.5;
-
-// height of the clip
-z_clip = 3;
+// height of the clip far end
+z_clip = 3.5;
 
 // top sides of the clip
 rounding_clip = 1.25;
@@ -76,21 +67,39 @@ rounding_clip = 1.25;
 // inner bolt
 d_clip_bolt = 2;
 
+// outer bolt
+d_clip_head = 3.6;
+
+// from base of clip
+z_clip_head = 2;
+
 // centre of knob to bolt
 dy_clip_bolt = 15.0;
 
-// above z_top, meets shroud chamfer
-dz_tongue_top = z_shroud_lower - z_top + (d_shroud_upper - d_shroud_lower) / 2;
+// from centre of bolt to edge of clip
+dy_clip_outer = -2.1;
 
 // from x axis
-a_cutout_start = [320, 140];
+a_cutout_start = [315.5, 140];
 
 // clockwise
-a_cutout_sweep = [80, 80];
+a_cutout_sweep = [84.5, 80];
 
 debug = false;
 
 $fn = 400;
+
+// knob with top of tongue
+A = [-d_tongue_base / 2, -dy_tongue_long + d_tongue_base / 2];
+
+// knob with top of tongue
+B = [d_tongue_base / 2, -dy_tongue_short + d_tongue_base / 2];
+
+C_knob = circle_centre(
+  A=A,
+  B=B,
+  r=d_knob / 2
+)[0];
 
 t_shroud_upper = (d_shroud_upper - d_knob) / 2;
 
@@ -112,19 +121,20 @@ R = [
   r_shroud_mid * sin(a_cutout_start[1] + a_cutout_sweep[1]),
 ];
 
+T = [
+  dx_clip,
+  -dy_clip_bolt,
+];
+U = [
+  T[0],
+  T[1] + dy_clip_outer,
+];
+V = [
+  T[0],
+  min(M[1], R[1]),
+];
+
 module tongue() {
-
-  // knob with top of tongue
-  A = [-d_tongue_base / 2, -dy_tongue_long + d_tongue_base / 2];
-
-  // knob with top of tongue
-  B = [d_tongue_base / 2, -dy_tongue_short + d_tongue_base / 2];
-
-  C_knob = circle_centre(
-    A=A,
-    B=B,
-    r=d_knob / 2
-  )[0];
 
   base = [
     d_tongue_base,
@@ -193,7 +203,6 @@ module shroud() {
         id=d_knob,
         h=z_shroud_upper - z_shroud_lower,
         rounding2=(d_shroud_upper - d_knob) / 4,
-        ochamfer1=(d_shroud_upper - d_shroud_lower) / 2,
         center=false,
       );
 
@@ -210,15 +219,25 @@ module shroud() {
 
 module clip() {
 
+  inner = [M[0] - R[0], z_shroud_upper - z_clip];
+  outer = [x2_clip, z_clip];
+
+  dz = (outer[1] - inner[1]) / 2;
+
+  h = V[1] - U[1];
+
+  shift = [T[0], dz];
+
   translate(v=[dx_clip, 0, 0])
     difference() {
       color(c="yellow") {
-        translate([0, -dy_clip, z_clip / 2 + dz_clip])
+        translate([-T[0], V[1], inner[1] / 2 + dz_clip])
           diff() {
             prismoid(
-              size1=[x1_clip, z_clip],
-              size2=[x2_clip, z_clip],
-              h=y_clip,
+              size1=inner,
+              size2=outer,
+              h=h,
+              shift=shift,
               orient=FRONT,
             )
 
@@ -240,13 +259,15 @@ module clip() {
       color(c="deeppink") {
         translate(v=[0, -dy_clip_bolt, 0])
           cylinder(h=z_shroud_upper, d=d_clip_bolt, center=false);
+        translate(v=[0, -dy_clip_bolt, z_shroud_lower + z_clip_head])
+          cylinder(h=z_shroud_upper, d=d_clip_head, center=false);
       }
     }
 }
 
 module knob_mask() {
   color(c="deeppink")
-    cylinder(d=d_shroud_lower, h=z_shroud_upper, center=false);
+    cylinder(d=d_shroud_lower, h=z_shroud_upper + t_shroud_upper / 2, center=false);
 }
 
 module cutout_mask() {
@@ -295,10 +316,18 @@ render() {
   if (debug) {
     h = z_shroud_upper + 2;
     r = 0.075;
+    translate(v=vector_multiply(C_knob, -1)) {
+      point_marker(P=A, h=h, r=r, t="A");
+      point_marker(P=B, h=h, r=r, t="B");
+      point_marker(P=C_knob, h=h, r=r, t="C");
+    }
     point_marker(P=M, h=h, r=r, t="M");
     point_marker(P=N, h=h, r=r, t="N");
     point_marker(P=Q, h=h, r=r, t="Q");
     point_marker(P=R, h=h, r=r, t="R");
+    point_marker(P=T, h=h, r=r, t="T");
+    point_marker(P=U, h=h, r=r, t="U");
+    point_marker(P=V, h=h, r=r, t="V");
   }
 
   difference() {
@@ -306,8 +335,6 @@ render() {
       difference() {
         union() {
           tongue();
-          // base();
-          // top();
           clip();
         }
         knob_mask();
