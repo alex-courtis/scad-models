@@ -47,22 +47,22 @@ d_shroud_outer = d_shroud_inner + 1.55;
 z_tongue_top = z_shroud_lower;
 
 // height of the rim
-z_rim = 0.80;
+z_rim = 0.65;
 
 // from base to mid rim
 dz_rim = z_shroud_upper - z_rim / 2 - 2.05;
 
 // inset of the rim
-d_rim = d_knob - 1.0;
+d_rim = d_knob - 0.65;
 
 // from base
 z_clip = z_shroud_lower;
 
 // sphere to hull centred at d_knob
-d_clip_end = 11.5;
+d_clip_end = 8;
 
 // centre of d_clip_end
-y_clip_end = d_knob / 2;
+y_clip_end = d_knob / 2 + 2.0;
 
 // from centre
 dx_clip_right = -1.05;
@@ -98,8 +98,8 @@ a_cutout_sweep = [82.0, 77.5];
 a_cutout = [
   42.5,
   137.5,
-  226,
-  310,
+  224,
+  313,
 ];
 
 debug_points = false;
