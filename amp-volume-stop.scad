@@ -13,6 +13,9 @@ z_base = 1.38;
 // thickness of the top including base
 z_top = 2.8;
 
+// thickness of the inner floor
+z_floor = 0.8;
+
 // including base and top
 z_shroud_lower = z_top + 0.20;
 
@@ -30,6 +33,9 @@ dy_tongue_short = 6.25 + 1;
 
 // centre of the knob
 d_knob = 23.250;
+
+// from centre of knob, encompasses retaining nut
+d_floor_inner = 13;
 
 // from centre of knob
 d_shroud_inner = 24.875;
@@ -50,13 +56,13 @@ dz_rim = z_shroud_upper - z_rim / 2 - 2.05;
 d_rim = d_knob - 1.0;
 
 // from base
-dz_clip = z_shroud_lower;
+z_clip = z_shroud_lower;
 
-// width of clip far from rim
-x_clip_left = 5.5;
+// sphere to hull centred at d_knob
+d_clip_end = 11.5;
 
-// width of clip far from rim
-x_clip_right = 5.5;
+// centre of d_clip_end
+y_clip_end = d_knob / 2;
 
 // from centre
 dx_clip_right = -1.05;
@@ -91,9 +97,9 @@ a_cutout_sweep = [82.0, 77.5];
 // clockwise from x axis
 a_cutout = [
   42.5,
-  136,
-  222,
-  315.5,
+  137.5,
+  230,
+  306,
 ];
 
 debug_points = false;
@@ -172,24 +178,23 @@ module tongue() {
   difference() {
     translate(v=vector_multiply(C_knob, -1)) {
 
-      // TODO reinstate after checking fit
-      // color(c="gray") {
-      //   translate(v=[0, -base[1] / 2, base[2] / 2])
-      //     cuboid(
-      //       base,
-      //       rounding=rounding_base_top,
-      //       edges=[
-      //         TOP,
-      //       ],
-      //     );
-      //
-      //   cyl(
-      //     h=z_base,
-      //     d=d_tongue_base,
-      //     rounding2=rounding_base_top,
-      //     center=false
-      //   );
-      // }
+      color(c="gray") {
+        translate(v=[0, -base[1] / 2, base[2] / 2])
+          cuboid(
+            base,
+            rounding=rounding_base_top,
+            edges=[
+              TOP,
+            ],
+          );
+
+        cyl(
+          h=z_base,
+          d=d_tongue_base,
+          rounding2=rounding_base_top,
+          center=false
+        );
+      }
 
       color(c="orange") {
         translate(v=[0, -top[1] / 2, top[2] / 2])
@@ -319,45 +324,36 @@ module shroud_upper_right() {
     cutout_edge();
 }
 
-module clip_right() {
-
-  inner = [M[0] - R[0], z_shroud_upper - z_clip_right];
-  outer = [x_clip_right, z_clip_right];
-
-  h = V[1] - U[1];
-
-  shift = [T[0], (outer[1] - inner[1]) / 2];
+module clip_left() {
 
   color(c="yellow") {
-    top_half(z=dz_clip) {
+    top_half(z=z_clip) {
+      difference() {
+        hull() {
+          shroud_upper_left();
+
+          translate(v=[0, y_clip_end, z_clip])
+            sphere(d=d_clip_end);
+        }
+
+        knob_mask();
+      }
+    }
+  }
+}
+
+module clip_right() {
+
+  color(c="yellow") {
+    top_half(z=z_clip) {
       difference() {
         hull() {
           shroud_upper_right();
 
-          translate(v=[dx_clip_right, 0, 0]) {
-            translate([-T[0], V[1], inner[1] / 2 + dz_clip]) {
-              diff() {
-                prismoid(
-                  size1=inner,
-                  size2=outer,
-                  h=h,
-                  shift=shift,
-                  orient=FRONT,
-                )
-                  edge_profile(
-                    [
-                      BACK + TOP,
-                      TOP + LEFT,
-                      TOP + RIGHT,
-                    ],
-                    excess=10,
-                  ) {
-                    mask2d_roundover(h=rounding_clip, mask_angle=$edge_angle);
-                  }
-              }
-            }
-          }
+          translate(v=[dx_clip_right, -y_clip_end, z_clip])
+            sphere(d=d_clip_end);
         }
+
         knob_mask();
       }
     }
@@ -377,6 +373,7 @@ module bolt_hole_mask() {
 
 module left() {
   tongue();
+  clip_left();
   shroud_upper_left();
 }
 
@@ -406,6 +403,14 @@ module cutout_edge() {
     sphere(d=t_shroud_upper);
 }
 
+module bottom() {
+  color(c="rebeccapurple")
+    difference() {
+      cylinder(h=z_floor, d=d_knob, center=false);
+      cylinder(h=z_floor, d=d_floor_inner, center=false);
+    }
+}
+
 render() {
   if (debug_points) {
     h = z_shroud_upper + 2;
@@ -427,6 +432,7 @@ render() {
   }
 
   bottom_half(z=debug_shroud ? z_top : z_shroud_upper * 2) {
+    bottom();
     left();
     right();
     shroud_lower();
