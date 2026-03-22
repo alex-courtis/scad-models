@@ -11,13 +11,13 @@ d_tongue_top = 5.75;
 z_base = 1.38;
 
 // thickness of the top including base
-z_top = 2.8;
+z_top = 2.7;
 
 // thickness of the inner floor
 z_floor = 0.4;
 
 // including base and top
-z_shroud_lower = z_top + 0.20;
+z_shroud_lower = z_top;
 
 // including base and top
 z_shroud_upper = 12.35;
@@ -59,7 +59,7 @@ d_rim = d_knob - 0.65;
 z_clip = z_shroud_lower;
 
 // sphere to hull centred at d_knob
-d_clip_end = 8;
+d_clip_end = 8.4;
 
 // centre of d_clip_end
 y_clip_end = d_knob / 2 + 2.0;
@@ -98,8 +98,8 @@ a_cutout_sweep = [82.0, 77.5];
 a_cutout = [
   42.5,
   137.5,
-  224,
-  313,
+  223,
+  314,
 ];
 
 debug_points = false;
