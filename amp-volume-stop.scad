@@ -32,10 +32,10 @@ dy_tongue_short = 6.25 + 1;
 d_knob = 23.250;
 
 // from centre of knob
-d_shroud_lower = 24.875;
+d_shroud_inner = 24.875;
 
 // from centre of knob
-d_shroud_upper = d_shroud_lower + 1.55;
+d_shroud_outer = d_shroud_inner + 1.55;
 
 // thickness of the top of the tongue including base
 z_tongue_top = z_shroud_lower;
@@ -90,13 +90,14 @@ a_cutout_sweep = [82.0, 77.5];
 
 // clockwise from x axis
 a_cutout = [
-  37.5,
-  142.5,
-  220,
+  42.5,
+  136,
+  222,
   315.5,
 ];
 
-debug = true;
+debug_points = false;
+debug_shroud = false;
 
 $fn = 400;
 
@@ -112,9 +113,9 @@ C_knob = circle_centre(
   r=d_knob / 2
 )[0];
 
-t_shroud_upper = (d_shroud_upper - d_knob) / 2;
+t_shroud_upper = (d_shroud_outer - d_knob) / 2;
 
-r_shroud_mid = (d_knob + d_shroud_upper) / 4;
+r_shroud_mid = (d_knob + d_shroud_outer) / 4;
 M = [
   r_shroud_mid * cos(a_cutout[3]),
   r_shroud_mid * sin(a_cutout[3]),
@@ -156,22 +157,22 @@ X = [
 
 module tongue() {
 
-  back_half(y=Q[1]) {
+  base = [
+    d_tongue_base,
+    dy_tongue_long - d_tongue_base / 2,
+    z_base,
+  ];
 
-    base = [
-      d_tongue_base,
-      dy_tongue_long - d_tongue_base / 2,
-      z_base,
-    ];
+  top = [
+    d_tongue_top,
+    dy_tongue_long - d_tongue_top / 2,
+    z_tongue_top,
+  ];
 
-    top = [
-      d_tongue_top,
-      dy_tongue_long - d_tongue_top / 2,
-      z_tongue_top,
-    ];
-
+  difference() {
     translate(v=vector_multiply(C_knob, -1)) {
-      // TODO reinstate after testing fits
+
+      // TODO reinstate after checking fit
       // color(c="gray") {
       //   translate(v=[0, -base[1] / 2, base[2] / 2])
       //     cuboid(
@@ -208,20 +209,20 @@ module tongue() {
         );
       }
     }
+
+    knob_mask();
   }
 }
 
-module shroud() {
-
-  shroud_lower();
+module shroud_upper() {
 
   color(c="royalblue")
     translate(v=[0, 0, z_shroud_lower])
       tube(
-        od=d_shroud_upper,
+        od=d_shroud_outer,
         id=d_knob,
         h=z_shroud_upper - z_shroud_lower,
-        rounding2=(d_shroud_upper - d_knob) / 4,
+        rounding2=(d_shroud_outer - d_knob) / 4,
         center=false,
       );
 
@@ -237,24 +238,54 @@ module shroud() {
 }
 
 module shroud_lower() {
+
   color(c="pink")
     tube(
-      od=d_shroud_lower,
+      od=d_shroud_inner,
       id=d_knob,
       h=z_shroud_lower,
       center=false,
     );
+
+  color(c="lightgreen")
+    intersection() {
+      tube(
+        od=d_shroud_outer,
+        id=d_knob,
+        h=z_shroud_lower + t_shroud_upper,
+        rounding2=t_shroud_upper / 2,
+        center=false,
+      );
+
+      union() {
+        rotate(a_cutout[1])
+          pie_slice(
+            d=d_shroud_outer * 2,
+            h=z_shroud_upper * 2,
+            ang=a_cutout[2] - a_cutout[1],
+            center=true,
+          );
+
+        rotate(a_cutout[3])
+          pie_slice(
+            d=d_shroud_outer * 2,
+            h=z_shroud_upper * 2,
+            ang=a_cutout[0] - a_cutout[3],
+            center=true,
+          );
+      }
+    }
 }
 
-module shroud_left() {
+module shroud_upper_left() {
 
   intersection() {
 
-    shroud();
+    shroud_upper();
 
     rotate(a_cutout[0])
       pie_slice(
-        d=d_shroud_upper,
+        d=d_shroud_outer,
         h=z_shroud_upper * 2,
         ang=a_cutout[1] - a_cutout[0],
         center=true,
@@ -267,15 +298,15 @@ module shroud_left() {
     cutout_edge();
 }
 
-module shroud_right() {
+module shroud_upper_right() {
 
   intersection() {
 
-    shroud();
+    shroud_upper();
 
     rotate(a_cutout[2])
       pie_slice(
-        d=d_shroud_upper,
+        d=d_shroud_outer,
         h=z_shroud_upper * 2,
         ang=a_cutout[3] - a_cutout[2],
         center=true,
@@ -299,32 +330,35 @@ module clip_right() {
 
   color(c="yellow") {
     top_half(z=dz_clip) {
-      hull() {
-        shroud_right();
+      difference() {
+        hull() {
+          shroud_upper_right();
 
-        translate(v=[dx_clip_right, 0, 0]) {
-          translate([-T[0], V[1], inner[1] / 2 + dz_clip]) {
-            diff() {
-              prismoid(
-                size1=inner,
-                size2=outer,
-                h=h,
-                shift=shift,
-                orient=FRONT,
-              )
-                edge_profile(
-                  [
-                    BACK + TOP,
-                    TOP + LEFT,
-                    TOP + RIGHT,
-                  ],
-                  excess=10,
-                ) {
-                  mask2d_roundover(h=rounding_clip, mask_angle=$edge_angle);
-                }
+          translate(v=[dx_clip_right, 0, 0]) {
+            translate([-T[0], V[1], inner[1] / 2 + dz_clip]) {
+              diff() {
+                prismoid(
+                  size1=inner,
+                  size2=outer,
+                  h=h,
+                  shift=shift,
+                  orient=FRONT,
+                )
+                  edge_profile(
+                    [
+                      BACK + TOP,
+                      TOP + LEFT,
+                      TOP + RIGHT,
+                    ],
+                    excess=10,
+                  ) {
+                    mask2d_roundover(h=rounding_clip, mask_angle=$edge_angle);
+                  }
+              }
             }
           }
         }
+        knob_mask();
       }
     }
   }
@@ -342,21 +376,15 @@ module bolt_hole_mask() {
 }
 
 module left() {
-  difference() {
-    tongue();
-    knob_mask();
-  }
-  shroud_left();
+  tongue();
+  shroud_upper_left();
 }
 
 module right() {
   difference() {
     union() {
-      difference() {
-        clip_right();
-        knob_mask();
-      }
-      shroud_right();
+      clip_right();
+      shroud_upper_right();
     }
     bolt_hole_mask();
   }
@@ -364,7 +392,7 @@ module right() {
 
 module knob_mask() {
   color(c="deeppink")
-    cylinder(d=d_shroud_lower, h=z_shroud_upper + t_shroud_upper / 2, center=false);
+    cylinder(d=d_shroud_inner, h=z_shroud_upper + t_shroud_upper / 2, center=false);
 }
 
 module cutout_edge() {
@@ -379,7 +407,7 @@ module cutout_edge() {
 }
 
 render() {
-  if (debug) {
+  if (debug_points) {
     h = z_shroud_upper + 2;
     r = 0.075;
     translate(v=vector_multiply(C_knob, -1)) {
@@ -398,7 +426,9 @@ render() {
     point_marker(P=X, h=h, r=r, t="X");
   }
 
-  left();
-  right();
-  shroud_lower();
+  bottom_half(z=debug_shroud ? z_top : z_shroud_upper * 2) {
+    left();
+    right();
+    shroud_lower();
+  }
 }
