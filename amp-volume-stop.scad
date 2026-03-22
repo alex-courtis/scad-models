@@ -14,7 +14,7 @@ z_base = 1.38;
 z_top = 2.8;
 
 // thickness of the inner floor
-z_floor = 0.8;
+z_floor = 0.4;
 
 // including base and top
 z_shroud_lower = z_top + 0.20;
@@ -38,7 +38,7 @@ d_knob = 23.250;
 d_floor_inner = 13;
 
 // from centre of knob
-d_shroud_inner = 24.875;
+d_shroud_inner = 24.6;
 
 // from centre of knob
 d_shroud_outer = d_shroud_inner + 1.55;
@@ -98,8 +98,8 @@ a_cutout_sweep = [82.0, 77.5];
 a_cutout = [
   42.5,
   137.5,
-  230,
-  306,
+  226,
+  310,
 ];
 
 debug_points = false;
