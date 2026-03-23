@@ -3,6 +3,9 @@ include <lib/geom.scad>
 
 $fn = 400;
 
+// approximate width of the arm
+w_arm = 13.8;
+
 // drilled into arm
 d_arm_hole = 6;
 
@@ -25,19 +28,22 @@ w_spacer_inner = 10.5;
 w_spacer_inner_lower = 11.25;
 
 // of the joiner
-t_joiner = 5;
+t_joiner = 8;
 
 // not including shoulders
 t_washer = 12;
 
 // in addition to t_washer
-t_washer_shoulder = 5;
+t_washer_shoulder = w_arm / 2;
 
 // outer of arm
 w_washer_channel = 13.2;
 
 // mating surface of the joiner and washers
 d_washer_joiner = 24;
+
+// joiner washers to plate
+dl_joiner = 28;
 
 // extension of the washers
 d_washer_extension = w_washer_channel;
@@ -49,16 +55,30 @@ dl_washer_extension = 30;
 l_joiner = 30;
 
 // gap in lower washer
-dl_washer_lower = 5;
+dl_washer_lower = 13;
 
 // holes to join front and joiner
 d_joiner_front_holes = 4;
 
 // thickness of the front plate
-t_front = 10;
+t_plate = 20;
+
+// across arm width
+w_plate = w_arm + 2 * t_washer;
 
 // inset of front/joiner holes centre from edge
 dl_joiner_front_holes = 8;
+
+// lamp bolt
+d_lamp_bolt = 6;
+
+x_plate = l_joiner + d_washer_joiner;
+y_plate = t_plate;
+v_plate = [
+  x_plate / 2 - d_washer_joiner / 2,
+  dl_joiner * 1.5 - y_plate / 2,
+  0,
+];
 
 module spacer_cross(lower) {
   difference() {
@@ -87,20 +107,14 @@ module joiner_cross() {
       translate(v=[l_joiner, 0])
         circle(d=d_washer_joiner);
 
-      translate(v=[l_joiner / 2, d_washer_joiner])
-        square([l_joiner + d_washer_joiner, d_washer_joiner], center=true);
+      translate(v=[l_joiner / 2, dl_joiner])
+        square([l_joiner + d_washer_joiner, dl_joiner], center=true);
     }
 
     circle(d=d_arm_hole);
 
     translate(v=[l_joiner, 0])
       circle(d=d_arm_hole);
-
-    // translate(v=[-d_washer_joiner / 2, l_joiner + d_washer_joiner / 4 - t_front/2]) {
-    //   #circle(d=d_joiner_front_holes);
-    //   translate(v=[l_joiner + d_washer_joiner - dl_joiner_front_holes, 0])
-    //     #circle(d=d_joiner_front_holes);
-    // }
   }
 }
 
@@ -149,15 +163,48 @@ module arm_washer_lower() {
   color(c="yellow")
     difference() {
       arm_washer();
-      translate(v=[-d_washer_joiner - dl_washer_lower, 0, t_washer])
+      translate(v=[-d_washer_joiner * 1.5 + dl_washer_lower, 0, t_washer])
         cube([d_washer_joiner, d_washer_joiner, t_washer_shoulder]);
     }
 }
 
-module arm_joiner() {
-  color(c="pink")
-    linear_extrude(h=t_joiner, center=false)
-      joiner_cross();
+module joiner() {
+  color(c="pink") {
+    difference() {
+      linear_extrude(h=t_joiner, center=false)
+        joiner_cross();
+      plate_joiner_hole_mask();
+    }
+  }
+}
+
+module plate_joiner_hole_mask() {
+  color(c="red") {
+    translate(v=v_plate) {
+      translate(v=[(x_plate - t_plate) / 2, 0, 0])
+        cylinder(h=w_plate + t_washer_shoulder, d=d_joiner_front_holes);
+
+      translate(v=[-(x_plate - t_plate) / 2, 0, 0])
+        cylinder(h=w_plate + t_washer_shoulder, d=d_joiner_front_holes);
+    }
+  }
+}
+
+module plate() {
+  color(c="gray") {
+    difference() {
+      translate(v=v_plate + [0, 0, w_plate / 2]) {
+        cube([x_plate, y_plate, w_plate], center=true);
+      }
+
+      translate(v=v_plate + [0, 0, w_plate / 2]) {
+        rotate(a=90, v=[1, 0, 0])
+          cylinder(h=t_plate, d=d_lamp_bolt, center=true);
+      }
+
+      plate_joiner_hole_mask();
+    }
+  }
 }
 
 render() {
@@ -166,9 +213,6 @@ render() {
 
   translate(v=[60, 60, 0])
     spacer_lower();
-
-  translate(v=[60, 0, 0])
-    arm_joiner();
 
   translate(v=[60, -60, 0])
     arm_washer_upper();
@@ -183,4 +227,13 @@ render() {
   translate(v=[0, -120, 0])
     mirror(v=[0, 1, 0])
       arm_washer_lower();
+
+  translate(v=[60, 0, 0])
+    joiner();
+
+  translate(v=[0, 0, 0])
+    joiner();
+
+  translate(v=[-60, 0, 0])
+    plate();
 }
