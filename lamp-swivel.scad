@@ -28,7 +28,7 @@ w_spacer_inner = 10.5;
 w_spacer_inner_lower = 11.25;
 
 // of the joiner
-t_joiner = 7;
+t_joiner = 6.5;
 
 // not including shoulders
 t_washer = 12;
@@ -55,7 +55,7 @@ dl_washer_extension = 30;
 d_inset_washer = 13.5;
 
 // bolt's washer in joiner
-t_inset_washer = 1.5;
+t_inset_washer = 1.8;
 
 // hole to hole
 l_joiner = 30;
