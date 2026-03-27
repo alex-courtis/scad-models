@@ -1,13 +1,23 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
-l1_awl = 3.4;
-l2_awl = 1.9;
+l1_awl = 3.2;
+l2_awl = 1.85;
 a_awl = 45;
 s_awl = 5;
 
 h_guide = 4;
-round_guide = 1;
+round_guide = 2;
+
+// at h_guide 4
+scale_awl = 1.4;
+
+poly_awl = [
+  [0, l1_awl / 2],
+  [-l2_awl / 2, 0],
+  [0, -l1_awl / 2],
+  [l2_awl / 2, 0],
+];
 
 $fn = 200;
 
@@ -18,85 +28,92 @@ module clamp_circle() {
   d = 23;
   rounding = 2.5;
 
-  translate(v=[0, 0, h / 2]) {
-    intersection() {
-      tube(
-        id=d,
-        od=l * 2,
-        h=h,
-        rounding2=rounding / 2,
-        center=true,
-      );
+  intersection() {
+    tube(
+      id=d,
+      od=l * 2,
+      h=h,
+      rounding2=rounding / 2,
+      center=true,
+    );
 
-      cuboid(
-        [l, w, h],
-        rounding=rounding,
-        except=[BOTTOM],
-      );
-    }
+    cuboid(
+      [l, w, h],
+      rounding=rounding,
+      except=[BOTTOM],
+    );
   }
 }
 
-module awl_poly() {
-  polygon(
-    [
-      [0, l1_awl / 2],
-      [-l2_awl / 2, 0],
-      [0, -l1_awl / 2],
-      [l2_awl / 2, 0],
-    ]
-  );
+module awl_hole() {
+  extrude_from_to(
+    [0, 0, -h_guide / 2 - 0.00001],
+    [0, 0, h_guide / 2 + 0.00001],
+    scale=scale_awl,
+  )
+    polygon(poly_awl);
 }
 
 module awl_guide_straight() {
 
-  l = 25;
-  w = 8;
+  l = s_awl * 16;
+  w = s_awl * 6;
 
-  translate(v=[0, 0, h_guide / 2]) {
-    difference() {
-      cuboid(
-        [l, w, h_guide],
-        rounding=round_guide,
-      );
+  difference() {
+    cuboid(
+      [l, w, h_guide],
+      rounding=round_guide,
+      except=[BOTTOM],
+    );
 
-      for (i = [-l / 2 + s_awl:s_awl:l / 2 - s_awl]) {
-        translate(v=[i, 0, 0]) {
-          rotate(a=a_awl)
-            linear_extrude(h=h_guide * 2, center=true)
-              awl_poly();
-        }
+    for (i = [-l / 2 + s_awl:s_awl:l / 2 - s_awl]) {
+      translate(v=[i, 0, 0]) {
+        rotate(a=a_awl)
+          awl_hole();
       }
     }
+
+    translate(v=[-l / 2, 0, 0])
+      cube([1, 0.5, h_guide], center=true);
+
+    translate(v=[l / 2, 0, 0])
+      cube([1, 0.5, h_guide], center=true);
   }
 }
 
 module awl_guide_circle() {
 
-  d_guide = 35;
   d_holes = 27.5;
 
   // round to a clean divisor of 90
   a_isoc = 2 * asin(s_awl / d_holes);
   a = 90 / round(90 / a_isoc);
 
-  translate(v=[0, 0, h_guide / 2]) {
-    difference() {
-      cyl(
-        d=d_guide,
-        h=h_guide,
-        rounding=round_guide,
-        center=true,
-      );
+  difference() {
+    cuboid(
+      [d_holes * 2, d_holes * 2, h_guide],
+      rounding=round_guide,
+      except=[BOTTOM],
+    );
 
-      for (i = [0:a:360 - a]) {
-        rotate(a=i)
-          translate(v=[d_holes / 2, 0, 0])
-            rotate(a=a_awl)
-              linear_extrude(h=h_guide * 2, center=true)
-                awl_poly();
-      }
+    for (i = [0:a:360 - a]) {
+      rotate(a=i)
+        translate(v=[d_holes / 2, 0, 0])
+          rotate(a=a_awl)
+            awl_hole();
     }
+
+    translate(v=[-d_holes, 0, 0])
+      cube([1, 0.5, h_guide], center=true);
+
+    translate(v=[d_holes, 0, 0])
+      cube([1, 0.5, h_guide], center=true);
+
+    translate(v=[0, -d_holes, 0])
+      cube([0.5, 1, h_guide], center=true);
+
+    translate(v=[0, d_holes, 0])
+      cube([0.5, 1, h_guide], center=true);
   }
 }
 
