@@ -9,6 +9,9 @@ s_awl = 5;
 h_guide = 4;
 round_guide = 2;
 
+w_window_bottom = 1.5;
+w_window_top = 2.5;
+
 // at h_guide 4
 scale_awl = 1.4;
 
@@ -45,7 +48,7 @@ module clamp_circle() {
   }
 }
 
-module awl_hole() {
+module awl_mask() {
   extrude_from_to(
     [0, 0, -h_guide / 2 - 0.00001],
     [0, 0, h_guide / 2 + 0.00001],
@@ -54,10 +57,21 @@ module awl_hole() {
     polygon(poly_awl);
 }
 
+module window_mask(l) {
+  prismoid(
+    size1=[l, w_window_bottom],
+    size2=[l, w_window_top],
+    h=h_guide,
+    anchor=CENTER,
+  );
+}
+
 module awl_guide_straight() {
 
-  l = s_awl * 16;
-  w = s_awl * 6;
+  l = s_awl * 15 + w_window_bottom;
+  l_window = l - s_awl * 2 - w_window_bottom;
+
+  w = s_awl * 10;
 
   difference() {
     cuboid(
@@ -66,18 +80,30 @@ module awl_guide_straight() {
       except=[BOTTOM],
     );
 
-    for (i = [-l / 2 + s_awl:s_awl:l / 2 - s_awl]) {
+    for (i = [-l / 2 + w_window_bottom / 2 + s_awl:s_awl:l / 2 - s_awl - w_window_bottom / 2]) {
       translate(v=[i, 0, 0]) {
         rotate(a=a_awl)
-          awl_hole();
+          awl_mask();
       }
     }
 
-    translate(v=[-l / 2, 0, 0])
-      cube([1, 0.5, h_guide], center=true);
+    // end windows
+    translate(v=[-l / 2 + w_window_bottom / 2, 0, 0])
+      window_mask(l=w_window_bottom);
+    translate(v=[l / 2 - w_window_bottom / 2, 0, 0])
+      window_mask(l=w_window_bottom);
 
-    translate(v=[l / 2, 0, 0])
-      cube([1, 0.5, h_guide], center=true);
+    // 1x windows
+    translate(v=[0, s_awl, 0])
+      window_mask(l=l_window);
+    translate(v=[0, -s_awl, 0])
+      window_mask(l=l_window);
+
+    // 2x windows
+    translate(v=[0, s_awl * 2, 0])
+      window_mask(l=l_window);
+    translate(v=[0, -s_awl * 2, 0])
+      window_mask(l=l_window);
   }
 }
 
@@ -100,7 +126,7 @@ module awl_guide_circle() {
       rotate(a=i)
         translate(v=[d_holes / 2, 0, 0])
           rotate(a=a_awl)
-            awl_hole();
+            awl_mask();
     }
 
     translate(v=[-d_holes, 0, 0])
