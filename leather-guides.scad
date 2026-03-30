@@ -58,12 +58,21 @@ module awl_mask() {
 }
 
 module window_mask(l) {
-  prismoid(
-    size1=[l, w_window_bottom],
-    size2=[l, w_window_top],
-    h=h_guide,
-    anchor=CENTER,
-  );
+  if (l) {
+    prismoid(
+      size1=[l, w_window_bottom],
+      size2=[l, w_window_top],
+      h=h_guide,
+      anchor=CENTER,
+    );
+  } else {
+    cylinder(
+      d1=w_window_bottom,
+      d2=w_window_top,
+      h=h_guide,
+      center=true
+    );
+  }
 }
 
 module awl_guide_straight() {
@@ -125,21 +134,26 @@ module awl_guide_circle() {
     for (i = [0:a:360 - a]) {
       rotate(a=i)
         translate(v=[d_holes / 2, 0, 0])
-          rotate(a=a_awl)
+          rotate(a=-a_awl)
             awl_mask();
     }
 
-    translate(v=[-d_holes, 0, 0])
-      cube([1, 0.5, h_guide], center=true);
+    // centre point window
+    window_mask();
 
-    translate(v=[d_holes, 0, 0])
-      cube([1, 0.5, h_guide], center=true);
+    // inside windows
+    for (a = [0:90:270]) {
+      rotate(a=a)
+        translate(v=[d_holes / 4, 0, 0])
+          window_mask(l=d_holes / 4);
+    }
 
-    translate(v=[0, -d_holes, 0])
-      cube([0.5, 1, h_guide], center=true);
-
-    translate(v=[0, d_holes, 0])
-      cube([0.5, 1, h_guide], center=true);
+    // outside windows
+    for (a = [0:90:270]) {
+      rotate(a=a)
+        translate(v=[d_holes * 3 / 4, 0, 0])
+          window_mask(l=d_holes / 4);
+    }
   }
 }
 
