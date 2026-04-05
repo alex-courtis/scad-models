@@ -5,7 +5,7 @@ d_filament = 0.4; // [0.2:0.2:0.8]
 
 /* [Inner Dimensions] */
 inner = [
-  4,
+  4.6,
   325,
   32,
 ];
@@ -15,7 +15,7 @@ inner_chamfer = inner[0] / 4;
 /* [Magnet Dimensions] */
 magnet = [
   5.0,
-  15.0,
+  15.3,
   25.0,
 ];
 
