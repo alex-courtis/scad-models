@@ -6,7 +6,7 @@ d_filament = 0.4; // [0.2:0.2:0.8]
 /* [Inner Dimensions] */
 inner = [
   4,
-  280,
+  325,
   32,
 ];
 
@@ -14,15 +14,15 @@ inner_chamfer = inner[0] / 4;
 
 /* [Magnet Dimensions] */
 magnet = [
-  4.9,
-  15,
-  25,
+  5.0,
+  15.0,
+  25.0,
 ];
 
 /* [Outer Dimensions] */
-t_wall = d_filament * 2;
+t_wall = d_filament * 3;
 
-l_cutout = 120;
+l_cutout = 116;
 
 outer = inner + [
   (magnet[0] + t_wall * 2) * 2,
@@ -42,24 +42,18 @@ enclosure = [
   outer[2] - t_wall * 2,
 ];
 
-dl_enclosure_mid = 0;
-dl_enclosure_end = -(outer[1] - enclosure[1]) / 2 + t_wall + enclosure[1];
+dl_enclosure_mid = outer[1] / 2 - l_cutout - enclosure[1] / 2;
+dl_enclosure_end = -(outer[1] - enclosure[1]) / 2 + hollow[0] + t_wall;
 
 $fn = 200; // [0:1:500]
 
-module magnet_box(size) {
+module magnet_boxes(size) {
   translate(v=[(enclosure[0] + inner[0]) / 2, 0, 0]) {
     translate(v=[0, dl_enclosure_end, 0])
       cube(size, center=true);
     translate(v=[0, dl_enclosure_mid, 0])
       cube(size, center=true);
   }
-}
-
-module magnet_boxes(size) {
-  magnet_box(size);
-  mirror(v=[1, 0, 0])
-    magnet_box(size);
 }
 
 module hollow_mask() {
@@ -82,10 +76,23 @@ module inner_mask() {
 }
 
 module cutout_mask() {
-  translate(v=[0, outer[1] - l_cutout, outer[2] / 2])
-    cuboid(
-      outer
-    );
+  closed = [outer[0], hollow[0] + t_wall];
+  open = [outer[0], outer[2] - closed[1]];
+
+  translate(
+    v=[
+      0,
+      outer[1] / 2 - l_cutout,
+      (outer[2] - closed[1]) / 2,
+    ]
+  )
+    rotate(a=-90, v=[1, 0, 0])
+      prismoid(
+        size1=closed,
+        size2=open,
+        shift=[0, (open[1] - closed[1]) / 2],
+        h=l_cutout,
+      );
 }
 
 module body() {
@@ -106,24 +113,19 @@ module body() {
 }
 
 render() {
-  front_half(y=30, s=outer[1] * 2)
-    back_half(y=-20, s=outer[1] * 2)
-      difference() {
-        union() {
-          color(c="steelblue")
-            body();
-          color(c="gray")
-            magnet_boxes(enclosure);
-        }
+  difference() {
+    union() {
+      color(c="steelblue")
+        body();
 
-        color(c="red")
-          magnet_boxes(magnet);
+      color(c="gray")
+        magnet_boxes(enclosure);
+    }
 
-        color(c="pink")
-          translate(v=[0, 0, magnet[2]])
-            magnet_boxes(magnet);
+    color(c="red")
+      magnet_boxes(magnet + [0, 0, outer[2]]);
 
-        color(c="maroon")
-          cutout_mask();
-      }
+    color(c="pink")
+      cutout_mask();
+  }
 }
