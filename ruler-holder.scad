@@ -1,92 +1,111 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
+d_filament = 0.4; // [0.2:0.2:0.8]
+
 /* [Inner Dimensions] */
-t = 4;
-
-// capped by right isosceles triangles
-w = 34;
-
-l = 280;
+inner = [
+  4,
+  280,
+  34,
+];
 
 /* [Magnet Dimensions] */
-
-t_magnet = 3 + 0.2;
-w_magnet = 15 + 0.2;
-l_magnet = 25 + 0.2;
+magnet = [
+  5 + 0.4,
+  15 + 0.4,
+  25 + 0.4,
+];
 
 /* [Outer Dimensions] */
-
-dt = t_magnet + 0.8 * 2;
-dw = dt;
-dl = 2;
+t_wall = d_filament * 3;
 
 l_cutout = 120;
 
+outer = inner + [
+  (magnet[0] + t_wall * 2) * 2,
+  t_wall,
+  t_wall * 2,
+];
+
+hollow = [
+  (outer[0] - inner[0]) / 2 - t_wall,
+  outer[1] - t_wall * 2,
+  outer[2] - t_wall * 2,
+];
+
 $fn = 200; // [0:1:500]
 
-module outer_cross() {
-  square([t + 2 * dt, w + 2 * dw], center=true);
+module magnet_mask() {
+
+  color(c="orange")
+    translate(
+      v=[
+        magnet[0] / 2 + inner[0] / 2 + t_wall,
+        0,
+        0,
+      ]
+    )
+      cube(magnet, center=true);
 }
 
-module inner_cross() {
-  end = [
-    [-t / 2, 0],
-    [t / 2, 0],
-    [0, t / 2],
-  ];
+module magnet_enclosures() {
+  enclosure = [magnet[0], magnet[1], outer[2] - t_wall * 2] + [t_wall, t_wall, 0];
 
-  square([t, w - t], center=true);
-
-  translate(v=[0, -w / 2 + t / 2])
-    mirror(v=[0, 1])
-      polygon(end);
-
-  translate(v=[0, w / 2 - t / 2])
-    polygon(end);
+  color(c="gray")
+    translate(
+      v=[
+        enclosure[0] / 2 + inner[0] / 2 + t_wall,
+        0,
+        0,
+      ]
+    )
+      cube(enclosure, center=true);
 }
 
-module holder_body() {
+module hollow_mask() {
+  translate(v=[(outer[0] - hollow[0]) / 2, 0, 0])
+    cuboid(
+      hollow,
+      chamfer=hollow[0],
+      edges=[LEFT],
+    );
+}
+
+module holder() {
+
   difference() {
     color(c="steelblue")
-      translate(v=[0, 0, dl / 2])
-        linear_extrude(h=l + dl, center=true)
-          outer_cross();
+      cuboid(
+        outer,
+        chamfer=t_wall / 2,
+      );
 
-    color(c="orange")
-      linear_extrude(h=l, center=true)
-        inner_cross();
+    color(c="red")
+      translate(v=[0, t_wall / 2, 0])
+        cuboid(inner);
+
+    color(c="pink") {
+      hollow_mask();
+
+      mirror(v=[1, 0, 0])
+        hollow_mask();
+    }
   }
 }
 
-module holder_cutout_mask() {
-  translate(v=[0, w / 2 + dw, (l_cutout - l) / 2])
-    linear_extrude(h=l_cutout, center=true)
-      outer_cross();
-}
-
-module magnets_mask() {
-  color(c="red")
-    translate(v=[0, w / 2 + dw - w_magnet / 2, l / 2 - l_magnet])
-      magnet_mask();
-
-  color(c="pink")
-    translate(v=[0, dt, -l / 2 + l_magnet])
-      magnet_mask();
-}
-
-module magnet_mask() {
-  translate(v=[(t + dt) / 2, 0])
-    cube([t_magnet, w + dw * 2, l_magnet], center=true);
-}
-
 render() {
-  // front_half(s=l * 2, y=-90)
-  // back_half(s=l * 2, y=90)
-  rotate(a=90, v=[1, 0, 0])
+  front_half(y=-95, s=outer[1] * 2)
     difference() {
-      holder_body();
-      holder_cutout_mask();
-      magnets_mask();
+      union() {
+        holder();
+        translate(v=[0, -115, 0])
+          magnet_enclosures();
+      }
+      translate(v=[0, -115, 0]) {
+        magnet_mask();
+        translate(v=[0, 0, magnet[2]])
+          magnet_mask();
+      }
     }
 }
