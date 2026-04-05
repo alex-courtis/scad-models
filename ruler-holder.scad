@@ -7,18 +7,20 @@ d_filament = 0.4; // [0.2:0.2:0.8]
 inner = [
   4,
   280,
-  34,
+  32,
 ];
+
+inner_chamfer = inner[0] / 4;
 
 /* [Magnet Dimensions] */
 magnet = [
-  5 + 0.4,
-  15 + 0.4,
-  25 + 0.4,
+  4.9,
+  15,
+  25,
 ];
 
 /* [Outer Dimensions] */
-t_wall = d_filament * 3;
+t_wall = d_filament * 2;
 
 l_cutout = 120;
 
@@ -30,82 +32,98 @@ outer = inner + [
 
 hollow = [
   (outer[0] - inner[0]) / 2 - t_wall,
-  outer[1] - t_wall * 2,
+  outer[1] - t_wall,
   outer[2] - t_wall * 2,
 ];
 
+enclosure = [
+  magnet[0] + t_wall * 2,
+  magnet[1] + t_wall * 2,
+  outer[2] - t_wall * 2,
+];
+
+dl_enclosure_mid = 0;
+dl_enclosure_end = -(outer[1] - enclosure[1]) / 2 + t_wall + enclosure[1];
+
 $fn = 200; // [0:1:500]
 
-module magnet_mask() {
-
-  color(c="orange")
-    translate(
-      v=[
-        magnet[0] / 2 + inner[0] / 2 + t_wall,
-        0,
-        0,
-      ]
-    )
-      cube(magnet, center=true);
+module magnet_box(size) {
+  translate(v=[(enclosure[0] + inner[0]) / 2, 0, 0]) {
+    translate(v=[0, dl_enclosure_end, 0])
+      cube(size, center=true);
+    translate(v=[0, dl_enclosure_mid, 0])
+      cube(size, center=true);
+  }
 }
 
-module magnet_enclosures() {
-  enclosure = [magnet[0], magnet[1], outer[2] - t_wall * 2] + [t_wall, t_wall, 0];
-
-  color(c="gray")
-    translate(
-      v=[
-        enclosure[0] / 2 + inner[0] / 2 + t_wall,
-        0,
-        0,
-      ]
-    )
-      cube(enclosure, center=true);
+module magnet_boxes(size) {
+  magnet_box(size);
+  mirror(v=[1, 0, 0])
+    magnet_box(size);
 }
 
 module hollow_mask() {
-  translate(v=[(outer[0] - hollow[0]) / 2, 0, 0])
+  translate(v=[(outer[0] - hollow[0]) / 2, t_wall / 2, 0])
     cuboid(
       hollow,
       chamfer=hollow[0],
       edges=[LEFT],
+      except=[BACK],
     );
 }
 
-module holder() {
+module inner_mask() {
+  translate(v=[0, t_wall / 2, 0])
+    cuboid(
+      inner,
+      chamfer=inner_chamfer,
+      except=[BACK],
+    );
+}
+
+module cutout_mask() {
+  translate(v=[0, outer[1] - l_cutout, outer[2] / 2])
+    cuboid(
+      outer
+    );
+}
+
+module body() {
 
   difference() {
-    color(c="steelblue")
-      cuboid(
-        outer,
-        chamfer=t_wall / 2,
-      );
+    cuboid(
+      outer,
+      chamfer=t_wall / 2,
+    );
 
-    color(c="red")
-      translate(v=[0, t_wall / 2, 0])
-        cuboid(inner);
+    inner_mask();
 
-    color(c="pink") {
+    hollow_mask();
+
+    mirror(v=[1, 0, 0])
       hollow_mask();
-
-      mirror(v=[1, 0, 0])
-        hollow_mask();
-    }
   }
 }
 
 render() {
-  front_half(y=-95, s=outer[1] * 2)
-    difference() {
-      union() {
-        holder();
-        translate(v=[0, -115, 0])
-          magnet_enclosures();
+  front_half(y=30, s=outer[1] * 2)
+    back_half(y=-20, s=outer[1] * 2)
+      difference() {
+        union() {
+          color(c="steelblue")
+            body();
+          color(c="gray")
+            magnet_boxes(enclosure);
+        }
+
+        color(c="red")
+          magnet_boxes(magnet);
+
+        color(c="pink")
+          translate(v=[0, 0, magnet[2]])
+            magnet_boxes(magnet);
+
+        color(c="maroon")
+          cutout_mask();
       }
-      translate(v=[0, -115, 0]) {
-        magnet_mask();
-        translate(v=[0, 0, magnet[2]])
-          magnet_mask();
-      }
-    }
 }
