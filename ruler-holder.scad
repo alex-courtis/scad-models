@@ -133,7 +133,7 @@ module socket() {
 
   bot = [x, y, z2];
 
-  brace = [x, y / 2, z1 + z2];
+  brace = [x, y / 3, z1 + z2];
 
   dx = (outer.x - x) / 2;
   dy = (outer.y + y) / 2 - l_cutout;
@@ -144,7 +144,7 @@ module socket() {
     translate(v=[0, 0, -z1 / 2])
       cuboid(bot);
 
-    translate(v=[0, -brace.y * 1.5, 0])
+    translate(v=[0, -bot.y / 2 - brace.y / 2, 0])
       cuboid(brace);
 
     translate(v=[0, 0, dz_triangle]) {
@@ -172,6 +172,7 @@ module sockets() {
 }
 
 render() {
+  // back_half(s=300)
   difference() {
     union() {
       difference() {
