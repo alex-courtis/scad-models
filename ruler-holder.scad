@@ -80,15 +80,13 @@ module inner_mask() {
 module cutout_mask() {
   x = outer.x;
 
-  y = l_socket;
-
   z1 = hollow.x + t_wall;
   z2 = outer.z - z1;
 
   translate(
     v=[
       0,
-      outer.y / 2 - l_cutout + y,
+      outer.y / 2 - l_cutout,
       (outer.z - z1) / 2,
     ]
   ) {
@@ -97,11 +95,8 @@ module cutout_mask() {
         size1=[x, z1],
         size2=[x, z2],
         shift=[0, (z2 - z1) / 2],
-        h=l_cutout - y,
+        h=l_cutout,
       );
-
-    translate(v=[0, -y / 2, 0])
-      cube([x, y, z1], center=true);
   }
 }
 
