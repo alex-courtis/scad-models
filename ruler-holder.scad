@@ -10,7 +10,7 @@ inner = [
   32,
 ];
 
-inner_chamfer = inner[0] / 4;
+inner_chamfer = inner.x * 0.275;
 
 /* [Magnet Dimensions] */
 magnet = [
@@ -25,30 +25,30 @@ t_wall = d_filament * 3;
 l_cutout = 116;
 
 outer = inner + [
-  (magnet[0] + t_wall * 2) * 2,
+  (magnet.x + t_wall * 2) * 2,
   t_wall,
   t_wall * 2,
 ];
 
 hollow = [
-  (outer[0] - inner[0]) / 2 - t_wall,
-  outer[1] - t_wall,
-  outer[2] - t_wall * 2,
+  (outer.x - inner.x) / 2 - t_wall,
+  outer.y - t_wall,
+  outer.z - t_wall * 2,
 ];
 
 enclosure = [
-  magnet[0] + t_wall * 2,
-  magnet[1] + t_wall * 2,
-  outer[2] - t_wall * 2,
+  magnet.x + t_wall * 2,
+  magnet.y + t_wall * 2,
+  outer.z - t_wall * 2,
 ];
 
-dl_enclosure_mid = outer[1] / 2 - l_cutout - enclosure[1] / 2;
-dl_enclosure_end = -(outer[1] - enclosure[1]) / 2 + hollow[0] + t_wall;
+dl_enclosure_mid = outer.y / 2 - l_cutout - enclosure.y / 2;
+dl_enclosure_end = -(outer.y - enclosure.y) / 2 + hollow.x + t_wall;
 
 $fn = 200; // [0:1:500]
 
 module magnet_boxes(size) {
-  translate(v=[(enclosure[0] + inner[0]) / 2, 0, 0]) {
+  translate(v=[(enclosure.x + inner.x) / 2, 0, 0]) {
     translate(v=[0, dl_enclosure_end, 0])
       cube(size, center=true);
     translate(v=[0, dl_enclosure_mid, 0])
@@ -57,10 +57,10 @@ module magnet_boxes(size) {
 }
 
 module hollow_mask() {
-  translate(v=[(outer[0] - hollow[0]) / 2, t_wall / 2, 0])
+  translate(v=[(outer.x - hollow.x) / 2, t_wall / 2, 0])
     cuboid(
       hollow,
-      chamfer=hollow[0],
+      chamfer=hollow.x,
       edges=[LEFT],
       except=[BACK],
     );
@@ -76,21 +76,21 @@ module inner_mask() {
 }
 
 module cutout_mask() {
-  closed = [outer[0], hollow[0] + t_wall];
-  open = [outer[0], outer[2] - closed[1]];
+  closed = [outer.x, hollow.x + t_wall];
+  open = [outer.x, outer.z - closed.y];
 
   translate(
     v=[
       0,
-      outer[1] / 2 - l_cutout,
-      (outer[2] - closed[1]) / 2,
+      outer.y / 2 - l_cutout,
+      (outer.z - closed.y) / 2,
     ]
   )
     rotate(a=-90, v=[1, 0, 0])
       prismoid(
         size1=closed,
         size2=open,
-        shift=[0, (open[1] - closed[1]) / 2],
+        shift=[0, (open.y - closed.y) / 2],
         h=l_cutout,
       );
 }
@@ -123,7 +123,7 @@ render() {
     }
 
     color(c="red")
-      magnet_boxes(magnet + [0, 0, outer[2]]);
+      magnet_boxes(magnet + [0, 0, outer.z]);
 
     color(c="pink")
       cutout_mask();
