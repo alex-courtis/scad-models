@@ -45,6 +45,8 @@ enclosure = [
 dl_enclosure_mid = outer.y / 2 - l_cutout - enclosure.y / 2;
 dl_enclosure_end = -(outer.y - enclosure.y) / 2 + hollow.x + t_wall;
 
+l_socket = enclosure.y;
+
 $fn = 200; // [0:1:500]
 
 module magnet_boxes(size) {
@@ -76,23 +78,31 @@ module inner_mask() {
 }
 
 module cutout_mask() {
-  closed = [outer.x, hollow.x + t_wall];
-  open = [outer.x, outer.z - closed.y];
+  x = outer.x;
+
+  y = l_socket;
+
+  z1 = hollow.x + t_wall;
+  z2 = outer.z - z1;
 
   translate(
     v=[
       0,
-      outer.y / 2 - l_cutout,
-      (outer.z - closed.y) / 2,
+      outer.y / 2 - l_cutout + y,
+      (outer.z - z1) / 2,
     ]
-  )
+  ) {
     rotate(a=-90, v=[1, 0, 0])
       prismoid(
-        size1=closed,
-        size2=open,
-        shift=[0, (open.y - closed.y) / 2],
-        h=l_cutout,
+        size1=[x, z1],
+        size2=[x, z2],
+        shift=[0, (z2 - z1) / 2],
+        h=l_cutout - y,
       );
+
+    translate(v=[0, -y / 2, 0])
+      cube([x, y, z1], center=true);
+  }
 }
 
 module body() {
@@ -112,20 +122,65 @@ module body() {
   }
 }
 
+module socket() {
+  x = hollow.x;
+
+  bot = [x, l_socket, outer.z - x - t_wall * 2];
+
+  dx = (outer.x - x) / 2;
+  dy = outer.y / 2 + l_socket / 2 - l_cutout;
+  dz_triangle = outer.z / 2 - x - t_wall;
+
+  translate(v=[dx, dy, 0]) {
+
+    translate(v=[0, 0, -x / 2])
+      cuboid(bot);
+
+    translate(v=[0, 0, dz_triangle]) {
+      rotate(a=90)
+        diff()
+          prismoid(
+            size1=[l_socket, x],
+            size2=[l_socket, 0],
+            shift=[0, -x / 2],
+            h=x,
+          ) {
+            edge_profile([TOP + FRONT]) {
+              mask2d_chamfer(h=t_wall);
+            }
+          }
+    }
+  }
+}
+
+module sockets() {
+  socket();
+
+  mirror(v=[1, 0, 0])
+    socket();
+}
+
 render() {
   difference() {
     union() {
-      color(c="steelblue")
-        body();
+      difference() {
+        union() {
+          color(c="steelblue")
+            body();
 
-      color(c="gray")
-        magnet_boxes(enclosure);
+          color(c="gray")
+            magnet_boxes(enclosure);
+        }
+
+        color(c="pink")
+          cutout_mask();
+      }
+
+      color(c="lightgray")
+        sockets();
     }
 
     color(c="red")
       magnet_boxes(magnet + [0, 0, outer.z]);
-
-    color(c="pink")
-      cutout_mask();
   }
 }
