@@ -124,29 +124,40 @@ module body() {
 
 module socket() {
   x = hollow.x;
+  y = l_socket;
+  z1 = hollow.x;
+  z2 = outer.z - x - t_wall * 2;
 
-  bot = [x, l_socket, outer.z - x - t_wall * 2];
+  tri_top = [y, x];
+  tri_bot = [y, 0];
+
+  bot = [x, y, z2];
+
+  brace = [x, y / 2, z1 + z2];
 
   dx = (outer.x - x) / 2;
-  dy = outer.y / 2 + l_socket / 2 - l_cutout;
-  dz_triangle = outer.z / 2 - x - t_wall;
+  dy = (outer.y + y) / 2 - l_cutout;
+  dz_triangle = outer.z / 2 - z1 - t_wall;
 
   translate(v=[dx, dy, 0]) {
 
-    translate(v=[0, 0, -x / 2])
+    translate(v=[0, 0, -z1 / 2])
       cuboid(bot);
+
+    translate(v=[0, -brace.y * 1.5, 0])
+      cuboid(brace);
 
     translate(v=[0, 0, dz_triangle]) {
       rotate(a=90)
         diff()
           prismoid(
-            size1=[l_socket, x],
-            size2=[l_socket, 0],
-            shift=[0, -x / 2],
-            h=x,
+            size1=tri_top,
+            size2=tri_bot,
+            shift=[0, -tri_top.y / 2],
+            h=z1,
           ) {
             edge_profile([TOP + FRONT]) {
-              mask2d_chamfer(h=t_wall);
+              mask2d_chamfer(h=t_wall, mask_angle=179.9);
             }
           }
     }
