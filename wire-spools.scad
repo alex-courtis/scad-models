@@ -18,16 +18,16 @@ w_hub_starter = 2; // [1:1:50]
 /* [Wheel] */
 
 // wheel and brace
-t_wheel = 1.6; // [0.4:0.1:10]
+t_wheel = 2; // [0.4:0.1:10]
 
 // total
 r_wheel = 40; // [10:1:400]
 
 // rim r_hub delta
-dr_rim = -0.015; // [-10:0.001:10]
+dr_rim = -0.03; // [-10:0.01:10]
 
 // inside hub
-h_rim = 6; // [0:0.1:30]
+h_rim = 12; // [0:0.1:30]
 
 /* [Spokes] */
 
