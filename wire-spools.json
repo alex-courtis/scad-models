@@ -17,7 +17,8 @@
             "r_hub": "15.5",
             "r_wheel": "40",
             "t_hub_mult": "4",
-            "t_wheel_mult": "5",
+            "t_layer": "0.20000000000000001",
+            "t_wheel_mult": "10",
             "w_brace": "0",
             "w_hub_starter": "2"
         },
@@ -37,7 +38,8 @@
             "r_hub": "15.5",
             "r_wheel": "40",
             "t_hub_mult": "4",
-            "t_wheel_mult": "5",
+            "t_layer": "0.20000000000000001",
+            "t_wheel_mult": "10",
             "w_brace": "0",
             "w_hub_starter": "2"
         },
@@ -57,9 +59,31 @@
             "r_hub": "15.5",
             "r_wheel": "60",
             "t_hub_mult": "4",
-            "t_wheel_mult": "5",
+            "t_layer": "0.20000000000000001",
+            "t_wheel_mult": "10",
             "w_brace": "0",
             "w_hub_starter": "2"
+        },
+        "r25r80h55 ethernet": {
+            "$fn": "200",
+            "a_spoke": "7",
+            "d_filament": "0.60000000000000009",
+            "d_hole_brace": "4.0499999999999998",
+            "d_hole_shaft": "4.0999999999999996",
+            "dr_rim": "-0.029999999999999999",
+            "h_hub": "55",
+            "h_hub_starter": "14",
+            "h_rim": "12",
+            "h_spoke": "40",
+            "n_spokes": "0",
+            "offset_hole_brace": "10",
+            "r_hub": "25",
+            "r_wheel": "100",
+            "t_hub_mult": "3",
+            "t_layer": "0.30000000000000004",
+            "t_wheel_mult": "4",
+            "w_brace": "0",
+            "w_hub_starter": "10"
         }
     }
 }

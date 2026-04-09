@@ -1,6 +1,7 @@
 /* [Print] */
 
 d_filament = 0.6; // [0.2:0.2:0.8]
+t_layer = 0.30; // [0.1:0.01:1]
 
 /* [Hub] */
 
@@ -11,7 +12,7 @@ h_hub = 25; // [5:0.1:100]
 r_hub = 15.5; // [15:0.01:50]
 
 // inside r_hub, multiple of d_filament
-t_hub_mult = 3; // [2:1:10]
+t_hub_mult = 3; // [2:1:20]
 t_hub = d_filament * t_hub_mult;
 echo(t_hub=t_hub);
 
@@ -23,9 +24,9 @@ w_hub_starter = 2; // [1:1:50]
 
 /* [Wheel] */
 
-// wheel and brace, multiple of d_filament
-t_wheel_mult = 3; // [2:1:10]
-t_wheel = d_filament * t_wheel_mult;
+// wheel and brace, multiple of t_layer
+t_wheel_mult = 5; // [2:1:20]
+t_wheel = t_layer * t_wheel_mult;
 echo(t_wheel=t_wheel);
 
 // total
