@@ -1,3 +1,7 @@
+/* [Print] */
+
+d_filament = 0.6; // [0.2:0.2:0.8]
+
 /* [Hub] */
 
 // excluding h_wheel
@@ -6,8 +10,10 @@ h_hub = 25; // [5:0.1:100]
 // inner including walls
 r_hub = 15.5; // [15:0.01:50]
 
-// inside r_hub
-t_hub = 1.6; // [0.4:0.1:10]
+// inside r_hub, multiple of d_filament
+t_hub_mult = 3; // [2:1:10]
+t_hub = d_filament * t_hub_mult;
+echo(t_hub=t_hub);
 
 // single slot
 h_hub_starter = 8; // [1:1:50]
@@ -17,8 +23,10 @@ w_hub_starter = 2; // [1:1:50]
 
 /* [Wheel] */
 
-// wheel and brace
-t_wheel = 2; // [0.4:0.1:10]
+// wheel and brace, multiple of d_filament
+t_wheel_mult = 3; // [2:1:10]
+t_wheel = d_filament * t_wheel_mult;
+echo(t_wheel=t_wheel);
 
 // total
 r_wheel = 40; // [10:1:400]
