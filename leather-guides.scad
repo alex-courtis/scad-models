@@ -1,12 +1,20 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
+show_clamp_circle = false;
+show_awl_guide_straight = true;
+show_awl_guide_circle = false;
+
 l1_awl = 3.2;
 l2_awl = 1.85;
 a_awl = 45;
 s_awl = 5;
 
+n_awl_straight = 16;
+
 h_guide = 4;
+w_gridation = 1.5;
+
 round_guide = 2;
 
 w_window_bottom = 1.5;
@@ -77,23 +85,36 @@ module window_mask(l) {
 
 module awl_guide_straight() {
 
-  l = s_awl * 15 + w_window_bottom;
-  l_window = l - s_awl * 2 - w_window_bottom;
+  l_window = s_awl * n_awl_straight;
+  l = l_window + 2 * s_awl + w_window_bottom;
 
-  w = s_awl * 10;
+  w1 = s_awl * 2;
+  w2 = s_awl * 6;
+
+  gridation_side = sqrt(w_gridation ^ 2 / 2);
 
   difference() {
-    cuboid(
-      [l, w, h_guide],
-      rounding=round_guide,
-      except=[BOTTOM],
-    );
+    translate(v=[0, (w2 - w1) / 2, 0])
+      cuboid(
+        [l, w1 + w2, h_guide],
+        rounding=round_guide,
+        except=[BOTTOM],
+      );
 
+    // awl
     for (i = [-l / 2 + w_window_bottom / 2 + s_awl:s_awl:l / 2 - s_awl - w_window_bottom / 2]) {
-      translate(v=[i, 0, 0]) {
+      translate(v=[i, 0, 0])
         rotate(a=a_awl)
           awl_mask();
-      }
+    }
+
+    // gridations
+    for (i = [-l / 2 + w_window_bottom / 2 + s_awl / 2:s_awl:l / 2 - w_window_bottom / 2]) {
+      translate(v=[i, 0, 0])
+        rotate(a=90, v=[0, 0, 1])
+          translate(v=[0, 0, -h_guide / 2])
+            rotate(a=45, v=[1, 0, 0])
+              cuboid([(w1 + w2) * 2, gridation_side, gridation_side]);
     }
 
     // end windows
@@ -158,12 +179,15 @@ module awl_guide_circle() {
 }
 
 render() {
-  translate(v=[200, 0, 0])
-    clamp_circle();
+  if (show_clamp_circle)
+    translate(v=[200, 0, 0])
+      clamp_circle();
 
-  translate(v=[100, 0, 0])
-    awl_guide_straight();
+  if (show_awl_guide_circle)
+    translate(v=[100, 0, 0])
+      awl_guide_circle();
 
-  translate(v=[0, 0, 0])
-    awl_guide_circle();
+  if (show_awl_guide_straight)
+    translate(v=[100, 0, 0])
+      awl_guide_straight();
 }
