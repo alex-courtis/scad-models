@@ -17,18 +17,18 @@ n_awl_straight = 16;
 
 h_guide = t_layer * 20;
 
-w_gridation = s_awl * 0.5;
-echo(w_gridation=w_gridation);
-
-dw_gridation = d_filament * 2;
+dw_gridation = d_filament * 1.2;
 echo(dw_gridation=dw_gridation);
+
+w_gridation = s_awl * 0.5 - dw_gridation;
+echo(w_gridation=w_gridation);
 
 round_guide = h_guide * 0.75;
 
 w_window_bottom = 1.5;
 w_window_top = 2.5;
 
-scale_awl = 1.2;
+scale_awl = 1.1;
 
 poly_awl = [
   [0, l1_awl / 2],
@@ -98,13 +98,6 @@ module awl_guide_straight() {
   w1 = s_awl * 2;
   w2 = s_awl * 6;
 
-  // round gridations to ends with a full dw
-  x_gridation = (l - dw_gridation) / round(l / (w_gridation + dw_gridation));
-  echo(x_gridation=x_gridation);
-
-  w_gridation = x_gridation - dw_gridation;
-  echo(w_gridation=w_gridation);
-
   gridation_side = sqrt(w_gridation ^ 2 / 2);
 
   difference() {
@@ -122,15 +115,13 @@ module awl_guide_straight() {
           awl_mask();
     }
 
-    // gridations except under awl
-    difference() {
-      for (i = [-l / 2 + x_gridation / 2 + dw_gridation / 2:x_gridation:l / 2 - x_gridation / 2 - dw_gridation / 2]) {
-        translate(v=[i, 0, -h_guide / 2])
-          rotate(a=90, v=[0, 0, 1])
-            rotate(a=45, v=[1, 0, 0])
-              cuboid([(w1 + w2) * 2, gridation_side, gridation_side]);
-      }
-      cube([l, s_awl * 2 - w_window_bottom, h_guide], center=true);
+    // gridations
+    gridation_spacing = w_gridation + dw_gridation;
+    for (i = [-l / 2:gridation_spacing:l / 2]) {
+      translate(v=[i, 0, -h_guide / 2])
+        rotate(a=90, v=[0, 0, 1])
+          rotate(a=45, v=[1, 0, 0])
+            cuboid([(w1 + w2) * 2, gridation_side, gridation_side]);
     }
 
     // end windows
