@@ -13,16 +13,14 @@ s_awl = 5;
 n_awl_straight = 16;
 
 h_guide = 4;
-w_gridation = 1.5;
-// h_guide = 5;
-// w_gridation = 1.75;
+w_gridation = s_awl * 0.5;
 
-round_guide = h_guide / 2;
+round_guide = h_guide * 0.75;
 
 w_window_bottom = 1.5;
 w_window_top = 2.5;
 
-scale_awl = 1.4;
+scale_awl = 1.3;
 
 poly_awl = [
   [0, l1_awl / 2],
@@ -86,11 +84,14 @@ module window_mask(l) {
 
 module awl_guide_straight() {
 
-  l_window = s_awl * (n_awl_straight - 1);
-  l = l_window + 2 * s_awl + w_window_bottom;
+  l = s_awl * (n_awl_straight + 2);
+  l_window = l - s_awl * 2;
 
   w1 = s_awl * 2;
   w2 = s_awl * 6;
+
+  // round gridations to ends
+  w_gridation = l / round(l / w_gridation);
 
   gridation_side = sqrt(w_gridation ^ 2 / 2);
 
@@ -103,33 +104,28 @@ module awl_guide_straight() {
       );
 
     // awl
-    for (i = [-l / 2 + w_window_bottom / 2 + s_awl:s_awl:l / 2 - s_awl - w_window_bottom / 2]) {
+    for (i = [-l / 2 + s_awl:s_awl:l / 2 - s_awl]) {
       translate(v=[i, 0, 0])
         rotate(a=a_awl)
           awl_mask();
     }
 
-    // w gridations except for awl row
-    for (i = [-w1 + s_awl:s_awl:w2 - s_awl]) {
-      if (i != -w1 + s_awl * 2)
-        translate(v=[0, i, -h_guide / 2])
-          rotate(a=45, v=[1, 0, 0])
-            cuboid([l * 2, gridation_side, gridation_side]);
-    }
-
-    // l gridations
-    for (i = [-l / 2 + w_window_bottom / 2 + s_awl / 2:s_awl:l / 2 - w_window_bottom / 2]) {
-      translate(v=[i, 0, -h_guide / 2])
-        rotate(a=90, v=[0, 0, 1])
-          rotate(a=45, v=[1, 0, 0])
-            cuboid([(w1 + w2) * 2, gridation_side, gridation_side]);
+    // gridations except under awl
+    difference() {
+      for (i = [-l / 2 + w_gridation / 2:w_gridation:l / 2 - w_gridation / 2]) {
+        translate(v=[i, 0, -h_guide / 2])
+          rotate(a=90, v=[0, 0, 1])
+            rotate(a=45, v=[1, 0, 0])
+              cuboid([(w1 + w2) * 2, gridation_side, gridation_side]);
+      }
+      cube([l, s_awl * 2 - w_window_bottom, h_guide], center=true);
     }
 
     // end windows
-    translate(v=[-l / 2 + w_window_bottom / 2, 0, 0])
-      window_mask(l=w_window_bottom);
-    translate(v=[l / 2 - w_window_bottom / 2, 0, 0])
-      window_mask(l=w_window_bottom);
+    translate(v=[-l / 2, 0, 0])
+      window_mask(l=s_awl / 2);
+    translate(v=[l / 2, 0, 0])
+      window_mask(l=s_awl / 2);
 
     // 1x windows
     translate(v=[0, s_awl, 0])
@@ -137,10 +133,8 @@ module awl_guide_straight() {
     translate(v=[0, -s_awl, 0])
       window_mask(l=l_window);
 
-    // 2x windows
+    // 2x window
     translate(v=[0, s_awl * 2, 0])
-      window_mask(l=l_window);
-    translate(v=[0, -s_awl * 2, 0])
       window_mask(l=l_window);
   }
 }
