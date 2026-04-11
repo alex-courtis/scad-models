@@ -1,6 +1,9 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
+d_filament = 0.4;
+t_layer = 0.2;
+
 show_clamp_circle = false;
 show_awl_guide_straight = true;
 show_awl_guide_circle = false;
@@ -12,8 +15,14 @@ s_awl = 5;
 
 n_awl_straight = 16;
 
-h_guide = 4;
+h_guide = t_layer * 20;
+
 w_gridation = s_awl * 0.5;
+echo(w_gridation=w_gridation);
+
+// handle elephant foot compensation
+dw_gridation = d_filament * 3.4;
+echo(dw_gridation=dw_gridation);
 
 round_guide = h_guide * 0.75;
 
@@ -90,8 +99,10 @@ module awl_guide_straight() {
   w1 = s_awl * 2;
   w2 = s_awl * 6;
 
-  // round gridations to ends
-  w_gridation = l / round(l / w_gridation);
+  // round gridations to ends with a full dw
+  x_gridation = (l - dw_gridation) / round(l / (w_gridation + dw_gridation));
+  echo(x_gridation=x_gridation);
+  echo("x_gridation - w_gridation", x_gridation - dw_gridation);
 
   gridation_side = sqrt(w_gridation ^ 2 / 2);
 
@@ -112,7 +123,7 @@ module awl_guide_straight() {
 
     // gridations except under awl
     difference() {
-      for (i = [-l / 2 + w_gridation / 2:w_gridation:l / 2 - w_gridation / 2]) {
+      for (i = [-l / 2 + x_gridation / 2 + dw_gridation / 2:x_gridation:l / 2 - x_gridation / 2 - dw_gridation / 2]) {
         translate(v=[i, 0, -h_guide / 2])
           rotate(a=90, v=[0, 0, 1])
             rotate(a=45, v=[1, 0, 0])
