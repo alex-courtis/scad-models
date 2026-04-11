@@ -4,9 +4,8 @@ include <lib/geom.scad>
 d_filament = 0.4;
 t_layer = 0.2;
 
-show_clamp_circle = false;
 show_awl_guide_straight = true;
-show_awl_guide_circle = false;
+show_awl_guide_circle = true;
 
 l1_awl = 3.2;
 l2_awl = 1.85;
@@ -30,6 +29,8 @@ w_window_top = 2.5;
 
 scale_awl = 1.4;
 
+d_circle_holes = [50, 75, 100];
+
 poly_awl = [
   [0, l1_awl / 2],
   [-l2_awl / 2, 0],
@@ -38,30 +39,6 @@ poly_awl = [
 ];
 
 $fn = 200;
-
-module clamp_circle() {
-  l = 70;
-  w = 40;
-  h = 5;
-  d = 23;
-  rounding = 2.5;
-
-  intersection() {
-    tube(
-      id=d,
-      od=l * 2,
-      h=h,
-      rounding2=rounding / 2,
-      center=true,
-    );
-
-    cuboid(
-      [l, w, h],
-      rounding=rounding,
-      except=[BOTTOM],
-    );
-  }
-}
 
 module awl_mask() {
   extrude_from_to(
@@ -73,21 +50,12 @@ module awl_mask() {
 }
 
 module window_mask(l) {
-  if (l) {
-    prismoid(
-      size1=[l, w_window_bottom],
-      size2=[l, w_window_top],
-      h=h_guide,
-      anchor=CENTER,
-    );
-  } else {
-    cylinder(
-      d1=w_window_bottom,
-      d2=w_window_top,
-      h=h_guide,
-      center=true
-    );
-  }
+  prismoid(
+    size1=[l, w_window_bottom],
+    size2=[l, w_window_top],
+    h=h_guide,
+    anchor=CENTER,
+  );
 }
 
 module awl_guide_straight() {
@@ -142,55 +110,61 @@ module awl_guide_straight() {
   }
 }
 
-module awl_guide_circle() {
-
-  d_holes = 27.5;
+module awl_guide_circle(d) {
 
   // round to a clean divisor of 90
-  a_isoc = 2 * asin(s_awl / d_holes);
+  a_isoc = 2 * asin(s_awl / d);
   a = 90 / round(90 / a_isoc);
+
+  lw = d + s_awl * 2;
+
+  gridation_side = sqrt(w_gridation ^ 2 / 2);
 
   difference() {
     cuboid(
-      [d_holes * 2, d_holes * 2, h_guide],
+      [lw, lw, h_guide],
       rounding=round_guide,
       except=[BOTTOM],
     );
 
     for (i = [0:a:360 - a]) {
       rotate(a=i)
-        translate(v=[d_holes / 2, 0, 0])
+        translate(v=[d / 2, 0, 0])
           rotate(a=-a_awl)
             awl_mask();
     }
 
-    // centre point window
-    window_mask();
+    // gridations
+    gridation_spacing = w_gridation + dw_gridation;
+    for (i = [-lw / 2:gridation_spacing:lw / 2]) {
+      translate(v=[i, 0, -h_guide / 2])
+        rotate(a=90, v=[0, 0, 1])
+          rotate(a=45, v=[1, 0, 0])
+            cuboid([lw * 2, gridation_side, gridation_side]);
+    }
 
     // inside windows
-    for (a = [0:90:270]) {
+    for (a = [0:90:90]) {
       rotate(a=a)
-        translate(v=[d_holes / 4, 0, 0])
-          window_mask(l=d_holes / 4);
+        window_mask(l=d - s_awl * 2);
     }
 
     // outside windows
     for (a = [0:90:270]) {
       rotate(a=a)
-        translate(v=[d_holes * 3 / 4, 0, 0])
-          window_mask(l=d_holes / 4);
+        translate(v=[lw / 2, 0, 0])
+          window_mask(l=s_awl / 2);
     }
   }
 }
 
 render() {
-  if (show_clamp_circle)
-    translate(v=[200, 0, 0])
-      clamp_circle();
 
   if (show_awl_guide_circle)
-    translate(v=[100, 0, 0])
-      awl_guide_circle();
+    for (i = [0:1:len(d_circle_holes) - 1]) {
+      translate(v=[100 * i, 100, 0])
+        awl_guide_circle(d=d_circle_holes[i]);
+    }
 
   if (show_awl_guide_straight)
     translate(v=[0, 0, 0])
