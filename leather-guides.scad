@@ -14,13 +14,14 @@ n_awl_straight = 16;
 
 h_guide = 4;
 w_gridation = 1.5;
+// h_guide = 5;
+// w_gridation = 1.75;
 
-round_guide = 2;
+round_guide = h_guide / 2;
 
 w_window_bottom = 1.5;
 w_window_top = 2.5;
 
-// at h_guide 4
 scale_awl = 1.4;
 
 poly_awl = [
