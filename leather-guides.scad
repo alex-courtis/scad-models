@@ -113,7 +113,7 @@ module awl_guide_straight() {
       if (i != -w1 + s_awl * 2)
         translate(v=[0, i, -h_guide / 2])
           rotate(a=45, v=[1, 0, 0])
-            cuboid([l, gridation_side, gridation_side]);
+            cuboid([l * 2, gridation_side, gridation_side]);
     }
 
     // l gridations
