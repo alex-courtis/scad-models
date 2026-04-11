@@ -17,7 +17,7 @@ n_awl_straight = 16;
 
 h_guide = t_layer * 20;
 
-dw_gridation = d_filament * 1.2;
+dw_gridation = d_filament * 1.1;
 echo(dw_gridation=dw_gridation);
 
 w_gridation = s_awl * 0.5 - dw_gridation;
@@ -28,7 +28,7 @@ round_guide = h_guide * 0.75;
 w_window_bottom = 1.5;
 w_window_top = 2.5;
 
-scale_awl = 1.1;
+scale_awl = 1.4;
 
 poly_awl = [
   [0, l1_awl / 2],
