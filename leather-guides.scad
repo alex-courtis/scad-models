@@ -102,7 +102,9 @@ module awl_guide_straight() {
   // round gridations to ends with a full dw
   x_gridation = (l - dw_gridation) / round(l / (w_gridation + dw_gridation));
   echo(x_gridation=x_gridation);
-  echo("x_gridation - w_gridation", x_gridation - dw_gridation);
+
+  w_gridation = x_gridation - dw_gridation;
+  echo(w_gridation=w_gridation);
 
   gridation_side = sqrt(w_gridation ^ 2 / 2);
 
