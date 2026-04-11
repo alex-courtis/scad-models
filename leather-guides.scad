@@ -20,8 +20,7 @@ h_guide = t_layer * 20;
 w_gridation = s_awl * 0.5;
 echo(w_gridation=w_gridation);
 
-// handle elephant foot compensation
-dw_gridation = d_filament * 3.4;
+dw_gridation = d_filament * 2;
 echo(dw_gridation=dw_gridation);
 
 round_guide = h_guide * 0.75;
@@ -29,7 +28,7 @@ round_guide = h_guide * 0.75;
 w_window_bottom = 1.5;
 w_window_top = 2.5;
 
-scale_awl = 1.3;
+scale_awl = 1.2;
 
 poly_awl = [
   [0, l1_awl / 2],
