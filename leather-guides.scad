@@ -7,10 +7,8 @@ t_layer = 0.2;
 show_awl_guide_straight = true;
 show_awl_guide_circle = false;
 
-l1_awl = 3.2;
-l1_awl_t = [3.15, 3.2, 3.25];
-l2_awl = 1.85;
-l2_awl_t = [1.8, 1.85, 1.9];
+l1_awl = 3.25;
+l2_awl = 1.9;
 a_awl = 45;
 s_awl = 5;
 
@@ -19,14 +17,14 @@ n_awl_straight = 18;
 h_guide = 4;
 
 d_nub = 1.6;
+h_nub = 0.6;
 
-chamfer_guide = h_guide * 0.4;
+chamfer_guide = h_guide * 0.25;
 
 w_window_bottom = 1.5;
 w_window_top = 2.5;
 
 scale_awl = 1.25;
-scale_awl_t = [1.1, 1.15, 1.2, 1.25, 1.3, 1.35];
 
 d_circle_holes = [50, 75, 100];
 
@@ -37,24 +35,15 @@ poly_awl = [
   [l2_awl / 2, 0],
 ];
 
-function poly_awl_t(l1, l2) =
-  [
-    [0, l1 / 2],
-    [-l2 / 2, 0],
-    [0, -l1 / 2],
-    [l2 / 2, 0],
-  ];
-
 $fn = 200;
 
-module awl_mask(s=scale_awl, l1=l1_awl, l2=l2_awl) {
-  // cylinder(h=10,r=1,center=true);
+module awl_mask(s = scale_awl, l1 = l1_awl, l2 = l2_awl) {
   extrude_from_to(
     [0, 0, -h_guide / 2 - 0.00001],
     [0, 0, h_guide / 2 + 0.00001],
     scale=s,
   )
-    polygon(poly_awl_t(l1, l2));
+    polygon(poly_awl);
 }
 
 module window_mask(l) {
@@ -67,7 +56,7 @@ module window_mask(l) {
 }
 
 module nub() {
-  sphere(d=d_nub);
+  cylinder(d1=d_nub, d2=d_nub, h=h_nub, center=true);
 }
 
 module awl_guide_straight() {
@@ -76,32 +65,20 @@ module awl_guide_straight() {
   l_window = l - s_awl * 4;
 
   w1 = s_awl * 2;
-  w2 = s_awl * 6.5;
+  w2 = s_awl * 9;
 
   difference() {
     translate(v=[0, (w2 - w1) / 2, 0])
       cuboid(
         [l, w1 + w2, h_guide],
         chamfer=chamfer_guide,
-        except=[BOTTOM],
       );
 
     // awl
-    // for (i = [-l / 2 + s_awl:s_awl:l / 2 - s_awl]) {
-    //   translate(v=[i, 0, 0])
-    for (i = [0:1:n_awl_straight - 1]) {
-      translate(v=[-l / 2 + s_awl + i * s_awl, 0, 0])
-        rotate(a=a_awl) {
-
-          i_awl = i % len(scale_awl_t);
-          i_l12 = floor(i / len(scale_awl_t));
-
-          awl_mask(
-            s=scale_awl_t[i_awl],
-            l1=l1_awl_t[i_l12],
-            l2=l2_awl_t[i_l12],
-          );
-        }
+    for (i = [-l / 2 + s_awl:s_awl:l / 2 - s_awl]) {
+      translate(v=[i, 0, 0])
+        rotate(a=a_awl)
+          awl_mask();
     }
 
     // end windows
@@ -122,13 +99,11 @@ module awl_guide_straight() {
   }
 
   // nubs
-  for (i = [-l / 2 + s_awl / 2:s_awl * 2:l / 2 - s_awl / 2]) {
+  for (i = [-l / 2 + s_awl / 2:s_awl * 3:l / 2 - s_awl / 2]) {
     translate(v=[i, 0, -h_guide / 2]) {
-      for (j = [-w1 + s_awl / 2:s_awl * 1.5:w2 - s_awl / 2]) {
-        if (j) {
-          translate(v=[0, j, 0])
-            nub();
-        }
+      for (j = [-w1 + s_awl / 2:s_awl * 2:w2 - s_awl / 2]) {
+        translate(v=[0, j, -h_nub / 2])
+          nub();
       }
     }
   }
