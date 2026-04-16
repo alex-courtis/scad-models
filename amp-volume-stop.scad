@@ -17,7 +17,7 @@ z_top = 2.7;
 z_floor = 0.4;
 
 // including base and top
-z_shroud_lower = z_top;
+z_shroud_lower = z_top + 1;
 
 // including base and top
 z_shroud_upper = 12.35;
@@ -41,22 +41,25 @@ d_floor_inner = 13;
 d_shroud_inner = 24.6;
 
 // from centre of knob
-d_shroud_outer = d_shroud_inner + 1.55;
+d_shroud_outer = d_shroud_inner + 2.3;
 
 // thickness of the top of the tongue including base
-z_tongue_top = z_shroud_lower;
+z_tongue_top = z_top;
 
 // height of the rim
-z_rim = 0.65;
+z_rim = 0.95;
 
 // from base to mid rim
 dz_rim = z_shroud_upper - z_rim / 2 - 2.05;
 
 // inset of the rim
-d_rim = d_knob - 0.65;
+d_rim = d_knob - 0.85;
 
 // from base
-z_clip = z_shroud_lower;
+z_clip_left = z_top;
+
+// from base
+z_clip_right = z_top + 0.05;
 
 // sphere to hull centred at d_knob
 d_clip_end = 8.4;
@@ -66,9 +69,6 @@ y_clip_end = d_knob / 2 + 2.0;
 
 // from centre
 dx_clip_right = -1.05;
-
-// height of the clip far end
-z_clip_right = 3.5;
 
 // top sides of the clip
 rounding_clip = 1.25;
@@ -327,12 +327,12 @@ module shroud_upper_right() {
 module clip_left() {
 
   color(c="yellow") {
-    top_half(z=z_clip) {
+    top_half(z=z_clip_left) {
       difference() {
         hull() {
           shroud_upper_left();
 
-          translate(v=[0, y_clip_end, z_clip])
+          translate(v=[0, y_clip_end, z_clip_left])
             sphere(d=d_clip_end);
         }
 
@@ -345,12 +345,12 @@ module clip_left() {
 module clip_right() {
 
   color(c="yellow") {
-    top_half(z=z_clip) {
+    top_half(z=z_clip_right) {
       difference() {
         hull() {
           shroud_upper_right();
 
-          translate(v=[dx_clip_right, -y_clip_end, z_clip])
+          translate(v=[dx_clip_right, -y_clip_end, z_clip_right])
             sphere(d=d_clip_end);
         }
 
