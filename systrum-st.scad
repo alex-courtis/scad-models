@@ -2,10 +2,10 @@ include <BOSL2/std.scad>
 
 $fn = 400;
 
-show_plate = false;
+show_plate = true;
 show_lettering = true;
 
-shift_left_hole = true;
+shift_left_hole = false;
 conical_hole = true;
 
 content = "17 Systrum St";
@@ -16,7 +16,7 @@ dx_base = 11;
 dy_base = 11;
 
 d_hole_inner = 3.5;
-d_hole_outer = 7;
+d_hole_outer = 8;
 z_hole = 2;
 
 dx_left_hole = shift_left_hole ? -d_hole_inner / 2 : 0;
