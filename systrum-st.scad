@@ -1,22 +1,29 @@
+include <BOSL2/std.scad>
+
 $fn = 400;
 
+show_plate = false;
+show_lettering = true;
+
+shift_left_hole = true;
+conical_hole = true;
+
 content = "17 Systrum St";
-z_base = 2.2;
-z_text = 0.6;
-dz_text = 1.3;
+z_base = 3.2;
+z_text = 0.8;
 
-dx_base = 16;
-dy_base = 14;
+dx_base = 11;
+dy_base = 11;
 
-d_hole_inner = 3;
-d_hole_outer = 6.5;
-z_hole = 1;
+d_hole_inner = 3.5;
+d_hole_outer = 7;
+z_hole = 2;
 
-show_plate = true;
-show_lettering = false;
+dx_left_hole = shift_left_hole ? -d_hole_inner / 2 : 0;
+dy_left_hole = shift_left_hole ? d_hole_inner / 2 : 0;
 
-font = "Hack Nerd Font Mono";
-font_size = 26;
+font = "Hack Nerd Font Mono:style=Bold";
+font_size = 27;
 
 font_metrics = fontmetrics(font=font, size=font_size);
 echo(font_metrics=font_metrics);
@@ -29,6 +36,8 @@ text_metrics = textmetrics(
   halign="center"
 );
 echo(text_metrics=text_metrics);
+echo(text_metrics_position=text_metrics.position);
+echo(text_metrics_size=text_metrics.size);
 
 module plate() {
   translate(v=[0, 0, 0])
@@ -38,15 +47,23 @@ module plate() {
         text_metrics.position[1] - dy_base / 2,
         0,
       ]
-    )
-      cube(
+    ) {
+      cuboid(
         [
           text_metrics.size[0] + dx_base,
           text_metrics.size[1] + dy_base,
           z_base,
         ],
-        center=false
+        anchor=LEFT + FRONT + BOTTOM,
+        rounding=d_hole_outer/2,
+        edges=[
+          FRONT + LEFT,
+          FRONT + RIGHT,
+          BACK + LEFT,
+          BACK + RIGHT,
+        ]
       );
+    }
 }
 
 module lettering(z, dz) {
@@ -64,18 +81,28 @@ module holes() {
   y = (text_metrics.size[1] + dy_base) / 2;
   x = (text_metrics.size[0] + dx_base) / 2 - y;
 
-  h_outer = z_base - z_hole;
+  if (conical_hole) {
 
-  translate(v=[-x, 0, 0]) {
-    cylinder(h=h_outer, d=d_hole_inner, center=false);
-    translate(v=[0, 0, h_outer])
-      cylinder(h=z_hole, d=d_hole_outer, center=false);
-  }
+    translate(v=[-x + dx_left_hole, dy_left_hole, 0])
+      cylinder(h=z_base, d1=d_hole_inner, d2=d_hole_outer, center=false);
 
-  translate(v=[x, 0, 0]) {
-    cylinder(h=h_outer, d=d_hole_inner, center=false);
-    translate(v=[0, 0, h_outer])
-      cylinder(h=z_hole, d=d_hole_outer, center=false);
+    translate(v=[x, 0, 0])
+      cylinder(h=z_base, d1=d_hole_inner, d2=d_hole_outer, center=false);
+  } else {
+
+    h_outer = z_base - z_hole;
+
+    translate(v=[-x, 0, 0]) {
+      cylinder(h=h_outer, d=d_hole_inner, center=false);
+      translate(v=[0, 0, h_outer])
+        cylinder(h=z_hole, d=d_hole_outer, center=false);
+    }
+
+    translate(v=[x, 0, 0]) {
+      cylinder(h=h_outer, d=d_hole_inner, center=false);
+      translate(v=[0, 0, h_outer])
+        cylinder(h=z_hole, d=d_hole_outer, center=false);
+    }
   }
 }
 
@@ -86,12 +113,12 @@ render() {
         plate();
       color(c="red")
         holes();
-      color(c="orange")
-        lettering(z=z_base, dz=dz_text);
+      color(c="black")
+        lettering(z=z_text, dz=z_base - z_text);
     }
   }
   if (show_lettering) {
     color(c="white")
-      lettering(z=z_text, dz=dz_text);
+      lettering(z=z_text, dz=z_base - z_text);
   }
 }
