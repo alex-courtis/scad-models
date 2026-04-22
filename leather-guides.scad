@@ -14,7 +14,10 @@ s_awl = 5;
 
 n_awl_straight = 18;
 
-h_guide = 4;
+// h_guide = 4;
+// scale_awl = 1.25;
+h_guide = 2.5;
+scale_awl = 1.156;
 
 d1_nub = 1.2;
 d2_nub = 1.6;
@@ -24,8 +27,6 @@ chamfer_guide = h_guide * 0.25;
 
 w_window_bottom = 1.5;
 w_window_top = 2.5;
-
-scale_awl = 1.25;
 
 d_circle_holes = [30, 40, 50, 60, 70, 80, 90, 100];
 
