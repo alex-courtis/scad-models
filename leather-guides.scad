@@ -8,7 +8,7 @@ show_awl_guide_straight = true;
 show_awl_guide_circle = true;
 
 l1_awl = 3.25;
-l2_awl = 1.9;
+l2_awl = 2.0;
 a_awl = 45;
 s_awl = 5;
 
@@ -16,8 +16,10 @@ n_awl_straight = 18;
 
 // h_guide = 4;
 // scale_awl = 1.25;
-h_guide = 2.5;
-scale_awl = 1.156;
+// h_guide = 2.5;
+// scale_awl = 1.156;
+h_guide = 2.2;
+scale_awl = 1.1374;
 
 d1_nub = 1.2;
 d2_nub = 1.6;
@@ -197,13 +199,16 @@ module awl_guide_circle(d) {
 
 render() {
 
-  if (show_awl_guide_circle)
-    for (i = [0:1:len(d_circle_holes) - 1]) {
-      translate(v=[120 * i, 120, 0])
-        awl_guide_circle(d=d_circle_holes[i]);
-    }
+  // flip for print
+  rotate(a=180, v=[1, 0, 0]) {
+    if (show_awl_guide_circle)
+      for (i = [0:1:len(d_circle_holes) - 1]) {
+        translate(v=[120 * i, 120, 0])
+          awl_guide_circle(d=d_circle_holes[i]);
+      }
 
-  if (show_awl_guide_straight)
-    translate(v=[0, 0, 0])
-      awl_guide_straight();
+    if (show_awl_guide_straight)
+      translate(v=[0, 0, 0])
+        awl_guide_straight();
+  }
 }
