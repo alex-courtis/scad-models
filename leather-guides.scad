@@ -12,7 +12,8 @@ l2_awl = 2.0;
 a_awl = 45;
 s_awl = 5;
 
-n_awl_straight = 18;
+// keep this even to line up the long windows
+n_awl_straight = 18; // [6:2:50]
 
 // h_guide = 4;
 // scale_awl = 1.25;
@@ -27,8 +28,8 @@ h_nub = 0.6;
 
 chamfer_guide = h_guide * 0.25;
 
-w_window_bottom = 1.5;
-w_window_top = 2.5;
+w_window_bottom = 1.75;
+w_window_top = 2.75;
 
 d_circle_holes = [30, 40, 50, 60, 70, 80, 90, 100];
 
@@ -72,10 +73,23 @@ module nub() {
 module awl_guide_straight() {
 
   l = s_awl * (n_awl_straight + 1);
-  l_window = l - s_awl * 4;
 
   w1 = s_awl * 2;
   w2 = s_awl * 9;
+
+  module window_mask_long(l) {
+    n_window_mid = round(n_awl_straight / 3 / 2) * 2;
+    l_window_mid = (n_window_mid - 1) * s_awl;
+
+    n_window_end = (n_awl_straight - n_window_mid) / 2;
+    l_window_end = (n_window_end - 1) * s_awl;
+
+    window_mask(l=l_window_mid);
+    translate(v=[(l_window_mid + l_window_end) / 2 + s_awl, 0])
+      window_mask(l=l_window_end);
+    translate(v=[-(l_window_mid + l_window_end) / 2 - s_awl, 0])
+      window_mask(l=l_window_end);
+  }
 
   difference() {
     translate(v=[0, (w2 - w1) / 2, 0])
@@ -91,7 +105,7 @@ module awl_guide_straight() {
           awl_mask();
     }
 
-    // end windows
+    // end cutouts
     translate(v=[-l / 2, 0, 0])
       window_mask(l=s_awl / 2);
     translate(v=[l / 2, 0, 0])
@@ -99,13 +113,13 @@ module awl_guide_straight() {
 
     // 1x windows
     translate(v=[0, s_awl, 0])
-      window_mask(l=l_window);
+      window_mask_long();
     translate(v=[0, -s_awl, 0])
-      window_mask(l=l_window);
+      window_mask_long();
 
     // 2x window
     translate(v=[0, s_awl * 2, 0])
-      window_mask(l=l_window);
+      window_mask_long();
   }
 
   // nubs
