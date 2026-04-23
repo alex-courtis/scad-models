@@ -8,7 +8,7 @@ show_awl_guide_straight = true;
 show_awl_guide_circle = true;
 
 l1_awl = 3.25;
-l2_awl = 2.0;
+l2_awl = 1.95;
 a_awl = 45;
 s_awl = 5;
 
@@ -17,10 +17,8 @@ n_awl_straight = 18; // [6:2:50]
 
 // h_guide = 4;
 // scale_awl = 1.25;
-// h_guide = 2.5;
-// scale_awl = 1.156;
-h_guide = 2.2;
-scale_awl = 1.1374;
+h_guide = 2.5;
+scale_awl = 1.156;
 
 d1_nub = 1.2;
 d2_nub = 1.6;
