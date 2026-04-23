@@ -1,9 +1,9 @@
 include <BOSL2/std.scad>
-include <lib/geom.scad>
 
+render_text = true;
 show_text_only = false;
 show_awl_guide_straight = true;
-show_awl_guide_circle = false;
+show_awl_guide_circle = true;
 
 d_filament = 0.4;
 t_layer = 0.2;
@@ -30,11 +30,14 @@ chamfer_guide = h_guide * 0.25;
 w_window_bottom = 1.75;
 w_window_top = 2.75;
 
-d_circle_holes = [30, 40, 50, 60, 70, 80, 90, 100];
+d_circle_holes = [20, 22.5, 25, 27.5, 30, 35, 40, 45, 50, 55, 60, 70, 80, 90, 100];
 
-font = "Hack Nerd Font Mono:style=Bold";
-font_size = 8;
-h_text = t_layer * 2;
+// set to produce just one
+d_circle_hole = 27.5;
+
+font = "Space Mono:style=Regular";
+font_size = 7;
+h_text = t_layer * 1;
 
 poly_awl = [
   [0, l1_awl / 2],
@@ -95,16 +98,33 @@ module awl_guide_straight() {
   }
 
   module txt() {
-    translate(v=[l / 2 - s_awl, w2 - s_awl, (h_guide - h_text) / 2])
-      rotate(a=-90)
-        linear_extrude(h=h_text, center=true)
-          text(
-            font=font,
-            size=font_size,
-            text=str(s_awl, "mm"),
-            valign="top",
-            halign="left",
-          );
+
+    translate([0, w1 + s_awl, (h_guide - h_text) / 2]) {
+
+      rotate(a=-90) {
+        translate(v=[0, l / 2 - s_awl, 0])
+          linear_extrude(h=h_text, center=true) {
+            text(
+              font=font,
+              size=font_size,
+              text=str(s_awl, "mm"),
+              valign="top",
+              halign="right",
+            );
+          }
+
+        translate(v=[0, -l / 2 + s_awl, 0])
+          linear_extrude(h=h_text, center=true) {
+            text(
+              font=font,
+              size=font_size,
+              text=str(a_awl, "°"),
+              valign="bottom",
+              halign="right",
+            );
+          }
+      }
+    }
   }
 
   module body() {
@@ -154,17 +174,18 @@ module awl_guide_straight() {
     }
   }
 
-  if (!show_text_only) {
+  if (show_text_only && render_text) {
+    color(c="darkviolet")
+      txt();
+  } else {
     difference() {
       color(c="tan")
         body();
 
-      color(c="red")
-        txt();
+      if (render_text)
+        color(c="slateblue")
+          txt();
     }
-  } else {
-    color(c="orange")
-      txt();
   }
 }
 
@@ -176,74 +197,134 @@ module awl_guide_circle(d) {
 
   d_outer = max(d + s_awl * 2, 70);
 
-  difference() {
-    cyl(
-      d=d_outer,
-      h=h_guide,
-      chamfer=chamfer_guide,
-    );
+  module txt() {
+    translate([0, 0, (h_guide - h_text) / 2]) {
 
-    for (i = [0:a:360 - a]) {
-      rotate(a=i)
-        translate(v=[d / 2, 0, 0])
-          rotate(a=-a_awl)
-            awl_mask();
-    }
+      r_centre =
+        d >= 55 ?
+          (d_outer / 2 - s_awl * 2.75) * sin(45)
+        : d >= 45 ? (d_outer / 2 - s_awl * 1.2) * sin(45)
+        : (d_outer / 2 - s_awl * 2) * sin(45);
 
-    // windows
-    difference() {
-      for (a = [0:90:90]) {
-        rotate(a=a)
-          window_mask(l=d_outer);
-      }
+      translate(v=[r_centre, r_centre, 0])
+        rotate(a=-45)
+          linear_extrude(h=h_text, center=true)
+            text(
+              font=font,
+              size=font_size,
+              text=str("ø", d, "mm"),
+              valign="center",
+              halign="center",
+            );
 
-      // outside
-      tube(
-        od=d_outer - s_awl / 2,
-        id=d_outer - s_awl * 3 / 2,
-        h=h_guide * 2,
-      );
+      translate(v=[r_centre, -r_centre, 0])
+        rotate(a=-135)
+          linear_extrude(h=h_text, center=true)
+            text(
+              font=font,
+              size=font_size,
+              text=str(s_awl, "mm"),
+              valign="center",
+              halign="center",
+            );
 
-      // not over holes
-      tube(
-        od=d + s_awl * 1.5,
-        id=d - s_awl * 1.5,
-        h=h_guide * 2,
-      );
+      translate(v=[-r_centre, -r_centre, 0])
+        rotate(a=135)
+          linear_extrude(h=h_text, center=true)
+            text(
+              font=font,
+              size=font_size,
+              text=str(a_awl, "°"),
+              valign="center",
+              halign="center",
+            );
     }
   }
 
-  // nubs
-  difference() {
-    for (i = [s_awl:s_awl * 2:d_outer / 2]) {
-      translate(v=[0, 0, -h_guide / 2]) {
-        for (j = [s_awl:s_awl * 2:d_outer / 2]) {
-          translate(v=[i, j, -h_nub / 2])
-            nub();
-          translate(v=[i, -j, -h_nub / 2])
-            nub();
-          translate(v=[-i, j, -h_nub / 2])
-            nub();
-          translate(v=[-i, -j, -h_nub / 2])
-            nub();
+  module body() {
+    difference() {
+      cyl(
+        d=d_outer,
+        h=h_guide,
+        chamfer=chamfer_guide,
+      );
+
+      for (i = [0:a:360 - a]) {
+        rotate(a=i)
+          translate(v=[d / 2, 0, 0])
+            rotate(a=-a_awl)
+              awl_mask();
+      }
+
+      // windows
+      difference() {
+        for (a = [0:90:90]) {
+          rotate(a=a)
+            window_mask(l=d_outer);
+        }
+
+        // outside
+        tube(
+          od=d_outer - s_awl / 2,
+          id=d_outer - s_awl * 3 / 2,
+          h=h_guide * 2,
+        );
+
+        // not over holes
+        tube(
+          od=d + s_awl * 1.5,
+          id=d - s_awl * 1.5,
+          h=h_guide * 2,
+        );
+      }
+    }
+
+    // nubs
+    difference() {
+      for (i = [s_awl:s_awl * 2:d_outer / 2]) {
+        translate(v=[0, 0, -h_guide / 2]) {
+          for (j = [s_awl:s_awl * 2:d_outer / 2]) {
+            translate(v=[i, j, -h_nub / 2])
+              nub();
+            translate(v=[i, -j, -h_nub / 2])
+              nub();
+            translate(v=[-i, j, -h_nub / 2])
+              nub();
+            translate(v=[-i, -j, -h_nub / 2])
+              nub();
+          }
         }
       }
+      tube(
+        od=d + s_awl,
+        id=d - s_awl,
+        h=h_guide * 2,
+      );
+      tube(
+        od=2 * d_outer,
+        id=d_outer - s_awl,
+        h=h_guide * 2,
+      );
     }
-    tube(
-      od=d + s_awl,
-      id=d - s_awl,
-      h=h_guide * 2,
-    );
-    tube(
-      od=2 * d_outer,
-      id=d_outer - s_awl,
-      h=h_guide * 2,
-    );
+
+    // fill in some support
+    if (d >= 60)
+      tube(h=h_guide, od=d / 2 + s_awl, id=d / 2 - s_awl);
   }
 
-  // fill in some support
-  if (d >= 60)
-    tube(h=h_guide, od=d / 2 + s_awl, id=d / 2 - s_awl);
+  if (show_text_only && render_text) {
+    color(c="darkviolet")
+      txt();
+  } else {
+    difference() {
+      color(c="sandybrown")
+        body();
+
+      if (render_text)
+        color(c="midnightblue")
+          txt();
+    }
+  }
 }
 
 render() {
@@ -251,9 +332,15 @@ render() {
   // flip for print
   rotate(a=180, v=[1, 0, 0]) {
     if (show_awl_guide_circle)
-      for (i = [0:1:len(d_circle_holes) - 1]) {
-        translate(v=[120 * i, 120, 0])
-          awl_guide_circle(d=d_circle_holes[i]);
+      translate(v=[0, 120, 0]) {
+        if (d_circle_hole) {
+          awl_guide_circle(d=d_circle_hole);
+        } else {
+          for (i = [0:1:len(d_circle_holes) - 1]) {
+            translate(v=[120 * i, 0, 0])
+              awl_guide_circle(d=d_circle_holes[i]);
+          }
+        }
       }
 
     if (show_awl_guide_straight)
