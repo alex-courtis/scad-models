@@ -1,11 +1,12 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
+show_text_only = false;
+show_awl_guide_straight = true;
+show_awl_guide_circle = false;
+
 d_filament = 0.4;
 t_layer = 0.2;
-
-show_awl_guide_straight = true;
-show_awl_guide_circle = true;
 
 l1_awl = 3.25;
 l2_awl = 1.95;
@@ -30,6 +31,10 @@ w_window_bottom = 1.75;
 w_window_top = 2.75;
 
 d_circle_holes = [30, 40, 50, 60, 70, 80, 90, 100];
+
+font = "Hack Nerd Font Mono:style=Bold";
+font_size = 8;
+h_text = t_layer * 2;
 
 poly_awl = [
   [0, l1_awl / 2],
@@ -89,45 +94,77 @@ module awl_guide_straight() {
       window_mask(l=l_window_end);
   }
 
-  difference() {
-    translate(v=[0, (w2 - w1) / 2, 0])
-      cuboid(
-        [l, w1 + w2, h_guide],
-        chamfer=chamfer_guide,
-      );
-
-    // awl
-    for (i = [-l / 2 + s_awl:s_awl:l / 2 - s_awl]) {
-      translate(v=[i, 0, 0])
-        rotate(a=a_awl)
-          awl_mask();
-    }
-
-    // end cutouts
-    translate(v=[-l / 2, 0, 0])
-      window_mask(l=s_awl / 2);
-    translate(v=[l / 2, 0, 0])
-      window_mask(l=s_awl / 2);
-
-    // 1x windows
-    translate(v=[0, s_awl, 0])
-      window_mask_long();
-    translate(v=[0, -s_awl, 0])
-      window_mask_long();
-
-    // 2x window
-    translate(v=[0, s_awl * 2, 0])
-      window_mask_long();
+  module txt() {
+    translate(v=[l / 2 - s_awl, w2 - s_awl, (h_guide - h_text) / 2])
+      rotate(a=-90)
+        linear_extrude(h=h_text, center=true)
+          text(
+            font=font,
+            size=font_size,
+            text=str(s_awl, "mm"),
+            valign="top",
+            halign="left",
+          );
   }
 
-  // nubs
-  for (i = [-l / 2 + s_awl / 2:s_awl * 3:l / 2 - s_awl / 2]) {
-    translate(v=[i, 0, -h_guide / 2]) {
-      for (j = [-w1 + s_awl / 2:s_awl * 2:w2 - s_awl / 2]) {
-        translate(v=[0, j, -h_nub / 2])
-          nub();
+  module body() {
+    color(c="tan") {
+      difference() {
+        translate(v=[0, (w2 - w1) / 2, 0])
+          cuboid(
+            [l, w1 + w2, h_guide],
+            chamfer=chamfer_guide,
+          );
+
+        // awl
+        for (i = [-l / 2 + s_awl:s_awl:l / 2 - s_awl]) {
+          translate(v=[i, 0, 0])
+            rotate(a=a_awl)
+              awl_mask();
+        }
+
+        // end cutouts
+        translate(v=[-l / 2, 0, 0])
+          window_mask(l=s_awl / 2);
+        translate(v=[l / 2, 0, 0])
+          window_mask(l=s_awl / 2);
+
+        // 1x windows
+        translate(v=[0, s_awl, 0])
+          window_mask_long();
+        translate(v=[0, -s_awl, 0])
+          window_mask_long();
+
+        // 2x window
+        translate(v=[0, s_awl * 2, 0])
+          window_mask_long();
       }
     }
+
+    // nubs
+    color(c="brown") {
+      for (i = [-l / 2 + s_awl / 2:s_awl * 3:l / 2 - s_awl / 2]) {
+        translate(v=[i, 0, -h_guide / 2]) {
+          for (j = [-w1 + s_awl / 2:s_awl * 2:w2 - s_awl / 2]) {
+            translate(v=[0, j, -h_nub / 2])
+              nub();
+          }
+        }
+      }
+    }
+  }
+
+  if (!show_text_only) {
+    difference() {
+      color(c="tan")
+        body();
+
+      color(c="red")
+        txt();
+    }
+  } else {
+    color(c="orange")
+      txt();
   }
 }
 
