@@ -37,7 +37,7 @@ d_circle_hole = 27.5;
 
 font = "Space Mono:style=Regular";
 font_size = 7;
-h_text = t_layer * 1;
+h_text = t_layer * 2;
 
 poly_awl = [
   [0, l1_awl / 2],
