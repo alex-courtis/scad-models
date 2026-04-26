@@ -4,6 +4,7 @@ render_text = true;
 show_text_only = false;
 show_awl_guide_straight = true;
 show_awl_guide_circle = true;
+show_holder = true;
 
 d_filament = 0.4;
 t_layer = 0.2;
@@ -45,6 +46,11 @@ poly_awl = [
   [0, -l1_awl / 2],
   [l2_awl / 2, 0],
 ];
+
+l_holder = 72.5;
+
+// sides and ends
+gap_holder = 0.2;
 
 $fn = 200;
 
@@ -327,6 +333,32 @@ module awl_guide_circle(d) {
   }
 }
 
+module holder() {
+  d = d_circle_holes[0] - s_awl * 1.5 - gap_holder * 2;
+
+  t = -w_window_bottom + gap_holder;
+
+  dxy = (d - t) / 2;
+
+  difference() {
+    cyl(
+      d=d,
+      h=l_holder,
+      rounding1=d / 2,
+    );
+
+    // quarters
+    translate(v=[dxy, dxy, t])
+      cuboid([d, d, l_holder]);
+    translate(v=[dxy, -dxy, t])
+      cuboid([d, d, l_holder]);
+
+    // half
+    translate(v=[-dxy, 0, 0])
+      cuboid([d, d, l_holder]);
+  }
+}
+
 render() {
 
   // flip for print
@@ -347,4 +379,11 @@ render() {
       translate(v=[0, 0, 0])
         awl_guide_straight();
   }
+
+  // rotate for print
+  if (show_holder)
+    color(c="gray")
+      rotate(a=-90, v=[0, 1, 0])
+        translate(v=[0, 120, 0])
+          holder();
 }
