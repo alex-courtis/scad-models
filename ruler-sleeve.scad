@@ -8,7 +8,7 @@ t_layer = 0.2; // [0.02:0.01:4]
 
 ruler_gap = [
   0,
-  1.5,
+  1.2,
   0.4,
 ];
 
@@ -31,7 +31,7 @@ inner_small = ruler_small + 2 * ruler_gap;
 /* [Outer Dimensions] */
 
 t_wall_end = d_filament * 3;
-t_wall_side = t_layer * 4;
+t_wall_side = t_layer * 8;
 t_wall_long = d_filament * 2;
 
 outer_chamfer = t_wall_long;
@@ -42,12 +42,13 @@ outer_walls = [
   t_wall_side * 2,
   t_wall_long * 2,
 ];
-bottom_large = inner_large + outer_walls;
-
-bottom_small = inner_small + outer_walls;
 
 dx_large = 15;
 dx_small = 10;
+
+bottom_large = inner_large + outer_walls;
+
+bottom_small = inner_small + outer_walls + [dx_large, 0, 0];
 
 $fn = 200; // [0:1:500]
 
@@ -78,60 +79,64 @@ module holder(bottom, inner, dx, chamfer_edges) {
     );
 
     inner_mask(inner, bottom);
-
-    translate(
-      v=[
-        bottom.x - dx,
-        t_wall_side,
-        t_wall_long,
-      ]
-    )
-      cuboid(bottom);
   }
 }
 
-render() {
-  color(c="green")
+module holder_bottom() {
+  holder(
+    bottom=bottom_large,
+    inner=inner_large,
+    chamfer_edges=[
+      LEFT,
+      RIGHT + TOP,
+      RIGHT + BACK,
+    ]
+  );
+}
+
+module holder_top() {
+  translate(
+    v=[
+      (bottom_large.x - bottom_small.x) / 2,
+      0,
+      bottom_large.z - t_wall_long,
+    ]
+  )
     holder(
-      bottom=bottom_large,
-      inner=inner_large,
-      dx=dx_large,
+      bottom=bottom_small,
+      inner=inner_small,
+      dx=dx_small,
       chamfer_edges=[
-        // LEFT + TOP,
-        // LEFT + BOTTOM,
-        // LEFT + FRONT,
-        // LEFT + BACK,
-        // RIGHT + BACK,
-        // RIGHT + TOP,
-		BOTTOM,
-		LEFT,
-		RIGHT + BACK,
-		// TOP,
+        TOP,
       ]
     );
+}
 
-  color(c="orange")
-    translate(
-      v=[
-        (bottom_large.x - bottom_small.x) / 2 - dx_large,
-        0,
-        bottom_large.z - t_wall_long,
-      ]
-    )
-      holder(
-        bottom=bottom_small,
-        inner=inner_small,
-        dx=dx_small,
-        chamfer_edges=[
-		TOP + FRONT,
-		TOP + BACK,
-		TOP + LEFT,
-		// FRONT,
-          // LEFT + TOP,
-          // LEFT + FRONT,
-          // LEFT + BACK,
-          // RIGHT + BACK,
-          // RIGHT + TOP,
-        ]
-      );
+module cutout_mask(dx, dz) {
+  mask = [dx, bottom_large.y, 20];
+
+  translate(
+    v=[
+      bottom_large.x / 2 + mask.x / 2 - dx,
+      t_wall_side,
+      mask.z / 2 + dz,
+    ]
+  )
+    cuboid(mask);
+}
+
+render() {
+  difference() {
+    union() {
+      color(c="lightgray")
+        holder_bottom();
+      color(c="pink")
+        holder_top();
+    }
+    color(c="orange")
+      cutout_mask(dx=dx_large, dz=0);
+
+    color(c="brown")
+      cutout_mask(dx=dx_large + dx_small, dz=bottom_large.z / 2);
+  }
 }
