@@ -24,10 +24,6 @@ ruler_large = [
   0.5,
 ];
 
-inner_large = ruler_large + 2 * ruler_gap;
-
-inner_small = ruler_small + 2 * ruler_gap;
-
 /* [Outer Dimensions] */
 
 t_wall_end = d_filament * 3;
@@ -44,11 +40,16 @@ outer_walls = [
 ];
 
 dx_large = 15;
+
 dx_small = 10;
+
+inner_large = ruler_large + 2 * ruler_gap;
+
+inner_small = ruler_small + 2 * ruler_gap + [dx_large, 0, 0];
 
 bottom_large = inner_large + outer_walls;
 
-bottom_small = inner_small + outer_walls + [dx_large, 0, 0];
+bottom_small = inner_small + outer_walls;
 
 $fn = 200; // [0:1:500]
 
@@ -130,13 +131,21 @@ render() {
     union() {
       color(c="lightgray")
         holder_bottom();
+
       color(c="pink")
         holder_top();
     }
+
     color(c="orange")
-      cutout_mask(dx=dx_large, dz=0);
+      cutout_mask(
+        dx=dx_large,
+        dz=0
+      );
 
     color(c="brown")
-      cutout_mask(dx=dx_large + dx_small, dz=bottom_large.z / 2);
+      cutout_mask(
+        dx=dx_large + dx_small,
+        dz=bottom_large.z / 2 + bottom_small.z / 2 - t_wall_long
+      );
   }
 }
