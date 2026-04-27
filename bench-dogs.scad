@@ -4,18 +4,23 @@ include <lib/geom.scad>
 d_filament = 0.4;
 t_layer = 0.2;
 
-d_peg = 19.5;
+show = "all"; // ["all", "padding", "core"]
+
+d_peg = 19.2;
 l_peg = 45;
 
 t_cap = 20;
 w_cap = 40;
 chamfer_cap = d_filament * 3;
 
-d_bolt = 4;
-d_washer = 9;
+d_bolt = 4.05;
+d_washer = 9.5;
 l_bolt = 50;
-l_bolt_inset = 4;
-l_nut_inset = 6;
+l_bolt_inset = 4.5;
+l_nut_inset = 4;
+
+t_padding = chamfer_cap * 2;
+n_padding_ribs = 4;
 
 rounding_peg = (d_peg - d_washer) / 4 - d_filament / 2;
 
@@ -38,6 +43,15 @@ module bolt_mask() {
         anchor=BOTTOM,
       );
 
+  color(c="hotpink")
+    translate(v=[0, 0, t_cap - chamfer_cap])
+    cyl(
+	  d1=d_washer,
+      d2=d_washer + chamfer_cap * 2,
+      h=chamfer_cap,
+      anchor=BOTTOM,
+    );
+
   color(c="deeppink")
     translate(v=[0, 0, t_cap - l_bolt + l_nut_inset])
       cyl(
@@ -56,50 +70,91 @@ module bolt_mask() {
       );
 }
 
-module cap() {
-  color(c="burlywood")
+module cap(padding) {
 
-    translate(v=[0, -w_cap / 4, 0])
-      cuboid(
-        [w_cap, w_cap / 2, t_cap],
-        anchor=BOTTOM,
-        chamfer=chamfer_cap,
-        except=[
-          BOTTOM,
-          BACK,
-        ],
-      );
+  id = padding ? w_cap - 2 * t_padding : 0;
+  wall = padding ? t_padding : w_cap / 2 - 0.0001;
 
-  color(c="peru")
+  color(c=padding ? "lime" : "peru")
     back_half()
-      cyl(
+      tube(
         h=t_cap,
-        d=w_cap,
+        od=w_cap,
+        id=id,
+        ochamfer2=chamfer_cap,
         anchor=BOTTOM,
-        chamfer2=chamfer_cap,
-      );
-}
-
-module peg() {
-  difference() {
-    color(c="saddlebrown")
-      cyl(
-        h=l_peg,
-        d=d_peg,
-        rounding1=rounding_peg,
-        anchor=TOP,
       );
 
-    bolt_mask();
+  color(c=padding ? "gold" : "burlywood")
+    front_half()
+      diff()
+        rect_tube(
+          h=t_cap,
+          size=w_cap,
+          wall=wall,
+        )
+          edge_profile(
+            except=[
+              BOTTOM,
+              BACK,
+            ],
+          ) mask2d_chamfer(
+              h=chamfer_cap,
+            );
+
+  for (i = [1:1:n_padding_ribs]) {
+    translate(v=[0, 0, t_cap * (i / n_padding_ribs - 1 / n_padding_ribs / 2)]) {
+      color(c="purple")
+        back_half()
+          tube(
+            h=t_layer * 3,
+            od=w_cap - 2 * t_padding + 0.0001,
+            id=w_cap - 4 * t_padding,
+            anchor=CENTER,
+          );
+
+      color(c="olive")
+        front_half()
+          rect_tube(
+            h=t_padding / 2,
+            size=w_cap - t_padding * 2 + 0.0001,
+            wall=t_padding,
+            anchor=CENTER,
+          );
+    }
   }
 }
 
+module peg() {
+  color(c="saddlebrown")
+    cyl(
+      h=l_peg,
+      d=d_peg,
+      rounding1=rounding_peg,
+      anchor=TOP,
+    );
+}
+
 render() {
-  difference() {
-    union() {
+
+  if (show == "padding") {
+
+    cap(padding=true);
+  } else {
+
+    difference() {
       peg();
-      cap();
+
+      bolt_mask();
     }
-    bolt_mask();
+
+    difference() {
+      cap(padding=false);
+
+      if (show == "core")
+        cap(padding=true);
+
+      bolt_mask();
+    }
   }
 }
