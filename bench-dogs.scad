@@ -4,12 +4,13 @@ include <lib/geom.scad>
 d_filament = 0.4;
 t_layer = 0.2;
 
-show = "all"; // ["all", "padding", "core"]
+// show = "all"; // ["all", "padding", "core"]
+show = "core"; // ["all", "padding", "core"]
 
 d_peg = 19.2;
 l_peg = 45;
 
-t_cap = 20;
+t_cap = 15;
 w_cap = 40;
 chamfer_cap = d_filament * 3;
 
@@ -20,7 +21,7 @@ l_bolt_inset = 4.5;
 l_nut_inset = 4;
 
 t_padding = chamfer_cap * 2;
-n_padding_ribs = 4;
+t_rib = t_layer * 8;
 
 rounding_peg = (d_peg - d_washer) / 4 - d_filament / 2;
 
@@ -45,12 +46,12 @@ module bolt_mask() {
 
   color(c="hotpink")
     translate(v=[0, 0, t_cap - chamfer_cap])
-    cyl(
-	  d1=d_washer,
-      d2=d_washer + chamfer_cap * 2,
-      h=chamfer_cap,
-      anchor=BOTTOM,
-    );
+      cyl(
+        d1=d_washer,
+        d2=d_washer + chamfer_cap * 2,
+        h=chamfer_cap,
+        anchor=BOTTOM,
+      );
 
   color(c="deeppink")
     translate(v=[0, 0, t_cap - l_bolt + l_nut_inset])
@@ -102,12 +103,15 @@ module cap(padding) {
               h=chamfer_cap,
             );
 
-  for (i = [1:1:n_padding_ribs]) {
-    translate(v=[0, 0, t_cap * (i / n_padding_ribs - 1 / n_padding_ribs / 2)]) {
+  n_ribs = round((t_cap - 1) / (t_rib * 2));
+  echo(n_ribs=n_ribs);
+
+  for (i = [1:1:n_ribs]) {
+    translate(v=[0, 0, t_cap * (i / n_ribs - 1 / n_ribs / 2)]) {
       color(c="purple")
         back_half()
           tube(
-            h=t_layer * 3,
+            h=t_rib,
             od=w_cap - 2 * t_padding + 0.0001,
             id=w_cap - 4 * t_padding,
             anchor=CENTER,
@@ -116,7 +120,7 @@ module cap(padding) {
       color(c="olive")
         front_half()
           rect_tube(
-            h=t_padding / 2,
+            h=t_rib,
             size=w_cap - t_padding * 2 + 0.0001,
             wall=t_padding,
             anchor=CENTER,
