@@ -9,30 +9,29 @@ $fn = 200; // [1:1:500]
 show = "all"; // ["all", "padding", "core"]
 
 /* [Rod] */
-d_peg_rod = 5.2; // [1:0.05:50]
+d_peg_rod = 5.25; // [1:0.05:50]
 
 /* [Peg] */
 d_peg = 19.2; // [1:0.05:50]
 l_peg = 45; // [1:1:100]
 
-fil_chamfer_rod_peg = 4; // [1:1:20]
-chamfer_rod_peg = d_filament * fil_chamfer_rod_peg;
-echo(chamfer_rod_peg=chamfer_rod_peg);
+fil_rounding_rod_peg = 2; // [1:1:20]
+rounding_rod_peg = d_filament * fil_rounding_rod_peg;
+echo(rounding_rod_peg=rounding_rod_peg);
 
-// between peg and rod chamfer
-fil_peg_flat = 3; // [1:1:20]
-rounding_peg = (d_peg - d_peg_rod - chamfer_rod_peg) / 2 - d_filament * fil_peg_flat;
+fil_rounding_peg = 6; // [1:1:20]
+rounding_peg = d_filament * fil_rounding_peg;
 echo(rounding_peg=rounding_peg);
 
 /* [Cap] */
 t_cap = 15; // [1:1:100]
 w_cap = 40; // [1:1:100]
 
-fil_chamfer_cap = 4; // [1:1:20]
-chamfer_cap = d_filament * fil_chamfer_cap;
-echo(chamfer_cap=chamfer_cap);
+fil_rounding_cap = 6; // [1:1:20]
+rounding_cap = d_filament * fil_rounding_cap;
+echo(rounding_cap=rounding_cap);
 
-fil_chamfer_cap_rod = 4; // [1:1:20]
+fil_chamfer_cap_rod = 2; // [1:1:20]
 chamfer_cap_rod = d_filament * fil_chamfer_cap_rod;
 echo(chamfer_cap_rod=chamfer_cap_rod);
 
@@ -54,33 +53,26 @@ echo(n_ribs=n_ribs);
 
 module cap(padding) {
 
-  module body() {
+  module body(w) {
     color(c=padding ? "lime" : "peru")
       back_half()
-        tube(
+        cyl(
           h=t_cap,
-          od=w_cap,
-          id=padding ? w_cap - t_padding * 2 : 0,
-          ochamfer2=chamfer_cap,
+          d=w,
           anchor=BOTTOM,
         );
 
     color(c=padding ? "gold" : "burlywood")
       front_half()
-        diff()
-          rect_tube(
-            h=t_cap,
-            size=w_cap,
-            wall=padding ? t_padding : w_cap / 2 - 0.0001,
-          )
-            edge_profile(
-              except=[
-                BOTTOM,
-                BACK,
-              ],
-            ) mask2d_chamfer(
-                h=chamfer_cap,
-              );
+        cuboid(
+          [w, w, t_cap],
+          anchor=BOTTOM,
+          rounding=rounding_cap * w/w_cap,
+          edges=[
+            FRONT + LEFT,
+            FRONT + RIGHT,
+          ],
+        );
   }
 
   module ribs() {
@@ -129,12 +121,15 @@ module cap(padding) {
   }
 
   difference() {
-    union() {
-      body();
-      if (padding)
-        ribs();
+    if (padding) {
+      difference() {
+        body(w=w_cap);
+        body(w=w_cap - t_padding * 2);
+      }
+      ribs();
+    } else {
+        body(w=w_cap);
     }
-
     rod_mask();
   }
 }
@@ -158,7 +153,7 @@ module peg() {
       translate(v=[0, 0, -l_peg])
         rounding_hole_mask(
           d=d_peg_rod,
-          rounding=chamfer_rod_peg,
+          rounding=rounding_rod_peg,
           orient=DOWN,
         );
   }
