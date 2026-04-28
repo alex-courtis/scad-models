@@ -1,164 +1,181 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
-d_filament = 0.4;
-t_layer = 0.2;
+d_filament = 0.4; // [0.2:0.2:0.8]
+t_layer = 0.2; // [0.01:0.01:0.5]
+$fn = 200; // [1:1:500]
 
-// show = "all"; // ["all", "padding", "core"]
-show = "core"; // ["all", "padding", "core"]
+/* [What] */
+show = "all"; // ["all", "padding", "core"]
 
-d_peg = 19.2;
-l_peg = 45;
+/* [Rod] */
+d_peg_rod = 5.1; // [1:0.05:50]
 
-t_cap = 15;
-w_cap = 40;
-chamfer_cap = d_filament * 3;
+/* [Peg] */
+d_peg = 19.2; // [1:0.05:50]
+l_peg = 45; // [1:1:100]
 
-d_bolt = 4.05;
-d_washer = 9.5;
-l_bolt = 50;
-l_bolt_inset = 4.5;
-l_nut_inset = 4;
+fil_chamfer_rod_peg = 4; // [1:1:20]
+chamfer_rod_peg = d_filament * fil_chamfer_rod_peg;
+echo(chamfer_rod_peg=chamfer_rod_peg);
 
-t_padding = chamfer_cap * 2;
-t_rib = t_layer * 8;
+// between peg and rod chamfer
+fil_peg_flat = 3; // [1:1:20]
+rounding_peg = (d_peg - d_peg_rod - chamfer_rod_peg) / 2 - d_filament * fil_peg_flat;
+echo(rounding_peg=rounding_peg);
 
-rounding_peg = (d_peg - d_washer) / 4 - d_filament / 2;
+/* [Cap] */
+t_cap = 15; // [1:1:100]
+w_cap = 40; // [1:1:100]
 
-$fn = 200;
+fil_chamfer_cap = 4; // [1:1:20]
+chamfer_cap = d_filament * fil_chamfer_cap;
+echo(chamfer_cap=chamfer_cap);
 
-module bolt_mask() {
-  color(c="pink")
-    translate(v=[0, 0, -l_peg])
-      cyl(
-        d=d_bolt,
-        h=l_peg + t_cap,
-        anchor=BOTTOM,
-      );
+fil_chamfer_cap_rod = 4; // [1:1:20]
+chamfer_cap_rod = d_filament * fil_chamfer_cap_rod;
+echo(chamfer_cap_rod=chamfer_cap_rod);
 
-  color(c="magenta")
-    translate(v=[0, 0, t_cap - l_bolt_inset])
-      cyl(
-        d=d_washer,
-        h=l_bolt_inset,
-        anchor=BOTTOM,
-      );
+/* [Padding] */
+fil_t_padding = 8; // [1:1:20]
+t_padding = d_filament * fil_t_padding;
+echo(t_padding=t_padding);
 
-  color(c="hotpink")
-    translate(v=[0, 0, t_cap - chamfer_cap])
-      cyl(
-        d1=d_washer,
-        d2=d_washer + chamfer_cap * 2,
-        h=chamfer_cap,
-        anchor=BOTTOM,
-      );
+fil_w_rib = 6; // [1:1:20]
+w_rib = d_filament * fil_w_rib;
+echo(w_rib=w_rib);
 
-  color(c="deeppink")
-    translate(v=[0, 0, t_cap - l_bolt + l_nut_inset])
-      cyl(
-        d=d_washer,
-        h=l_peg,
-        anchor=TOP,
-      );
+layer_rib = 8; // [1:1:50]
+t_rib = t_layer * layer_rib;
+echo(t_rib=t_rib);
 
-  color(c="slateblue")
-    translate(v=[0, 0, -l_peg])
-      rounding_hole_mask(
-        d=d_washer,
-        rounding=rounding_peg,
-        excess=0.01,
-        orient=DOWN,
-      );
-}
+n_ribs = round((t_cap - 1) / (t_rib * 2));
+echo(n_ribs=n_ribs);
 
 module cap(padding) {
 
-  id = padding ? w_cap - 2 * t_padding : 0;
-  wall = padding ? t_padding : w_cap / 2 - 0.0001;
+  module body() {
+    color(c=padding ? "lime" : "peru")
+      back_half()
+        tube(
+          h=t_cap,
+          od=w_cap,
+          id=padding ? w_cap - t_padding * 2 : 0,
+          ochamfer2=chamfer_cap,
+          anchor=BOTTOM,
+        );
 
-  color(c=padding ? "lime" : "peru")
-    back_half()
-      tube(
+    color(c=padding ? "gold" : "burlywood")
+      front_half()
+        diff()
+          rect_tube(
+            h=t_cap,
+            size=w_cap,
+            wall=padding ? t_padding : w_cap / 2 - 0.0001,
+          )
+            edge_profile(
+              except=[
+                BOTTOM,
+                BACK,
+              ],
+            ) mask2d_chamfer(
+                h=chamfer_cap,
+              );
+  }
+
+  module ribs() {
+    od = w_cap - 2 * t_padding + 0.0001;
+    id = od - w_rib * 2;
+
+    for (i = [1:1:n_ribs]) {
+      translate(v=[0, 0, t_cap * (i / n_ribs - 1 / n_ribs / 2)]) {
+        color(c="purple")
+          back_half()
+            tube(
+              h=t_rib,
+              od=od,
+              id=id,
+              anchor=CENTER,
+            );
+
+        color(c="olive")
+          front_half()
+            rect_tube(
+              h=t_rib,
+              size=od,
+              wall=w_rib,
+              anchor=CENTER,
+            );
+      }
+    }
+  }
+
+  module rod_mask() {
+    color(c="magenta")
+      cyl(
+        d=d_peg_rod,
         h=t_cap,
-        od=w_cap,
-        id=id,
-        ochamfer2=chamfer_cap,
         anchor=BOTTOM,
       );
 
-  color(c=padding ? "gold" : "burlywood")
-    front_half()
-      diff()
-        rect_tube(
-          h=t_cap,
-          size=w_cap,
-          wall=wall,
-        )
-          edge_profile(
-            except=[
-              BOTTOM,
-              BACK,
-            ],
-          ) mask2d_chamfer(
-              h=chamfer_cap,
-            );
+    color(c="pink")
+      translate(v=[0, 0, t_cap - chamfer_cap_rod])
+        cyl(
+          d1=d_peg_rod,
+          d2=d_peg_rod + chamfer_cap_rod * 2,
+          h=chamfer_cap_rod,
+          anchor=BOTTOM,
+        );
+  }
 
-  n_ribs = round((t_cap - 1) / (t_rib * 2));
-  echo(n_ribs=n_ribs);
-
-  for (i = [1:1:n_ribs]) {
-    translate(v=[0, 0, t_cap * (i / n_ribs - 1 / n_ribs / 2)]) {
-      color(c="purple")
-        back_half()
-          tube(
-            h=t_rib,
-            od=w_cap - 2 * t_padding + 0.0001,
-            id=w_cap - 4 * t_padding,
-            anchor=CENTER,
-          );
-
-      color(c="olive")
-        front_half()
-          rect_tube(
-            h=t_rib,
-            size=w_cap - t_padding * 2 + 0.0001,
-            wall=t_padding,
-            anchor=CENTER,
-          );
+  difference() {
+    union() {
+      body();
+      if (padding)
+        ribs();
     }
+
+    rod_mask();
   }
 }
 
 module peg() {
-  color(c="saddlebrown")
-    cyl(
-      h=l_peg,
-      d=d_peg,
-      rounding1=rounding_peg,
-      anchor=TOP,
-    );
+  difference() {
+    color(c="saddlebrown")
+      cyl(
+        h=l_peg,
+        d=d_peg,
+        rounding1=rounding_peg,
+        anchor=TOP,
+      );
+    color(c="magenta")
+      cyl(
+        d=d_peg_rod,
+        h=l_peg,
+        anchor=TOP,
+      );
+    color(c="pink")
+      translate(v=[0, 0, -l_peg])
+        rounding_hole_mask(
+          d=d_peg_rod,
+          rounding=chamfer_rod_peg,
+          orient=DOWN,
+        );
+  }
 }
 
 render() {
 
-  if (show == "padding") {
-
+  if (show == "all") {
+    cap(padding=false);
+    peg();
+  } else if (show == "padding") {
     cap(padding=true);
-  } else {
-
-    difference() {
-      peg();
-
-      bolt_mask();
-    }
-
+  } else if (show == "core") {
+    peg();
     difference() {
       cap(padding=false);
-
-      if (show == "core")
-        cap(padding=true);
-
-      bolt_mask();
+      cap(padding=true);
     }
   }
 }
