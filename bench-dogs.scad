@@ -1,15 +1,15 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
-d_filament = 0.4; // [0.2:0.2:0.8]
-t_layer = 0.2; // [0.01:0.01:0.5]
+d_filament = 0.6; // [0.2:0.2:0.8]
+t_layer = 0.3; // [0.01:0.01:0.5]
 $fn = 200; // [1:1:500]
 
 /* [What] */
 show = "all"; // ["all", "padding", "core"]
 
 /* [Rod] */
-d_peg_rod = 5.1; // [1:0.05:50]
+d_peg_rod = 5.2; // [1:0.05:50]
 
 /* [Peg] */
 d_peg = 19.2; // [1:0.05:50]
