@@ -49,16 +49,17 @@ bottom_ruler_small = inner_ruler_small + outer_walls_ruler;
 
 /* [Square Dimensions] */
 
-square_gap = [
-  0,
-  0.5,
-  0.3,
-];
-
 square_large = [
   97.5,
   16.3,
   1.8,
+];
+
+// add thickness to width to account for chamfered inner
+square_gap = [
+  0,
+  0.5 + square_large.z/4,
+  0.3,
 ];
 
 outer_walls_square = [
