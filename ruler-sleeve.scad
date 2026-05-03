@@ -9,8 +9,8 @@ $fn = 200; // [0:1:500]
 
 ruler_gap = [
   0,
-  1.2,
-  0.4,
+  0.5,
+  0.3,
 ];
 
 ruler_small = [
@@ -25,12 +25,12 @@ ruler_large = [
   0.5,
 ];
 
-// no top, one end
 outer_walls_ruler = [
   1 * d_filament * 3,
-  2 * t_layer * 8,
-  2 * d_filament * 2,
+  2 * t_layer * 10,
+  2 * d_filament * 3,
 ];
+echo(outer_walls_ruler=outer_walls_ruler);
 
 outer_chamfer_ruler = outer_walls_ruler.z / 2;
 
@@ -43,6 +43,7 @@ inner_ruler_large = ruler_large + 2 * ruler_gap;
 inner_ruler_small = ruler_small + 2 * ruler_gap + [dx_large, 0, 0];
 
 bottom_ruler_large = inner_ruler_large + outer_walls_ruler;
+echo(bottom_ruler_large=bottom_ruler_large);
 
 bottom_ruler_small = inner_ruler_small + outer_walls_ruler;
 
@@ -50,8 +51,8 @@ bottom_ruler_small = inner_ruler_small + outer_walls_ruler;
 
 square_gap = [
   0,
-  2,
-  1,
+  0.5,
+  0.3,
 ];
 
 square_large = [
@@ -60,15 +61,15 @@ square_large = [
   1.8,
 ];
 
-// no top, one end
 outer_walls_square = [
-  0,
-  // 1 * d_filament * 3,
+  1 * d_filament * 3,
   2 * t_layer * 12,
-  2 * d_filament * 8,
+  2 * d_filament * 3,
 ];
 
-outer_chamfer_square = outer_walls_square.z / 6;
+dx_square_large = 15;
+
+outer_chamfer_square = outer_walls_square.z / 2;
 
 inner_square_large = square_large + 2 * square_gap;
 
@@ -111,7 +112,8 @@ module holder_ruler_bottom() {
     chamfer=outer_chamfer_ruler,
     chamfer_edges=[
       LEFT,
-      RIGHT + TOP,
+      RIGHT + BOTTOM,
+      RIGHT + FRONT,
       RIGHT + BACK,
     ]
   );
@@ -131,18 +133,21 @@ module holder_ruler_top() {
       chamfer=outer_chamfer_ruler,
       dx=dx_small,
       chamfer_edges=[
-        TOP,
+        LEFT,
+        RIGHT + TOP,
+        RIGHT + FRONT,
+        RIGHT + BACK,
       ]
     );
 }
 
-module cutout_mask(dx, dz) {
-  mask = [dx, bottom_ruler_large.y, 20];
+module cutout_mask(bottom, inner, dx, dz) {
+  mask = [dx, inner.y, bottom.z];
 
   translate(
     v=[
-      bottom_ruler_large.x / 2 + mask.x / 2 - dx,
-      outer_walls_ruler.z,
+      bottom.x / 2 + mask.x / 2 - dx,
+      0,
       mask.z / 2 + dz,
     ]
   )
@@ -154,19 +159,17 @@ module holder_square_large() {
     bottom=bottom_square_large,
     inner=inner_square_large,
     chamfer=outer_chamfer_square,
-    chamfer_edges=EDGES_ALL,
-    // chamfer_edges=[
-    //   LEFT,
-    //   RIGHT + TOP,
-    //   RIGHT + BACK,
-    // ]
+    chamfer_edges=[
+      LEFT,
+      RIGHT,
+    ]
   );
 }
 
-render() {
+module rulers() {
   difference() {
     union() {
-      color(c="lightgray")
+      color(c="darkgray")
         holder_ruler_bottom();
 
       color(c="pink")
@@ -175,18 +178,44 @@ render() {
 
     color(c="orange")
       cutout_mask(
+        bottom=bottom_ruler_large,
+        inner=inner_ruler_large,
         dx=dx_large,
         dz=0
       );
 
     color(c="brown")
       cutout_mask(
+        bottom=bottom_ruler_large,
+        inner=inner_ruler_large,
         dx=dx_large + dx_small,
         dz=bottom_ruler_large.z / 2 + bottom_ruler_small.z / 2 - outer_walls_ruler.z / 2,
       );
   }
+}
 
-  translate(v=[0, 50, 0])
-    color(c="lightblue")
+module square_large() {
+  difference() {
+
+    color(c="steelblue")
       holder_square_large();
+
+    color(c="orange")
+      cutout_mask(
+        bottom=bottom_square_large,
+        inner=inner_square_large,
+        dx=dx_square_large,
+        dz=0,
+      );
+  }
+}
+
+render() {
+  rotate(a=90, v=[1, 0, 0]) {
+    translate(v=[bottom_ruler_large.x / 2, bottom_ruler_large.y / 2, 0])
+      rulers();
+
+    translate(v=[bottom_square_large.x / 2, bottom_square_large.y / 2, 20])
+      square_large();
+  }
 }
