@@ -58,7 +58,7 @@ square_large = [
 // add thickness to width to account for chamfered inner
 square_gap = [
   0,
-  0.5 + square_large.z/4,
+  0.5 + square_large.z / 4,
   0.3,
 ];
 
@@ -155,18 +155,6 @@ module cutout_mask(bottom, inner, dx, dz) {
     cuboid(mask);
 }
 
-module holder_square_large() {
-  holder(
-    bottom=bottom_square_large,
-    inner=inner_square_large,
-    chamfer=outer_chamfer_square,
-    chamfer_edges=[
-      LEFT,
-      RIGHT,
-    ]
-  );
-}
-
 module rulers() {
   difference() {
     union() {
@@ -195,11 +183,16 @@ module rulers() {
   }
 }
 
-module square_large() {
+module squares_large() {
   difference() {
 
     color(c="steelblue")
-      holder_square_large();
+      holder(
+        bottom=bottom_square_large,
+        inner=inner_square_large,
+        chamfer=outer_chamfer_square,
+        chamfer_edges=EDGES_ALL,
+      );
 
     color(c="orange")
       cutout_mask(
@@ -217,6 +210,6 @@ render() {
       rulers();
 
     translate(v=[bottom_square_large.x / 2, bottom_square_large.y / 2, 20])
-      square_large();
+      squares_large();
   }
 }
