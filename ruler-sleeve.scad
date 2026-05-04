@@ -63,13 +63,13 @@ square_gap = [
 outer_walls_square = [
   1 * d_filament * 3,
   2 * t_layer * 12,
-  2 * d_filament * 8,
+  2 * d_filament * 10,
 ];
 
-// just tune this to match outer_walls_square.z
-a_square_large = 2;
-
-dx_square_large = 10;
+// just tune these to match outer_walls_square.z
+a_square_large = 3;
+dx_square_large = 20;
+dz_square_large = 0.868;
 
 outer_chamfer_square = d_filament * 3;
 
@@ -103,6 +103,7 @@ module holder(bottom, inner, chamfer, dx, chamfer_edges, a = 0) {
       edges=chamfer_edges,
     );
 
+    // translate(v=[0,10,0])
     rotate(a=-a, v=[0, 1, 0])
       inner_mask(inner, bottom);
   }
@@ -144,7 +145,7 @@ module holder_ruler_top() {
     );
 }
 
-module cutout_mask(bottom, inner, dx, dz) {
+module cutout_mask(bottom, inner, dx, dz = 0, a = 0) {
   mask = [dx, inner.y, bottom.z];
 
   translate(
@@ -154,7 +155,8 @@ module cutout_mask(bottom, inner, dx, dz) {
       mask.z / 2 + dz,
     ]
   )
-    cuboid(mask);
+    rotate(a=-a, v=[0, 1, 0])
+      cuboid(mask);
 }
 
 module rulers() {
@@ -172,7 +174,6 @@ module rulers() {
         bottom=bottom_ruler_large,
         inner=inner_ruler_large,
         dx=dx_large,
-        dz=0
       );
 
     color(c="brown")
@@ -202,7 +203,8 @@ module squares_large() {
         bottom=bottom_square_large,
         inner=inner_square_large,
         dx=dx_square_large,
-        dz=0,
+        dz=dz_square_large,
+        a=a_square_large,
       );
   }
 }
