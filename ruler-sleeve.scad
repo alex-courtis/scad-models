@@ -57,7 +57,7 @@ square_large = [
 square_gap = [
   0,
   0.5 + square_large.z / 4,
-  0.3,
+  0.2,
 ];
 
 outer_walls_square = [
@@ -66,12 +66,15 @@ outer_walls_square = [
   2 * d_filament * 10,
 ];
 
-// just tune these to match outer_walls_square.z
-a_square_large = 3;
-dx_square_large = 20;
-dz_square_large = 0.868;
-
 outer_chamfer_square = d_filament * 3;
+
+// just tune these to match outer_walls_square.z
+a_square_large = 4.25;
+dx_square_large = 25;
+dx_inner_square_large = 12;
+dz_inner_large = 1.1;
+dz_square_large = 2.369 + 0.172;
+echo(dz_square_large=dz_square_large);
 
 inner_square_large = square_large + 2 * square_gap;
 
@@ -95,7 +98,7 @@ module inner_mask(inner, outer) {
     );
 }
 
-module holder(bottom, inner, chamfer, dx, chamfer_edges, a = 0) {
+module holder(bottom, inner, chamfer, dx = 0, chamfer_edges, a = 0, dz = 0) {
   difference() {
     cuboid(
       chamfer=chamfer,
@@ -103,9 +106,10 @@ module holder(bottom, inner, chamfer, dx, chamfer_edges, a = 0) {
       edges=chamfer_edges,
     );
 
-    // translate(v=[0,10,0])
-    rotate(a=-a, v=[0, 1, 0])
-      inner_mask(inner, bottom);
+    // translate(v=[0, 10, 0])
+    translate(v=[-dx, 0, 0])
+      rotate(a=-a, v=[0, 1, 0])
+        inner_mask(inner, bottom);
   }
 }
 
@@ -135,7 +139,6 @@ module holder_ruler_top() {
       bottom=bottom_ruler_small,
       inner=inner_ruler_small,
       chamfer=outer_chamfer_ruler,
-      dx=dx_small,
       chamfer_edges=[
         LEFT,
         RIGHT + TOP,
@@ -196,16 +199,19 @@ module squares_large() {
         chamfer=outer_chamfer_square,
         chamfer_edges=EDGES_ALL,
         a=a_square_large,
+        dx=dx_inner_square_large,
+        dz=dz_inner_large,
       );
 
     color(c="orange")
-      cutout_mask(
-        bottom=bottom_square_large,
-        inner=inner_square_large,
-        dx=dx_square_large,
-        dz=dz_square_large,
-        a=a_square_large,
-      );
+      translate(v=[0, -inner_square_large.z / 4, 0])
+        cutout_mask(
+          bottom=bottom_square_large,
+          inner=inner_square_large - [0, inner_square_large.z / 2, 0],
+          dx=dx_square_large,
+          dz=dz_square_large,
+          a=a_square_large,
+        );
   }
 }
 
