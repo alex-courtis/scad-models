@@ -30,7 +30,6 @@ outer_walls_ruler = [
   2 * t_layer * 10,
   2 * d_filament * 3,
 ];
-echo(outer_walls_ruler=outer_walls_ruler);
 
 outer_chamfer_ruler = outer_walls_ruler.z / 2;
 
@@ -43,7 +42,6 @@ inner_ruler_large = ruler_large + 2 * ruler_gap;
 inner_ruler_small = ruler_small + 2 * ruler_gap + [dx_large, 0, 0];
 
 bottom_ruler_large = inner_ruler_large + outer_walls_ruler;
-echo(bottom_ruler_large=bottom_ruler_large);
 
 bottom_ruler_small = inner_ruler_small + outer_walls_ruler;
 
@@ -65,12 +63,15 @@ square_gap = [
 outer_walls_square = [
   1 * d_filament * 3,
   2 * t_layer * 12,
-  2 * d_filament * 3,
+  2 * d_filament * 8,
 ];
 
-dx_square_large = 15;
+// just tune this to match outer_walls_square.z
+a_square_large = 2;
 
-outer_chamfer_square = outer_walls_square.z / 2;
+dx_square_large = 10;
+
+outer_chamfer_square = d_filament * 3;
 
 inner_square_large = square_large + 2 * square_gap;
 
@@ -94,7 +95,7 @@ module inner_mask(inner, outer) {
     );
 }
 
-module holder(bottom, inner, chamfer, dx, chamfer_edges) {
+module holder(bottom, inner, chamfer, dx, chamfer_edges, a = 0) {
   difference() {
     cuboid(
       chamfer=chamfer,
@@ -102,7 +103,8 @@ module holder(bottom, inner, chamfer, dx, chamfer_edges) {
       edges=chamfer_edges,
     );
 
-    inner_mask(inner, bottom);
+    rotate(a=-a, v=[0, 1, 0])
+      inner_mask(inner, bottom);
   }
 }
 
@@ -192,6 +194,7 @@ module squares_large() {
         inner=inner_square_large,
         chamfer=outer_chamfer_square,
         chamfer_edges=EDGES_ALL,
+        a=a_square_large,
       );
 
     color(c="orange")
