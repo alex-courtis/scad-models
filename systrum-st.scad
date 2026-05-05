@@ -2,8 +2,7 @@ include <BOSL2/std.scad>
 
 $fn = 400;
 
-show_plate = true;
-show_lettering = true;
+show = "all"; // ["all", "plate", "lettering", "outline"]
 
 shift_left_hole = false;
 conical_hole = true;
@@ -22,8 +21,10 @@ z_hole = 2;
 dx_left_hole = shift_left_hole ? -d_hole_inner / 2 : 0;
 dy_left_hole = shift_left_hole ? d_hole_inner / 2 : 0;
 
+// TODO variable width font
 font = "Hack Nerd Font Mono:style=Bold";
 font_size = 27;
+t_outline = -0.8;
 
 font_metrics = fontmetrics(font=font, size=font_size);
 echo(font_metrics=font_metrics);
@@ -39,7 +40,7 @@ echo(text_metrics=text_metrics);
 echo(text_metrics_position=text_metrics.position);
 echo(text_metrics_size=text_metrics.size);
 
-module plate() {
+module base() {
   translate(v=[0, 0, 0])
     translate(
       v=[
@@ -55,7 +56,7 @@ module plate() {
           z_base,
         ],
         anchor=LEFT + FRONT + BOTTOM,
-        rounding=d_hole_outer/2,
+        rounding=d_hole_outer / 2,
         edges=[
           FRONT + LEFT,
           FRONT + RIGHT,
@@ -66,17 +67,19 @@ module plate() {
     }
 }
 
-module lettering(z, dz) {
-  translate(v=[0, 0, dz])
-    linear_extrude(h=z, center=false)
-      text(
-        font=font,
-        size=font_size,
-        text=content,
-        valign="center",
-        halign="center",
-      );
+module text_extrude(shell) {
+  translate(v=[0, 0, z_base - z_text])
+    linear_extrude(h=z_text, center=false)
+      shell2d(shell ? -t_outline : -10)
+        text(
+          font=font,
+          size=font_size,
+          text=content,
+          valign="center",
+          halign="center",
+        );
 }
+
 module holes() {
   y = (text_metrics.size[1] + dy_base) / 2;
   x = (text_metrics.size[0] + dx_base) / 2 - y;
@@ -106,19 +109,41 @@ module holes() {
   }
 }
 
-render() {
-  if (show_plate) {
-    difference() {
-      color(c="gray")
-        plate();
-      color(c="red")
-        holes();
-      color(c="black")
-        lettering(z=z_text, dz=z_base - z_text);
-    }
+module plate() {
+  difference() {
+    color(c="red")
+      base();
+
+    color(c="orange")
+      holes();
+
+    lettering();
+
+    outline();
   }
-  if (show_lettering) {
-    color(c="white")
-      lettering(z=z_text, dz=z_base - z_text);
+}
+
+module outline() {
+  color(c="black")
+    text_extrude(shell=true);
+}
+
+module lettering() {
+  color(c="green")
+    difference() {
+      text_extrude(shell=false);
+      text_extrude(shell=true);
+    }
+}
+
+render() {
+  if (show == "plate" || show == "all") {
+    plate();
+  }
+  if (show == "outline" || show == "all") {
+    outline();
+  }
+  if (show == "lettering" || show == "all") {
+    lettering();
   }
 }
