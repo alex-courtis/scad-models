@@ -6,7 +6,7 @@ t_layer = 0.3; // [0.01:0.01:0.5]
 $fn = 200; // [1:1:500]
 
 /* [What] */
-show = "all"; // ["all", "padding", "core"]
+show = "all"; // ["all", "padding", "core", "intersect"]
 
 /* [Rod] */
 d_peg_rod = 5.25; // [1:0.05:50]
@@ -27,10 +27,6 @@ echo(rounding_peg=rounding_peg);
 t_cap = 15; // [1:1:100]
 w_cap = 40; // [1:1:100]
 
-fil_rounding_cap = 6; // [1:1:20]
-rounding_cap = d_filament * fil_rounding_cap;
-echo(rounding_cap=rounding_cap);
-
 fil_chamfer_cap_rod = 2; // [1:1:20]
 chamfer_cap_rod = d_filament * fil_chamfer_cap_rod;
 echo(chamfer_cap_rod=chamfer_cap_rod);
@@ -39,6 +35,13 @@ echo(chamfer_cap_rod=chamfer_cap_rod);
 fil_t_padding = 8; // [1:1:20]
 t_padding = d_filament * fil_t_padding;
 echo(t_padding=t_padding);
+
+fil_w_padding = 8; // [1:1:20]
+w_padding = d_filament * fil_w_padding;
+echo(w_padding=w_padding);
+
+rounding_padding = w_padding * 1.25;
+echo(rounding_padding=rounding_padding);
 
 fil_w_rib = 6; // [1:1:20]
 w_rib = d_filament * fil_w_rib;
@@ -51,55 +54,69 @@ echo(t_rib=t_rib);
 n_ribs = round((t_cap - 1) / (t_rib * 2));
 echo(n_ribs=n_ribs);
 
-module cap(padding) {
+module cap_round(id) {
+  back_half()
+    tube(
+      h=t_cap,
+      od=w_cap,
+      id=id,
+      anchor=BOTTOM,
+    );
+}
 
-  module body(w) {
-    color(c=padding ? "lime" : "peru")
-      back_half()
-        cyl(
-          h=t_cap,
-          d=w,
-          anchor=BOTTOM,
-        );
+module cap_square(wall = w_cap / 2 - 0.1) {
+  front_half()
+    rect_tube(
+      h=t_cap,
+      size=w_cap,
+      wall=wall,
+      anchor=BOTTOM,
+      rounding=rounding_padding,
+    );
+}
 
-    color(c=padding ? "gold" : "burlywood")
-      front_half()
-        cuboid(
-          [w, w, t_cap],
-          anchor=BOTTOM,
-          rounding=rounding_cap * w/w_cap,
-          edges=[
-            FRONT + LEFT,
-            FRONT + RIGHT,
-          ],
-        );
-  }
+module padding() {
+  od = w_cap - 2 * t_padding + 0.0001;
+  id = od - w_rib * 2;
 
-  module ribs() {
-    od = w_cap - 2 * t_padding + 0.0001;
-    id = od - w_rib * 2;
+  color("lime")
+    cap_round(id=w_cap - w_padding * 2);
 
-    for (i = [1:1:n_ribs]) {
-      translate(v=[0, 0, t_cap * (i / n_ribs - 1 / n_ribs / 2)]) {
-        color(c="purple")
-          back_half()
-            tube(
-              h=t_rib,
-              od=od,
-              id=id,
-              anchor=CENTER,
-            );
+  color(c="gold")
+    cap_square(wall=w_padding);
 
-        color(c="olive")
-          front_half()
-            rect_tube(
-              h=t_rib,
-              size=od,
-              wall=w_rib,
-              anchor=CENTER,
-            );
-      }
+  for (i = [1:1:n_ribs]) {
+    translate(v=[0, 0, t_cap * (i / n_ribs - 1 / n_ribs / 2)]) {
+      color(c="purple")
+        back_half()
+          tube(
+            h=t_rib,
+            od=od,
+            id=id,
+            anchor=CENTER,
+          );
+
+      color(c="olive")
+        front_half()
+          rect_tube(
+            h=t_rib,
+            size=od,
+            wall=w_rib,
+            anchor=CENTER,
+            irounding=od - id - rounding_padding,
+          );
     }
+  }
+}
+
+module cap() {
+
+  module body() {
+    color(c="peru")
+      cap_round(id=0);
+
+    color(c="burlywood")
+      cap_square();
   }
 
   module rod_mask() {
@@ -121,15 +138,7 @@ module cap(padding) {
   }
 
   difference() {
-    if (padding) {
-      difference() {
-        body(w=w_cap);
-        body(w=w_cap - t_padding * 2);
-      }
-      ribs();
-    } else {
-        body(w=w_cap);
-    }
+    body();
     rod_mask();
   }
 }
@@ -159,18 +168,35 @@ module peg() {
   }
 }
 
+module all() {
+  cap();
+  peg();
+}
+
+module core() {
+  difference() {
+    cap();
+    padding();
+  }
+  peg();
+}
+
+module intersect() {
+  intersection() {
+    core();
+    padding();
+  }
+}
+
 render() {
 
   if (show == "all") {
-    cap(padding=false);
-    peg();
+    all();
   } else if (show == "padding") {
-    cap(padding=true);
+    padding();
   } else if (show == "core") {
-    peg();
-    difference() {
-      cap(padding=false);
-      cap(padding=true);
-    }
+    core();
+  } else if (show == "intersect") {
+    intersect();
   }
 }
