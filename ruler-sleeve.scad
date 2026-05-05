@@ -49,15 +49,15 @@ bottom_ruler_small = inner_ruler_small + outer_walls_ruler;
 
 square_gap = [
   0,
-  0.8,
-  0.2,
+  0.75,
+  0.15,
 ];
 
 outer_chamfer_square = d_filament * 3;
 
 /* [Square Large] */
 square_large = [
-  97.5,
+  97.5 + 1,
   16.3,
   1.8,
 ];
@@ -79,7 +79,7 @@ dxz_inner_square_large = [1, 0, 1];
 /* [Square Small] */
 
 square_small = [
-  35,
+  35 + 1,
   16.3,
   1.8,
 ];
@@ -87,22 +87,22 @@ square_small = [
 outer_walls_square_small = [
   1 * d_filament * 3,
   2 * t_layer * 12,
-  2 * d_filament * 5,
+  2 * d_filament * 7,
 ];
 
 inner_square_small = square_small + 2 * square_gap;
 outer_square_small = inner_square_small + outer_walls_square_small;
 
 // just tune these to match outer
-a_square_small = 5.5;
-x_cutout_square_small = 10;
-dxz_inner_square_small = [1, 0, 0.6];
+a_square_small = 6.5;
+x_cutout_square_small = 7.5;
+dxz_inner_square_small = [0.8, 0, 0.6];
 
 /* [Square Sliding] */
 
 square_sliding = [
-  74,
-  16.3,
+  74 + 1,
+  19.6,
   2,
 ];
 
