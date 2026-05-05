@@ -2,11 +2,11 @@ include <BOSL2/std.scad>
 include <lib/geom.scad>
 
 d_filament = 0.6; // [0.2:0.2:0.8]
-t_layer = 0.3; // [0.01:0.01:0.5]
+t_layer = 0.42; // [0.01:0.01:0.5]
 $fn = 200; // [1:1:500]
 
 /* [What] */
-show = "all"; // ["all", "padding", "core", "intersect"]
+show = "padding"; // ["all", "padding", "core", "intersect"]
 
 /* [Rod] */
 d_peg_rod = 5.25; // [1:0.05:50]
@@ -47,7 +47,7 @@ fil_w_rib = 6; // [1:1:20]
 w_rib = d_filament * fil_w_rib;
 echo(w_rib=w_rib);
 
-layer_rib = 8; // [1:1:50]
+layer_rib = 6; // [1:1:50]
 t_rib = t_layer * layer_rib;
 echo(t_rib=t_rib);
 
