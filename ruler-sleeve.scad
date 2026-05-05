@@ -98,6 +98,28 @@ a_square_small = 5.5;
 x_cutout_square_small = 10;
 dxz_inner_square_small = [1, 0, 0.6];
 
+/* [Square Sliding] */
+
+square_sliding = [
+  74,
+  16.3,
+  2,
+];
+
+outer_walls_square_sliding = [
+  1 * d_filament * 3,
+  2 * t_layer * 12,
+  2 * d_filament * 10,
+];
+
+inner_square_sliding = square_sliding + 2 * square_gap;
+outer_square_sliding = inner_square_sliding + outer_walls_square_sliding;
+
+// just tune these to match outer
+a_square_sliding = 5.0;
+x_cutout_square_sliding = 20;
+dxz_inner_square_sliding = [1, 0, 1];
+
 module inner_mask(inner, outer) {
   translate(
     v=[
@@ -259,13 +281,22 @@ render() {
         dxz_inner=dxz_inner_square_large,
       );
 
-    translate(v=[outer_square_large.x / 2, outer_square_large.y / 2, 40])
+    translate(v=[outer_square_small.x / 2, outer_square_small.y / 2, 40])
       square(
         outer=outer_square_small,
         inner=inner_square_small,
         a=a_square_small,
         x_cutout=x_cutout_square_small,
         dxz_inner=dxz_inner_square_small,
+      );
+
+    translate(v=[outer_square_sliding.x / 2, outer_square_sliding.y / 2, 60])
+      square(
+        outer=outer_square_sliding,
+        inner=inner_square_sliding,
+        a=a_square_sliding,
+        x_cutout=x_cutout_square_sliding,
+        dxz_inner=dxz_inner_square_sliding,
       );
   }
 }
