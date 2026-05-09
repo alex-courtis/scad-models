@@ -6,14 +6,18 @@ t_layer = 0.42; // [0.01:0.01:0.5]
 $fn = 200; // [1:1:500]
 
 /* [What] */
-show = "padding"; // ["all", "padding", "core", "intersect"]
+model = "dogs"; // ["dogs", "helping_hands"]
+show = "all"; // ["all", "padding", "core", "intersect"]
 
-/* [Rod] */
+/* [Hole] */
 d_peg_rod = 5.25; // [1:0.05:50]
+d_peg_screw = 6.1; // [1:0.05:50]
+d_peg_washer = 14.2; // [1:0.05:50]
 
 /* [Peg] */
 d_peg = 19.2; // [1:0.05:50]
 l_peg = 45; // [1:1:100]
+l_peg_washer = 30 + 2.5 + 2.5; // [0:0.05:50] length from cap to base
 
 fil_rounding_rod_peg = 2; // [1:1:20]
 rounding_rod_peg = d_filament * fil_rounding_rod_peg;
@@ -75,7 +79,7 @@ module cap_square(wall = w_cap / 2 - 0.1) {
     );
 }
 
-module padding() {
+module dogs_padding() {
   od = w_cap - 2 * t_padding + 0.0001;
   id = od - w_rib * 2;
 
@@ -143,7 +147,25 @@ module cap() {
   }
 }
 
-module peg() {
+module peg_hole(h, d_hole, rounding_hole) {
+  color(c="magenta")
+    cyl(
+      d=d_hole,
+      h=h,
+      anchor=TOP,
+    );
+
+  if (rounding_hole)
+    color(c="pink")
+      translate(v=[0, 0, -h])
+        rounding_hole_mask(
+          d=d_hole,
+          rounding=rounding_hole,
+          orient=DOWN,
+        );
+}
+
+module peg_dog() {
   difference() {
     color(c="saddlebrown")
       cyl(
@@ -152,51 +174,62 @@ module peg() {
         rounding1=rounding_peg,
         anchor=TOP,
       );
-    color(c="magenta")
-      cyl(
-        d=d_peg_rod,
-        h=l_peg,
-        anchor=TOP,
-      );
-    color(c="pink")
-      translate(v=[0, 0, -l_peg])
-        rounding_hole_mask(
-          d=d_peg_rod,
-          rounding=rounding_rod_peg,
-          orient=DOWN,
-        );
+
+    peg_hole(h=l_peg, d_hole=d_peg_rod, rounding_hole=rounding_rod_peg);
   }
 }
 
-module all() {
+module dogs_all() {
   cap();
-  peg();
+  peg_dog();
 }
 
-module core() {
+module dogs_core() {
   difference() {
     cap();
-    padding();
+    dogs_padding();
   }
-  peg();
+  peg_dog();
 }
 
-module intersect() {
+module dogs_intersect() {
   intersection() {
-    core();
-    padding();
+    dogs_core();
+    dogs_padding();
+  }
+}
+
+module helping_hands() {
+  difference() {
+    color(c="indianred")
+      cyl(
+        h=l_peg,
+        d=d_peg,
+        rounding1=rounding_peg,
+        anchor=TOP,
+      );
+
+    peg_hole(h=l_peg, d_hole=d_peg_screw, rounding_hole=0);
+
+    translate(v=[0, 0, -l_peg_washer])
+      peg_hole(h=l_peg - l_peg_washer, d_hole=d_peg_washer, rounding_hole=0);
   }
 }
 
 render() {
 
-  if (show == "all") {
-    all();
-  } else if (show == "padding") {
-    padding();
-  } else if (show == "core") {
-    core();
-  } else if (show == "intersect") {
-    intersect();
+  if (model == "dogs") {
+    if (show == "all") {
+      dogs_all();
+    } else if (show == "padding") {
+      dogs_padding();
+    } else if (show == "core") {
+      dogs_core();
+    } else if (show == "intersect") {
+      dogs_intersect();
+    }
+  } else if (model == "helping_hands") {
+
+    helping_hands();
   }
 }
