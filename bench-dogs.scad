@@ -11,8 +11,8 @@ show = "all"; // ["all", "padding", "core", "intersect"]
 
 /* [Hole] */
 d_peg_rod = 5.25; // [1:0.05:50]
-d_peg_screw = 6.1; // [1:0.05:50]
-d_peg_washer = 14.2; // [1:0.05:50]
+d_peg_screw = 6.3; // [1:0.05:50]
+d_peg_washer = 14.8; // [1:0.05:50]
 
 /* [Peg] */
 d_peg = 19.2; // [1:0.05:50]
