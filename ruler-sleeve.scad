@@ -134,6 +134,7 @@ square_small_shift = [0.8, 0, 0.6];
 
 square_small_conjoined_angle = 9.5;
 square_small_conjoined_shift = [0.9, 0, 0];
+square_small_conjoined_plate = 10;
 
 /* [Pocket Inserts] */
 
@@ -380,7 +381,7 @@ render() {
         dxz_inner=square_sliding_shift,
       );
 
-    translate(v=[square_small_conjoined_outer.x / 2, square_small_conjoined_outer.y / 2 + square_sliding_outer.y - square_chamfer * 2, 80])
+    translate(v=[square_small_conjoined_outer.x / 2, square_small_conjoined_outer.y / 2 + square_sliding_outer.y - square_chamfer * 2, 80]) {
       try_square(
         outer=square_small_conjoined_outer,
         inner=square_small_inner,
@@ -388,6 +389,21 @@ render() {
         x_cutout=square_small_cutout,
         dxz_inner=square_small_conjoined_shift,
       );
+
+      color(c="brown")
+        translate(v=[0, (square_small_conjoined_outer.y + square_small_conjoined_plate) / 2 - square_chamfer, -square_small_conjoined_outer.z / 2 + square_chamfer * 3 / 2])
+          cuboid(
+            [square_small_conjoined_outer.x, square_small_conjoined_plate + square_chamfer * 2, square_chamfer * 3],
+            chamfer=square_chamfer,
+            edges=[
+              TOP + LEFT,
+              TOP + RIGHT,
+              BOTTOM + LEFT,
+              BOTTOM + RIGHT,
+              BACK,
+            ]
+          );
+    }
   }
 
   translate(v=[0, 20, 0])
