@@ -141,7 +141,7 @@ insert_small_height = 37;
 insert_small_width = 54;
 insert_small_bottom_thickness = 10;
 insert_small_top_thickness = 12;
-insert_wall = d_filament * 3;
+insert_wall = d_filament * 4;
 insert_floor = t_layer * 5;
 
 echo(insert_wall=insert_wall);
