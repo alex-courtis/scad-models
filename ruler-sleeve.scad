@@ -139,7 +139,7 @@ square_small_conjoined_shift = [0.9, 0, 0];
 
 insert_small_height = 37;
 insert_small_width = 54;
-insert_small_bottom_thickness = 8;
+insert_small_bottom_thickness = 10;
 insert_small_top_thickness = 12;
 insert_wall = d_filament * 3;
 insert_floor = t_layer * 5;
@@ -298,13 +298,20 @@ module insert_small() {
         ) {
           edge_profile(
             edges=[
-              FRONT + TOP,
               FRONT + BOTTOM,
               BACK + BOTTOM,
             ],
             excess=2,
           ) {
             mask2d_roundover(r=insert_wall / 2);
+          }
+          edge_profile(
+            edges=[
+              FRONT + TOP,
+            ],
+            excess=2,
+          ) {
+            mask2d_chamfer(h=insert_wall);
           }
         }
     ;
@@ -329,7 +336,7 @@ module insert_small() {
 }
 
 render() {
-  // rotate(a=90, v=[1, 0, 0]) {
+  rotate(a=90, v=[1, 0, 0]) {
     translate(v=[ruler_long_outer.x / 2, ruler_long_outer.y / 2, 0])
       rulers();
 
@@ -360,9 +367,7 @@ render() {
         dxz_inner=square_sliding_shift,
       );
 
-// intersection()
-{
-    translate(v=[square_sliding_outer.x / 2, square_sliding_outer.y/ 2, 80])
+    translate(v=[square_sliding_outer.x / 2, square_sliding_outer.y / 2, 80])
       try_square(
         outer=square_sliding_outer,
         inner=square_sliding_inner,
@@ -371,7 +376,7 @@ render() {
         dxz_inner=square_sliding_shift,
       );
 
-    translate(v=[square_small_conjoined_outer.x / 2, square_small_conjoined_outer.y/2 + square_sliding_outer.y - square_chamfer*2, 80])
+    translate(v=[square_small_conjoined_outer.x / 2, square_small_conjoined_outer.y / 2 + square_sliding_outer.y - square_chamfer * 2, 80])
       try_square(
         outer=square_small_conjoined_outer,
         inner=square_small_inner,
@@ -379,8 +384,7 @@ render() {
         x_cutout=square_small_cutout,
         dxz_inner=square_small_conjoined_shift,
       );
-	  }
-  // }
+  }
 
   translate(v=[insert_small_width / 2, insert_small_height, 0])
     insert_small();
