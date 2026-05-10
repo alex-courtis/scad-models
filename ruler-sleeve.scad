@@ -139,12 +139,16 @@ square_small_conjoined_shift = [0.9, 0, 0];
 
 insert_small_height = 37;
 insert_small_width = 54;
-insert_small_bottom_thickness = 10;
-insert_small_top_thickness = 12;
-insert_wall = d_filament * 4;
-insert_floor = t_layer * 5;
+insert_small_thickness = [10, 12];
 
+insert_large_height = 80;
+insert_large_width = 54;
+insert_large_thickness = [10, 12];
+
+insert_wall = d_filament * 4;
 echo(insert_wall=insert_wall);
+
+insert_floor = t_layer * 5;
 echo(insert_floor=insert_floor);
 
 module ruler(outer, inner, chamfer, chamfer_edges) {
@@ -282,16 +286,16 @@ module try_square(outer, inner, a, x_cutout, dxz_inner) {
   }
 }
 
-module insert_small() {
+module insert_small(height, width, thickness) {
 
   difference() {
     color(c="peru")
       diff()
         prismoid(
-          size1=[insert_small_width, insert_small_bottom_thickness],
-          size2=[insert_small_width, insert_small_top_thickness],
-          shift=[0, (insert_small_bottom_thickness - insert_small_top_thickness) / 2],
-          h=insert_small_height,
+          size1=[width, thickness[0]],
+          size2=[width, thickness[1]],
+          shift=[0, (thickness[0] - thickness[1]) / 2],
+          h=height,
           orient=BACK,
           anchor=CENTER + BACK,
           rounding=insert_wall / 2,
@@ -321,7 +325,7 @@ module insert_small() {
         v=[0, insert_wall / 2, insert_floor]
       )
         cuboid(
-          [insert_small_width, insert_small_height, insert_small_top_thickness] - [insert_wall * 2, insert_wall, 0],
+          [width, height, thickness[1]] - [insert_wall * 2, insert_wall, 0],
           anchor=BOTTOM,
           rounding=insert_wall / 2,
           edges=[
@@ -386,6 +390,18 @@ render() {
       );
   }
 
-  translate(v=[insert_small_width / 2, insert_small_height, 0])
-    insert_small();
+  translate(v=[0, 20, 0])
+    translate(v=[insert_small_width / 2, insert_small_height / 2, 0])
+      insert_small(
+        height=insert_small_height,
+        width=insert_small_width,
+        thickness=insert_small_thickness,
+      );
+  translate(v=[0, 80, 0])
+    translate(v=[insert_large_width / 2, insert_large_height / 2, 0])
+      insert_small(
+        height=insert_large_height,
+        width=insert_large_width,
+        thickness=insert_large_thickness,
+      );
 }
