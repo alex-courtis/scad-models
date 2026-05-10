@@ -30,6 +30,7 @@ outer_walls_ruler = [
   2 * t_layer * 10,
   2 * d_filament * 3,
 ];
+echo(outer_walls_ruler=outer_walls_ruler);
 
 outer_chamfer_ruler = outer_walls_ruler.z / 2;
 
@@ -67,6 +68,7 @@ outer_walls_square_large = [
   2 * t_layer * 12,
   2 * d_filament * 10,
 ];
+echo(outer_walls_square_large=outer_walls_square_large);
 
 inner_square_large = square_large + 2 * square_gap;
 outer_square_large = inner_square_large + outer_walls_square_large;
@@ -89,6 +91,7 @@ outer_walls_square_small = [
   2 * t_layer * 12,
   2 * d_filament * 7,
 ];
+echo(outer_walls_square_small=outer_walls_square_small);
 
 inner_square_small = square_small + 2 * square_gap;
 outer_square_small = inner_square_small + outer_walls_square_small;
@@ -119,6 +122,17 @@ outer_square_sliding = inner_square_sliding + outer_walls_square_sliding;
 a_square_sliding = 5.0;
 x_cutout_square_sliding = 20;
 dxz_inner_square_sliding = [1, 0, 1];
+
+/* [Pocket Inserts] */
+insert_small_y = 37;
+insert_small_x = 54;
+insert_small_bottom_z = 8;
+insert_small_top_z = 12;
+insert_wall = d_filament * 3;
+insert_floor = t_layer * 5;
+
+echo(insert_wall=insert_wall);
+echo(insert_floor=insert_floor);
 
 module inner_mask(inner, outer) {
   translate(
@@ -267,6 +281,52 @@ module square(outer, inner, a, x_cutout, dxz_inner) {
   }
 }
 
+module insert_small() {
+
+  difference() {
+    color(c="peru")
+      diff()
+        prismoid(
+          size1=[insert_small_x, insert_small_bottom_z],
+          size2=[insert_small_x, insert_small_top_z],
+          shift=[0, (insert_small_bottom_z - insert_small_top_z) / 2],
+          h=insert_small_y,
+          orient=BACK,
+          anchor=CENTER + BACK,
+          rounding=insert_wall / 2,
+        ) {
+          edge_profile(
+            edges=[
+              FRONT + TOP,
+              FRONT + BOTTOM,
+              BACK + BOTTOM,
+            ],
+            excess=2,
+          ) {
+            mask2d_roundover(r=insert_wall / 2);
+          }
+        }
+    ;
+
+    color(c="sienna")
+      translate(
+        v=[0, insert_wall / 2, insert_floor]
+      )
+        cuboid(
+          [insert_small_x, insert_small_y, insert_small_top_z] - [insert_wall * 2, insert_wall, 0],
+          anchor=BOTTOM,
+          rounding=insert_wall / 2,
+          edges=[
+            BOTTOM + FRONT,
+            BOTTOM + LEFT,
+            BOTTOM + RIGHT,
+            FRONT + RIGHT,
+            FRONT + LEFT,
+          ],
+        );
+  }
+}
+
 render() {
   rotate(a=90, v=[1, 0, 0]) {
     translate(v=[bottom_ruler_large.x / 2, bottom_ruler_large.y / 2, 0])
@@ -299,4 +359,7 @@ render() {
         dxz_inner=dxz_inner_square_sliding,
       );
   }
+
+  translate(v=[insert_small_x / 2, insert_small_y, 0])
+    insert_small();
 }
