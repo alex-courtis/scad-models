@@ -13,38 +13,39 @@ ruler_gap = [
   0.3,
 ];
 
-ruler_small = [
+ruler_short = [
   110,
   15,
   0.5,
 ];
 
-ruler_large = [
+ruler_long = [
   160,
   15,
   0.5,
 ];
 
-outer_walls_ruler = [
+ruler_walls = [
   1 * d_filament * 3,
   2 * t_layer * 10,
   2 * d_filament * 3,
 ];
-echo(outer_walls_ruler=outer_walls_ruler);
+echo(ruler_walls=ruler_walls);
 
-outer_chamfer_ruler = outer_walls_ruler.z / 2;
+ruler_chamfer = ruler_walls.z / 2;
+echo(ruler_chamfer=ruler_chamfer);
 
-dxz_inner_ruler_large = 15;
+ruler_long_cutout = 15;
 
-dxz_inner_ruler_small = 10;
+ruler_short_cutout = 10;
 
-inner_ruler_large = ruler_large + 2 * ruler_gap;
+ruler_long_inner = ruler_long + 2 * ruler_gap;
 
-inner_ruler_small = ruler_small + 2 * ruler_gap + [dxz_inner_ruler_large, 0, 0];
+ruler_short_inner = ruler_short + 2 * ruler_gap + [ruler_long_cutout, 0, 0];
 
-bottom_ruler_large = inner_ruler_large + outer_walls_ruler;
+ruler_long_outer = ruler_long_inner + ruler_walls;
 
-bottom_ruler_small = inner_ruler_small + outer_walls_ruler;
+ruler_short_outer = ruler_short_inner + ruler_walls;
 
 /* [Square Dimensions] */
 
@@ -54,29 +55,31 @@ square_gap = [
   0.15,
 ];
 
-outer_chamfer_square = d_filament * 3;
+square_chamfer = d_filament * 3;
+echo(square_chamfer=square_chamfer);
 
 /* [Square Large] */
+
 square_large = [
   97.5 + 1,
   16.3,
   1.8,
 ];
 
-outer_walls_square_large = [
+square_large_walls = [
   1 * d_filament * 3,
   2 * t_layer * 12,
   2 * d_filament * 10,
 ];
-echo(outer_walls_square_large=outer_walls_square_large);
+echo(square_large_walls=square_large_walls);
 
-inner_square_large = square_large + 2 * square_gap;
-outer_square_large = inner_square_large + outer_walls_square_large;
+square_large_inner = square_large + 2 * square_gap;
+square_large_outer = square_large_inner + square_large_walls;
 
 // just tune these to match outer
-a_square_large = 4.5;
-x_cutout_square_large = 20;
-dxz_inner_square_large = [1, 0, 1];
+square_large_angle = 4.5;
+square_large_cutout = 20;
+square_large_shift = [1, 0, 1];
 
 /* [Square Small] */
 
@@ -86,20 +89,20 @@ square_small = [
   1.8,
 ];
 
-outer_walls_square_small = [
+square_small_walls = [
   1 * d_filament * 3,
   2 * t_layer * 12,
   2 * d_filament * 7,
 ];
-echo(outer_walls_square_small=outer_walls_square_small);
+echo(square_small_walls=square_small_walls);
 
-inner_square_small = square_small + 2 * square_gap;
-outer_square_small = inner_square_small + outer_walls_square_small;
+square_small_inner = square_small + 2 * square_gap;
+square_small_outer = square_small_inner + square_small_walls;
 
 // just tune these to match outer
-a_square_small = 6.5;
-x_cutout_square_small = 7.5;
-dxz_inner_square_small = [0.8, 0, 0.6];
+square_small_angle = 6.5;
+square_small_cutout = 7.5;
+square_small_shift = [0.8, 0, 0.6];
 
 /* [Square Sliding] */
 
@@ -109,143 +112,132 @@ square_sliding = [
   2,
 ];
 
-outer_walls_square_sliding = [
+square_sliding_walls = [
   1 * d_filament * 3,
   2 * t_layer * 12,
   2 * d_filament * 10,
 ];
 
-inner_square_sliding = square_sliding + 2 * square_gap;
-outer_square_sliding = inner_square_sliding + outer_walls_square_sliding;
+square_sliding_inner = square_sliding + 2 * square_gap;
+square_sliding_outer = square_sliding_inner + square_sliding_walls;
 
 // just tune these to match outer
-a_square_sliding = 5.0;
-x_cutout_square_sliding = 20;
-dxz_inner_square_sliding = [1, 0, 1];
+square_sliding_angle = 5.0;
+square_sliding_cutout = 20;
+square_sliding_shift = [1, 0, 1];
 
 /* [Pocket Inserts] */
-insert_small_y = 37;
-insert_small_x = 54;
-insert_small_bottom_z = 8;
-insert_small_top_z = 12;
+
+insert_small_height = 37;
+insert_small_width = 54;
+insert_small_bottom_thickness = 8;
+insert_small_top_thickness = 12;
 insert_wall = d_filament * 3;
 insert_floor = t_layer * 5;
 
 echo(insert_wall=insert_wall);
 echo(insert_floor=insert_floor);
 
-module inner_mask(inner, outer) {
-  translate(
-    v=[
-      (outer.x - inner.x) / 2,
-      0,
-      0,
-    ]
-  )
-    cuboid(
-      inner,
-      chamfer=inner.z / 2,
-      edges=[
-        BACK + TOP,
-        BACK + BOTTOM,
-      ],
-    );
-}
-
-module holder(bottom, inner, chamfer, chamfer_edges) {
+module ruler(outer, inner, chamfer, chamfer_edges) {
   difference() {
     cuboid(
       chamfer=chamfer,
-      bottom,
+      outer,
       edges=chamfer_edges,
     );
-    inner_mask(inner, bottom);
+    translate(
+      v=[
+        (outer.x - inner.x) / 2,
+        0,
+        0,
+      ]
+    )
+      cuboid(
+        inner,
+        chamfer=inner.z / 2,
+        edges=[
+          BACK + TOP,
+          BACK + BOTTOM,
+        ],
+      );
   }
 }
 
-module holder_ruler_bottom() {
-  holder(
-    bottom=bottom_ruler_large,
-    inner=inner_ruler_large,
-    chamfer=outer_chamfer_ruler,
-    chamfer_edges=[
-      LEFT,
-      RIGHT + BOTTOM,
-      RIGHT + FRONT,
-      RIGHT + BACK,
-    ]
-  );
-}
-
-module holder_ruler_top() {
-  translate(
-    v=[
-      (bottom_ruler_large.x - bottom_ruler_small.x) / 2,
-      0,
-      bottom_ruler_large.z - outer_walls_ruler.z / 2,
-    ]
-  )
-    holder(
-      bottom=bottom_ruler_small,
-      inner=inner_ruler_small,
-      chamfer=outer_chamfer_ruler,
-      chamfer_edges=[
-        LEFT,
-        RIGHT + TOP,
-        RIGHT + FRONT,
-        RIGHT + BACK,
-      ]
-    );
-}
-
-module cutout_mask(bottom, inner, dx, dz = 0, a = 0) {
-  mask = [dx, inner.y, bottom.z];
-
-  translate(
-    v=[
-      bottom.x / 2 + mask.x / 2 - dx,
-      0,
-      mask.z / 2 + dz,
-    ]
-  )
-    rotate(a=-a, v=[0, 1, 0])
-      cuboid(mask);
-}
-
 module rulers() {
+  module cutout_mask(outer, inner, dx, dz = 0, a = 0) {
+    mask = [dx, inner.y, outer.z];
+
+    translate(
+      v=[
+        outer.x / 2 + mask.x / 2 - dx,
+        0,
+        mask.z / 2 + dz,
+      ]
+    )
+      rotate(a=-a, v=[0, 1, 0])
+        cuboid(mask);
+  }
+
   difference() {
     union() {
       color(c="darkgray")
-        holder_ruler_bottom();
+        ruler(
+          outer=ruler_long_outer,
+          inner=ruler_long_inner,
+          chamfer=ruler_chamfer,
+          chamfer_edges=[
+            LEFT,
+            RIGHT + BOTTOM,
+            RIGHT + FRONT,
+            RIGHT + BACK,
+          ]
+        );
 
       color(c="pink")
-        holder_ruler_top();
+        translate(
+          v=[
+            (ruler_long_outer.x - ruler_short_outer.x) / 2,
+            0,
+            ruler_long_outer.z - ruler_walls.z / 2,
+          ]
+        )
+          ruler(
+            outer=ruler_short_outer,
+            inner=ruler_short_inner,
+            chamfer=ruler_chamfer,
+            chamfer_edges=[
+              LEFT,
+              RIGHT + TOP,
+              RIGHT + FRONT,
+              RIGHT + BACK,
+            ]
+          );
     }
 
     color(c="orange")
       cutout_mask(
-        bottom=bottom_ruler_large,
-        inner=inner_ruler_large,
-        dx=dxz_inner_ruler_large,
+        outer=ruler_long_outer,
+        inner=ruler_long_inner,
+        dx=ruler_long_cutout,
       );
 
     color(c="brown")
       cutout_mask(
-        bottom=bottom_ruler_large,
-        inner=inner_ruler_large,
-        dx=dxz_inner_ruler_large + dxz_inner_ruler_small,
-        dz=bottom_ruler_large.z / 2 + bottom_ruler_small.z / 2 - outer_walls_ruler.z / 2,
+        outer=ruler_long_outer,
+        inner=ruler_long_inner,
+        dx=ruler_long_cutout + ruler_short_cutout,
+        dz=ruler_long_outer.z / 2 + ruler_short_outer.z / 2 - ruler_walls.z / 2,
       );
   }
 }
 
-module square(outer, inner, a, x_cutout, dxz_inner) {
+module try_square(outer, inner, a, x_cutout, dxz_inner) {
   difference() {
 
     color(c="steelblue")
       cuboid(
         outer,
-        chamfer=outer_chamfer_square,
+        chamfer=square_chamfer,
         edges=EDGES_ALL,
       );
 
@@ -287,10 +279,10 @@ module insert_small() {
     color(c="peru")
       diff()
         prismoid(
-          size1=[insert_small_x, insert_small_bottom_z],
-          size2=[insert_small_x, insert_small_top_z],
-          shift=[0, (insert_small_bottom_z - insert_small_top_z) / 2],
-          h=insert_small_y,
+          size1=[insert_small_width, insert_small_bottom_thickness],
+          size2=[insert_small_width, insert_small_top_thickness],
+          shift=[0, (insert_small_bottom_thickness - insert_small_top_thickness) / 2],
+          h=insert_small_height,
           orient=BACK,
           anchor=CENTER + BACK,
           rounding=insert_wall / 2,
@@ -313,7 +305,7 @@ module insert_small() {
         v=[0, insert_wall / 2, insert_floor]
       )
         cuboid(
-          [insert_small_x, insert_small_y, insert_small_top_z] - [insert_wall * 2, insert_wall, 0],
+          [insert_small_width, insert_small_height, insert_small_top_thickness] - [insert_wall * 2, insert_wall, 0],
           anchor=BOTTOM,
           rounding=insert_wall / 2,
           edges=[
@@ -329,37 +321,37 @@ module insert_small() {
 
 render() {
   rotate(a=90, v=[1, 0, 0]) {
-    translate(v=[bottom_ruler_large.x / 2, bottom_ruler_large.y / 2, 0])
+    translate(v=[ruler_long_outer.x / 2, ruler_long_outer.y / 2, 0])
       rulers();
 
-    translate(v=[outer_square_large.x / 2, outer_square_large.y / 2, 20])
-      square(
-        outer=outer_square_large,
-        inner=inner_square_large,
-        a=a_square_large,
-        x_cutout=x_cutout_square_large,
-        dxz_inner=dxz_inner_square_large,
+    translate(v=[square_large_outer.x / 2, square_large_outer.y / 2, 20])
+      try_square(
+        outer=square_large_outer,
+        inner=square_large_inner,
+        a=square_large_angle,
+        x_cutout=square_large_cutout,
+        dxz_inner=square_large_shift,
       );
 
-    translate(v=[outer_square_small.x / 2, outer_square_small.y / 2, 40])
-      square(
-        outer=outer_square_small,
-        inner=inner_square_small,
-        a=a_square_small,
-        x_cutout=x_cutout_square_small,
-        dxz_inner=dxz_inner_square_small,
+    translate(v=[square_small_outer.x / 2, square_small_outer.y / 2, 40])
+      try_square(
+        outer=square_small_outer,
+        inner=square_small_inner,
+        a=square_small_angle,
+        x_cutout=square_small_cutout,
+        dxz_inner=square_small_shift,
       );
 
-    translate(v=[outer_square_sliding.x / 2, outer_square_sliding.y / 2, 60])
-      square(
-        outer=outer_square_sliding,
-        inner=inner_square_sliding,
-        a=a_square_sliding,
-        x_cutout=x_cutout_square_sliding,
-        dxz_inner=dxz_inner_square_sliding,
+    translate(v=[square_sliding_outer.x / 2, square_sliding_outer.y / 2, 60])
+      try_square(
+        outer=square_sliding_outer,
+        inner=square_sliding_inner,
+        a=square_sliding_angle,
+        x_cutout=square_sliding_cutout,
+        dxz_inner=square_sliding_shift,
       );
   }
 
-  translate(v=[insert_small_x / 2, insert_small_y, 0])
-    insert_small();
+  translate(v=[insert_small_width / 2, insert_small_height, 0])
+   insert_small();
 }
