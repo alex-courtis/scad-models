@@ -58,6 +58,30 @@ square_gap = [
 square_chamfer = d_filament * 3;
 echo(square_chamfer=square_chamfer);
 
+/* [Square Sliding] */
+
+square_sliding = [
+  74 + 1,
+  19.6,
+  2,
+];
+
+square_sliding_walls = [
+  1 * d_filament * 3,
+  2 * t_layer * 12,
+  2 * d_filament * 10,
+];
+echo(square_sliding_walls=square_sliding_walls);
+
+square_sliding_inner = square_sliding + 2 * square_gap;
+square_sliding_outer = square_sliding_inner + square_sliding_walls;
+echo(square_sliding_outer=square_sliding_outer);
+
+// just tune these to match outer
+square_sliding_angle = 5.0;
+square_sliding_cutout = 20;
+square_sliding_shift = [1, 0, 1];
+
 /* [Square Large] */
 
 square_large = [
@@ -98,33 +122,18 @@ echo(square_small_walls=square_small_walls);
 
 square_small_inner = square_small + 2 * square_gap;
 square_small_outer = square_small_inner + square_small_walls;
+echo(square_small_outer=square_small_outer);
+
+square_small_conjoined_outer = [square_small_outer.x, square_small_outer.y, square_sliding_outer.z];
+echo(square_small_conjoined_outer=square_small_conjoined_outer);
 
 // just tune these to match outer
 square_small_angle = 6.5;
 square_small_cutout = 7.5;
 square_small_shift = [0.8, 0, 0.6];
 
-/* [Square Sliding] */
-
-square_sliding = [
-  74 + 1,
-  19.6,
-  2,
-];
-
-square_sliding_walls = [
-  1 * d_filament * 3,
-  2 * t_layer * 12,
-  2 * d_filament * 10,
-];
-
-square_sliding_inner = square_sliding + 2 * square_gap;
-square_sliding_outer = square_sliding_inner + square_sliding_walls;
-
-// just tune these to match outer
-square_sliding_angle = 5.0;
-square_sliding_cutout = 20;
-square_sliding_shift = [1, 0, 1];
+square_small_conjoined_angle = 9.5;
+square_small_conjoined_shift = [0.9, 0, 0];
 
 /* [Pocket Inserts] */
 
@@ -242,7 +251,7 @@ module try_square(outer, inner, a, x_cutout, dxz_inner) {
       );
 
     rotate(a=-a, v=[0, 1, 0])
-      translate(v=dxz_inner) {
+      translate(v=dxz_inner + [0, 0, 0]) {
 
         color(c="orange")
           cuboid(
@@ -257,14 +266,14 @@ module try_square(outer, inner, a, x_cutout, dxz_inner) {
         color(c="blue")
           translate(
             v=[
-              (inner.x - x_cutout) / 2,
+              inner.x / 2,
               0,
               outer.z / 4,
             ]
           )
             cuboid(
               [
-                x_cutout,
+                x_cutout * 2,
                 inner.y,
                 outer.z / 2,
               ]
@@ -320,7 +329,7 @@ module insert_small() {
 }
 
 render() {
-  rotate(a=90, v=[1, 0, 0]) {
+  // rotate(a=90, v=[1, 0, 0]) {
     translate(v=[ruler_long_outer.x / 2, ruler_long_outer.y / 2, 0])
       rulers();
 
@@ -350,8 +359,29 @@ render() {
         x_cutout=square_sliding_cutout,
         dxz_inner=square_sliding_shift,
       );
-  }
+
+// intersection()
+{
+    translate(v=[square_sliding_outer.x / 2, square_sliding_outer.y/ 2, 80])
+      try_square(
+        outer=square_sliding_outer,
+        inner=square_sliding_inner,
+        a=square_sliding_angle,
+        x_cutout=square_sliding_cutout,
+        dxz_inner=square_sliding_shift,
+      );
+
+    translate(v=[square_small_conjoined_outer.x / 2, square_small_conjoined_outer.y/2 + square_sliding_outer.y - square_chamfer*2, 80])
+      try_square(
+        outer=square_small_conjoined_outer,
+        inner=square_small_inner,
+        a=square_small_conjoined_angle,
+        x_cutout=square_small_cutout,
+        dxz_inner=square_small_conjoined_shift,
+      );
+	  }
+  // }
 
   translate(v=[insert_small_width / 2, insert_small_height, 0])
-   insert_small();
+    insert_small();
 }
