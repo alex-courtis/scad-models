@@ -155,6 +155,8 @@ echo(insert_wall_back=insert_wall_back);
 insert_floor = t_layer * 5;
 echo(insert_floor=insert_floor);
 
+square_sliding_insert = [square_sliding_outer.x, insert_large_width - square_sliding_outer.y, square_sliding_outer.z];
+
 module ruler(outer, inner, chamfer, chamfer_edges) {
   difference() {
     cuboid(
@@ -316,9 +318,9 @@ module insert(height, width, thickness) {
           edge_profile(
             edges=[
               BOTTOM,
-			  TOP + FRONT,
+              TOP + FRONT,
             ],
-			excess = 2,
+            excess=2,
           ) {
             mask2d_roundover(r=insert_wall_back);
           }
@@ -345,10 +347,14 @@ module insert(height, width, thickness) {
 }
 
 render() {
+  // rotate for print
   rotate(a=90, v=[1, 0, 0]) {
+
+    // twin rulers
     translate(v=[ruler_long_outer.x / 2, ruler_long_outer.y / 2, 0])
       rulers();
 
+    // large square
     translate(v=[square_large_outer.x / 2, square_large_outer.y / 2, 20])
       try_square(
         outer=square_large_outer,
@@ -358,6 +364,7 @@ render() {
         dxz_inner=square_large_shift,
       );
 
+    // small square
     translate(v=[square_small_outer.x / 2, square_small_outer.y / 2, 40])
       try_square(
         outer=square_small_outer,
@@ -367,6 +374,7 @@ render() {
         dxz_inner=square_small_shift,
       );
 
+    // sliding square
     translate(v=[square_sliding_outer.x / 2, square_sliding_outer.y / 2, 60])
       try_square(
         outer=square_sliding_outer,
@@ -376,37 +384,97 @@ render() {
         dxz_inner=square_sliding_shift,
       );
 
-    translate(v=[square_sliding_outer.x / 2, square_sliding_outer.y / 2, 80])
-      try_square(
-        outer=square_sliding_outer,
-        inner=square_sliding_inner,
-        a=square_sliding_angle,
-        x_cutout=square_sliding_cutout,
-        dxz_inner=square_sliding_shift,
-      );
+    // sliding square with pocket
+    translate(v=[square_sliding_outer.x / 2, 0, 80]) {
+      pocket_outer = square_sliding_insert + [0, square_chamfer, 0];
+      pocket_inner = pocket_outer - [insert_wall_side, insert_wall_side, square_chamfer];
+      difference() {
+        union() {
+          translate(v=[0, square_sliding_outer.y / 2, 0])
+            try_square(
+              outer=square_sliding_outer,
+              inner=square_sliding_inner,
+              a=square_sliding_angle,
+              x_cutout=square_sliding_cutout,
+              dxz_inner=square_sliding_shift,
+            );
 
-    translate(v=[square_small_conjoined_outer.x / 2, square_small_conjoined_outer.y / 2 + square_sliding_outer.y - square_chamfer * 2, 80]) {
-      try_square(
-        outer=square_small_conjoined_outer,
-        inner=square_small_inner,
-        a=square_small_conjoined_angle,
-        x_cutout=square_small_cutout,
-        dxz_inner=square_small_conjoined_shift,
-      );
+          color(c="white")
+            translate(
+              v=[
+                0,
+                square_sliding_insert.y / 2 - square_chamfer / 2 + square_sliding_outer.y,
+                0,
+              ]
+            )
+              cuboid(
+                pocket_outer,
+                chamfer=square_chamfer,
+                edges=[
+                  BACK,
+                  LEFT + TOP,
+                  LEFT + BOTTOM,
+                  RIGHT + TOP,
+				  FRONT + RIGHT,
+                ],
+              );
+        }
 
-      color(c="brown")
-        translate(v=[0, (square_small_conjoined_outer.y + square_small_conjoined_plate) / 2 - square_chamfer, -square_small_conjoined_outer.z / 2 + square_chamfer * 3 / 2])
+        translate(
+          v=[
+            insert_wall_side / 2,
+            square_sliding_insert.y / 2 - square_chamfer / 2 + square_sliding_outer.y - insert_wall_side / 2,
+            square_chamfer / 2,
+          ]
+        )
           cuboid(
-            [square_small_conjoined_outer.x, square_small_conjoined_plate + square_chamfer * 2, square_chamfer * 3],
+            pocket_inner,
             chamfer=square_chamfer,
             edges=[
-              TOP + LEFT,
-              TOP + RIGHT,
               BOTTOM + LEFT,
-              BOTTOM + RIGHT,
-              BACK,
-            ]
+              BOTTOM + BACK,
+              BOTTOM + FRONT,
+              LEFT + FRONT,
+              LEFT + BACK,
+            ],
           );
+      }
+    }
+
+    // conjoined sliding and small square
+    translate(v=[0, 0, 100]) {
+      translate(v=[square_sliding_outer.x / 2, square_sliding_outer.y / 2, 0])
+        try_square(
+          outer=square_sliding_outer,
+          inner=square_sliding_inner,
+          a=square_sliding_angle,
+          x_cutout=square_sliding_cutout,
+          dxz_inner=square_sliding_shift,
+        );
+
+      translate(v=[square_small_conjoined_outer.x / 2, square_small_conjoined_outer.y / 2 + square_sliding_outer.y - square_chamfer * 2, 0]) {
+        try_square(
+          outer=square_small_conjoined_outer,
+          inner=square_small_inner,
+          a=square_small_conjoined_angle,
+          x_cutout=square_small_cutout,
+          dxz_inner=square_small_conjoined_shift,
+        );
+
+        color(c="brown")
+          translate(v=[0, (square_small_conjoined_outer.y + square_small_conjoined_plate) / 2 - square_chamfer, -square_small_conjoined_outer.z / 2 + square_chamfer * 3 / 2])
+            cuboid(
+              [square_small_conjoined_outer.x, square_small_conjoined_plate + square_chamfer * 2, square_chamfer * 3],
+              chamfer=square_chamfer,
+              edges=[
+                TOP + LEFT,
+                TOP + RIGHT,
+                BOTTOM + LEFT,
+                BOTTOM + RIGHT,
+                BACK,
+              ]
+            );
+      }
     }
   }
 
