@@ -156,6 +156,8 @@ insert_floor = t_layer * 5;
 echo(insert_floor=insert_floor);
 
 square_sliding_insert = [square_sliding_outer.x, insert_large_width - square_sliding_outer.y, square_sliding_outer.z];
+square_sliding_insert_floor = t_layer * 8;
+echo(square_sliding_insert_floor=square_sliding_insert_floor);
 
 module ruler(outer, inner, chamfer, chamfer_edges) {
   difference() {
@@ -250,7 +252,7 @@ module rulers() {
   }
 }
 
-module try_square(outer, inner, a, x_cutout, dxz_inner) {
+module try_square(outer, inner, a, x_cutout, dxz_inner, round_top = true) {
   difference() {
 
     color(c="steelblue")
@@ -266,7 +268,7 @@ module try_square(outer, inner, a, x_cutout, dxz_inner) {
         color(c="orange")
           cuboid(
             inner,
-            rounding=inner.z / 2,
+            rounding=round_top ? inner.z / 2 : 0,
             edges=[
               BACK + BOTTOM,
               BACK + TOP,
@@ -387,7 +389,7 @@ render() {
     // sliding square with pocket
     translate(v=[square_sliding_outer.x / 2, 0, 80]) {
       pocket_outer = square_sliding_insert + [0, square_chamfer, 0];
-      pocket_inner = pocket_outer - [insert_wall_side, insert_wall_side, square_chamfer];
+      pocket_inner = pocket_outer - [insert_wall_side, insert_wall_side, square_sliding_insert_floor];
       difference() {
         union() {
           translate(v=[0, square_sliding_outer.y / 2, 0])
@@ -397,6 +399,7 @@ render() {
               a=square_sliding_angle,
               x_cutout=square_sliding_cutout,
               dxz_inner=square_sliding_shift,
+              round_top=false,
             );
 
           color(c="white")
@@ -415,7 +418,7 @@ render() {
                   LEFT + TOP,
                   LEFT + BOTTOM,
                   RIGHT + TOP,
-				  FRONT + RIGHT,
+                  RIGHT + BOTTOM,
                 ],
               );
         }
@@ -424,7 +427,7 @@ render() {
           v=[
             insert_wall_side / 2,
             square_sliding_insert.y / 2 - square_chamfer / 2 + square_sliding_outer.y - insert_wall_side / 2,
-            square_chamfer / 2,
+            square_sliding_insert_floor / 2,
           ]
         )
           cuboid(
