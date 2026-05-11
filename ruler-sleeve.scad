@@ -138,16 +138,19 @@ square_small_conjoined_plate = 10;
 
 /* [Pocket Inserts] */
 
-insert_small_height = 37;
-insert_small_width = 54;
-insert_small_thickness = [10, 12];
+insert_small_height = 44;
+insert_small_width = 53;
+insert_small_thickness = [9, 14];
 
-insert_large_height = 80;
-insert_large_width = 54;
-insert_large_thickness = [10, 12];
+insert_large_height = 85;
+insert_large_width = 53;
+insert_large_thickness = [9, 14];
 
-insert_wall = d_filament * 4;
-echo(insert_wall=insert_wall);
+insert_wall_side = d_filament * 6;
+echo(insert_wall_side=insert_wall_side);
+
+insert_wall_back = d_filament * 8;
+echo(insert_wall_back=insert_wall_back);
 
 insert_floor = t_layer * 5;
 echo(insert_floor=insert_floor);
@@ -287,7 +290,7 @@ module try_square(outer, inner, a, x_cutout, dxz_inner) {
   }
 }
 
-module insert_small(height, width, thickness) {
+module insert(height, width, thickness) {
 
   difference() {
     color(c="peru")
@@ -299,36 +302,37 @@ module insert_small(height, width, thickness) {
           h=height,
           orient=BACK,
           anchor=CENTER + BACK,
-          rounding=insert_wall / 2,
+          rounding=insert_wall_side / 2,
         ) {
           edge_profile(
             edges=[
-              FRONT + BOTTOM,
-              BACK + BOTTOM,
+              TOP + LEFT,
+              TOP + RIGHT,
+              TOP + BACK,
             ],
-            excess=2,
           ) {
-            mask2d_roundover(r=insert_wall / 2);
+            mask2d_roundover(r=insert_wall_side * 2 / 3);
           }
           edge_profile(
             edges=[
-              FRONT + TOP,
+              BOTTOM,
+			  TOP + FRONT,
             ],
-            excess=2,
+			excess = 2,
           ) {
-            mask2d_chamfer(h=insert_wall);
+            mask2d_roundover(r=insert_wall_back);
           }
         }
     ;
 
     color(c="sienna")
       translate(
-        v=[0, insert_wall / 2, insert_floor]
+        v=[0, insert_wall_back / 2, insert_floor]
       )
         cuboid(
-          [width, height, thickness[1]] - [insert_wall * 2, insert_wall, 0],
+          [width, height, thickness[1]] - [insert_wall_side * 2, insert_wall_back, 0],
           anchor=BOTTOM,
-          rounding=insert_wall / 2,
+          rounding=insert_wall_side / 2,
           edges=[
             BOTTOM + FRONT,
             BOTTOM + LEFT,
@@ -406,16 +410,19 @@ render() {
     }
   }
 
+  // insert small
   translate(v=[0, 20, 0])
     translate(v=[insert_small_width / 2, insert_small_height / 2, 0])
-      insert_small(
+      insert(
         height=insert_small_height,
         width=insert_small_width,
         thickness=insert_small_thickness,
       );
+
+  // insert large
   translate(v=[0, 80, 0])
     translate(v=[insert_large_width / 2, insert_large_height / 2, 0])
-      insert_small(
+      insert(
         height=insert_large_height,
         width=insert_large_width,
         thickness=insert_large_thickness,
