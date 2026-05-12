@@ -159,6 +159,10 @@ square_sliding_insert = [square_sliding_outer.x, insert_large_width - square_sli
 square_sliding_insert_floor = t_layer * 8;
 echo(square_sliding_insert_floor=square_sliding_insert_floor);
 
+square_small_standoff_wall = square_chamfer * 3 / 2;
+echo(square_small_standoff_wall=square_small_standoff_wall);
+square_small_standoff_height = 12;
+
 module ruler(outer, inner, chamfer, chamfer_edges) {
   difference() {
     cuboid(
@@ -295,7 +299,6 @@ module try_square(outer, inner, a, x_cutout, dxz_inner, round_top = true) {
 }
 
 module insert(height, width, thickness) {
-
   difference() {
     color(c="peru")
       diff()
@@ -348,141 +351,190 @@ module insert(height, width, thickness) {
   }
 }
 
-render() {
-  // rotate for print
-  rotate(a=90, v=[1, 0, 0]) {
+module sliding_square_with_pocket() {
+  pocket_outer = square_sliding_insert + [0, square_chamfer, 0];
+  pocket_inner = pocket_outer - [insert_wall_side, insert_wall_side, square_sliding_insert_floor];
 
-    // twin rulers
-    translate(v=[ruler_long_outer.x / 2, ruler_long_outer.y / 2, 0])
-      rulers();
-
-    // large square
-    translate(v=[square_large_outer.x / 2, square_large_outer.y / 2, 20])
-      try_square(
-        outer=square_large_outer,
-        inner=square_large_inner,
-        a=square_large_angle,
-        x_cutout=square_large_cutout,
-        dxz_inner=square_large_shift,
-      );
-
-    // small square
-    translate(v=[square_small_outer.x / 2, square_small_outer.y / 2, 40])
-      try_square(
-        outer=square_small_outer,
-        inner=square_small_inner,
-        a=square_small_angle,
-        x_cutout=square_small_cutout,
-        dxz_inner=square_small_shift,
-      );
-
-    // sliding square
-    translate(v=[square_sliding_outer.x / 2, square_sliding_outer.y / 2, 60])
-      try_square(
-        outer=square_sliding_outer,
-        inner=square_sliding_inner,
-        a=square_sliding_angle,
-        x_cutout=square_sliding_cutout,
-        dxz_inner=square_sliding_shift,
-      );
-
-    // sliding square with pocket
-    translate(v=[square_sliding_outer.x / 2, 0, 80]) {
-      pocket_outer = square_sliding_insert + [0, square_chamfer, 0];
-      pocket_inner = pocket_outer - [insert_wall_side, insert_wall_side, square_sliding_insert_floor];
-      difference() {
-        union() {
-          translate(v=[0, square_sliding_outer.y / 2, 0])
-            try_square(
-              outer=square_sliding_outer,
-              inner=square_sliding_inner,
-              a=square_sliding_angle,
-              x_cutout=square_sliding_cutout,
-              dxz_inner=square_sliding_shift,
-              round_top=false,
-            );
-
-          color(c="white")
-            translate(
-              v=[
-                0,
-                square_sliding_insert.y / 2 - square_chamfer / 2 + square_sliding_outer.y,
-                0,
-              ]
-            )
-              cuboid(
-                pocket_outer,
-                chamfer=square_chamfer,
-                edges=[
-                  BACK,
-                  LEFT + TOP,
-                  LEFT + BOTTOM,
-                  RIGHT + TOP,
-                  RIGHT + BOTTOM,
-                ],
-              );
-        }
-
-        translate(
-          v=[
-            insert_wall_side / 2,
-            square_sliding_insert.y / 2 - square_chamfer / 2 + square_sliding_outer.y - insert_wall_side / 2,
-            square_sliding_insert_floor / 2,
-          ]
-        )
-          cuboid(
-            pocket_inner,
-            chamfer=square_chamfer,
-            edges=[
-              BOTTOM + LEFT,
-              BOTTOM + BACK,
-              BOTTOM + FRONT,
-              LEFT + FRONT,
-              LEFT + BACK,
-            ],
-          );
-      }
-    }
-
-    // conjoined sliding and small square
-    translate(v=[0, 0, 100]) {
-      translate(v=[square_sliding_outer.x / 2, square_sliding_outer.y / 2, 0])
+  difference() {
+    union() {
+      translate(v=[0, square_sliding_outer.y / 2, 0])
         try_square(
           outer=square_sliding_outer,
           inner=square_sliding_inner,
           a=square_sliding_angle,
           x_cutout=square_sliding_cutout,
           dxz_inner=square_sliding_shift,
+          round_top=false,
         );
 
-      translate(v=[square_small_conjoined_outer.x / 2, square_small_conjoined_outer.y / 2 + square_sliding_outer.y - square_chamfer * 2, 0]) {
-        try_square(
-          outer=square_small_conjoined_outer,
-          inner=square_small_inner,
-          a=square_small_conjoined_angle,
-          x_cutout=square_small_cutout,
-          dxz_inner=square_small_conjoined_shift,
-        );
-
-        color(c="brown")
-          translate(v=[0, (square_small_conjoined_outer.y + square_small_conjoined_plate) / 2 - square_chamfer, -square_small_conjoined_outer.z / 2 + square_chamfer * 3 / 2])
-            cuboid(
-              [square_small_conjoined_outer.x, square_small_conjoined_plate + square_chamfer * 2, square_chamfer * 3],
-              chamfer=square_chamfer,
-              edges=[
-                TOP + LEFT,
-                TOP + RIGHT,
-                BOTTOM + LEFT,
-                BOTTOM + RIGHT,
-                BACK,
-              ]
-            );
-      }
+      color(c="white")
+        translate(
+          v=[
+            0,
+            square_sliding_insert.y / 2 - square_chamfer / 2 + square_sliding_outer.y,
+            0,
+          ]
+        )
+          cuboid(
+            pocket_outer,
+            chamfer=square_chamfer,
+            edges=[
+              BACK,
+              LEFT + TOP,
+              LEFT + BOTTOM,
+              RIGHT + TOP,
+              RIGHT + BOTTOM,
+            ],
+          );
     }
+
+    translate(
+      v=[
+        insert_wall_side / 2,
+        square_sliding_insert.y / 2 - square_chamfer / 2 + square_sliding_outer.y - insert_wall_side / 2,
+        square_sliding_insert_floor / 2,
+      ]
+    )
+      cuboid(
+        pocket_inner,
+        chamfer=square_chamfer,
+        edges=[
+          BOTTOM + LEFT,
+          BOTTOM + BACK,
+          BOTTOM + FRONT,
+          LEFT + FRONT,
+          LEFT + BACK,
+        ],
+      );
   }
+}
+
+module sliding_small_square_conjoined() {
+  translate(v=[square_sliding_outer.x / 2, square_sliding_outer.y / 2, 0])
+    try_square(
+      outer=square_sliding_outer,
+      inner=square_sliding_inner,
+      a=square_sliding_angle,
+      x_cutout=square_sliding_cutout,
+      dxz_inner=square_sliding_shift,
+    );
+
+  translate(v=[square_small_conjoined_outer.x / 2, square_small_conjoined_outer.y / 2 + square_sliding_outer.y - square_chamfer * 2, 0]) {
+    try_square(
+      outer=square_small_conjoined_outer,
+      inner=square_small_inner,
+      a=square_small_conjoined_angle,
+      x_cutout=square_small_cutout,
+      dxz_inner=square_small_conjoined_shift,
+    );
+
+    color(c="brown")
+      translate(v=[0, (square_small_conjoined_outer.y + square_small_conjoined_plate) / 2 - square_chamfer, -square_small_conjoined_outer.z / 2 + square_chamfer * 3 / 2])
+        cuboid(
+          [square_small_conjoined_outer.x, square_small_conjoined_plate + square_chamfer * 2, square_chamfer * 3],
+          chamfer=square_chamfer,
+          edges=[
+            TOP + LEFT,
+            TOP + RIGHT,
+            BOTTOM + LEFT,
+            BOTTOM + RIGHT,
+            BACK,
+          ]
+        );
+  }
+}
+
+module small_square_with_standoffs() {
+  try_square(
+    outer=square_small_outer,
+    inner=square_small_inner,
+    a=square_small_angle,
+    x_cutout=square_small_cutout,
+    dxz_inner=square_small_shift,
+    round_top=false,
+  );
+
+  standoff = [square_small_outer.x, square_small_standoff_wall, square_small_standoff_height + square_chamfer];
+
+  translate(v=[0, 0, -(standoff.z + square_small_outer.z) / 2 + square_chamfer]) {
+    translate(v=[0, (square_small_outer.y - standoff.y) / 2, 0])
+      cuboid(
+        standoff,
+        chamfer=square_chamfer,
+        edges=[
+          BACK + BOTTOM,
+          BACK + LEFT,
+          BACK + RIGHT,
+          BOTTOM + LEFT,
+          BOTTOM + RIGHT,
+        ],
+      );
+
+    translate(v=[0, -(square_small_outer.y - standoff.y) / 2, 0])
+      cuboid(
+        standoff,
+        chamfer=square_chamfer,
+        edges=[
+          FRONT + BOTTOM,
+          FRONT + LEFT,
+          FRONT + RIGHT,
+          BOTTOM + LEFT,
+          BOTTOM + RIGHT,
+        ],
+      );
+  }
+}
+
+render() {
+
+  // twin rulers
+  translate(v=[ruler_long_outer.x / 2, ruler_long_outer.y / 2, 0])
+    rulers();
+
+  // large square
+  translate(v=[square_large_outer.x / 2, square_large_outer.y / 2, 20])
+    try_square(
+      outer=square_large_outer,
+      inner=square_large_inner,
+      a=square_large_angle,
+      x_cutout=square_large_cutout,
+      dxz_inner=square_large_shift,
+    );
+
+  // small square
+  translate(v=[square_small_outer.x / 2, square_small_outer.y / 2, 40])
+    try_square(
+      outer=square_small_outer,
+      inner=square_small_inner,
+      a=square_small_angle,
+      x_cutout=square_small_cutout,
+      dxz_inner=square_small_shift,
+    );
+
+  // sliding square
+  translate(v=[square_sliding_outer.x / 2, square_sliding_outer.y / 2, 60])
+    try_square(
+      outer=square_sliding_outer,
+      inner=square_sliding_inner,
+      a=square_sliding_angle,
+      x_cutout=square_sliding_cutout,
+      dxz_inner=square_sliding_shift,
+    );
+
+  // sliding square with pocket
+  translate(v=[square_sliding_outer.x / 2, 0, 80])
+    sliding_square_with_pocket();
+
+  // conjoined sliding and small square
+  translate(v=[0, 0, 100])
+    sliding_small_square_conjoined();
+
+  // small square standoffs
+  translate(v=[square_small_outer.x / 2, square_small_outer.y / 2, 140])
+    small_square_with_standoffs();
 
   // insert small
-  translate(v=[0, 20, 0])
+  translate(v=[0, 40, 0])
     translate(v=[insert_small_width / 2, insert_small_height / 2, 0])
       insert(
         height=insert_small_height,
@@ -491,7 +543,7 @@ render() {
       );
 
   // insert large
-  translate(v=[0, 80, 0])
+  translate(v=[0, 100, 0])
     translate(v=[insert_large_width / 2, insert_large_height / 2, 0])
       insert(
         height=insert_large_height,
