@@ -4,7 +4,8 @@ render_text = true;
 show_text_only = false;
 show_awl_guide_straight = true;
 show_awl_guide_circle = true;
-show_holder = true;
+show_holder = false;
+show_rib = false;
 
 d_filament = 0.4;
 t_layer = 0.2;
@@ -24,7 +25,7 @@ scale_awl = 1.156;
 
 d1_nub = 1.2;
 d2_nub = 1.6;
-h_nub = 0.6;
+h_nub = 0.4;
 
 chamfer_guide = h_guide * 0.25;
 
@@ -47,7 +48,7 @@ poly_awl = [
   [l2_awl / 2, 0],
 ];
 
-l_holder = 72.5;
+l_holder = 50;
 
 // sides and ends
 gap_holder = 0.2;
@@ -359,6 +360,34 @@ module holder() {
   }
 }
 
+module rib(flat) {
+
+  l = 60;
+  w = s_awl;
+  t = 1.2;
+  t1 = t_layer * 2;
+  t2 = 1.2;
+
+  difference() {
+    if (flat)
+      cuboid([l, w, t]);
+    else
+      prismoid(
+        size1=[l, t1],
+        size2=[l, t2],
+        h=w,
+        anchor=CENTER,
+        orient=FRONT,
+      );
+
+    for (i = [-l / 2:s_awl:l / 2]) {
+      translate(v=[i, 0, 0])
+        rotate(a=a_awl)
+          awl_mask();
+    }
+  }
+}
+
 render() {
 
   // flip for print
@@ -386,4 +415,12 @@ render() {
       rotate(a=-90, v=[0, 1, 0])
         translate(v=[0, 120, 0])
           holder();
+
+  // experimental
+  if (show_rib) {
+    translate(v=[-120, 0, 0])
+      rib(flat=true);
+    translate(v=[-200, 0, 0])
+      rib(flat=false);
+  }
 }
