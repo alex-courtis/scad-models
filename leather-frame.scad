@@ -3,142 +3,127 @@ include <BOSL2/std.scad>
 d_filament = 0.4;
 t_layer = 0.2;
 
-l1_awl = 3.25;
+model = "glasses"; // ["glasses", "cross_section_test"]
 
-gap_hole = 5;
-gap_edge = 4;
+debug_holes = false;
+circular_holes = false;
+
+spacing_hole = 5;
 a_hole = 45;
 
-l_rib = 60;
-w_rib = gap_edge * 2;
-t_rib = 3.0;
-d_rib = 50;
-t1_rib = 0.8;
-t2_rib = 2.0;
-l_rib_hole = l1_awl;
-w_rib_hole = 1.2;
+w_inner = 5;
+w_outer = 3.0;
+
+t1_rib = t_layer * 2;
+t2_rib = 2.4;
+
+l1_awl = 3.25;
+l_hole = l1_awl;
+w_hole = 1.2;
 
 $fn = 200;
 
-module rib_mask() {
-  // #cylinder(h=t_rib * 6, d=1, center=true);
-  // #cuboid([1, 1, t_rib * 3]);
-  cuboid([l_rib_hole, w_rib_hole, t_rib * 2]);
-}
+poly_rib = [
+  [-t2_rib / 2, -w_inner],
+  [-t1_rib / 2, w_outer],
+  [t1_rib / 2, w_outer],
+  [t2_rib / 2, -w_inner],
+];
 
-module rib_straight(flat) {
+poly_rib_hole = [
+  [-t2_rib / 2, -0.5],
+  [-t2_rib / 2, 0.5],
+  [t2_rib / 2, 0.5],
+  [t2_rib / 2, -0.5],
+];
 
+module rib_cross() {
   difference() {
-    if (flat)
-      cuboid([l_rib, w_rib, t_rib]);
-    else
-      prismoid(
-        size1=[l_rib, t1_rib],
-        size2=[l_rib, t2_rib],
-        h=w_rib,
-        anchor=CENTER,
-        orient=FRONT,
-      );
-
-    for (i = [-l_rib / 2:gap_hole:l_rib / 2]) {
-      translate(v=[i, 0, 0])
-        rotate(a=a_hole)
-          rib_mask();
+    polygon(poly_rib);
+    if (debug_holes || model == "cross_section_test") {
+      polygon(poly_rib_hole);
     }
   }
 }
 
-module rib_curved() {
+module hole_mask(hole_dir) {
+  if (circular_holes)
+    rotate(a=90, v=[0, 1, 0]) {
+      #cylinder(h=t2_rib * 3, d=1, center=true);
+    }
+  else
+    rotate(a=hole_dir * a_hole, v=[1, 0, 0]) {
+      if (debug_holes)
+        #cuboid([t2_rib * 3, w_hole * 1, l_hole]);
+      else
+        cuboid([t2_rib * 3, w_hole * 1, l_hole]);
+    }
+}
 
-  // round to a clean divisor of 90
-  a_isoc = 2 * asin(gap_hole / d_rib);
+module curve(a_sweep, a_tilt, d) {
+
+  // round number of holes to a clean divisor of 90
+  a_isoc = 2 * asin(spacing_hole / d);
   a = 90 / round(90 / a_isoc);
 
-  h = gap_edge * 2 * sin(45);
-
-  od1 = d_rib - h;
-  id1 = od1 - 2 * t2_rib / sin(45);
-
-  od2 = d_rib + h;
-  id2 = od2 - 2 * t1_rib / sin(45);
-
-  module straight(shift_dir) {
-    translate(v=[-shift_dir * (id1 / 2 + t2_rib * sin(45)), 0, 0])
-      rotate(a=90)
-        prismoid(
-          size1=[l_rib, t2_rib / sin(45)],
-          size2=[l_rib, t1_rib / sin(45)],
-          h=h,
-          shift=[0, shift_dir * (t2_rib / sin(45) - t1_rib / sin(45) + od2 - od1) / 2],
-        );
-  }
-
-  module curve() {
-    back_half() {
-      tube(
-        h=h,
-        id1=id1,
-        od1=od1,
-        id2=id2,
-        od2=od2,
-      );
-      translate(v=[0, 0, -(h - t2_rib) / 2])
-        cyl(
-          h=t2_rib,
-          d1=od1,
-          d2=od1 + t2_rib / 2,
-        );
-    }
-  }
-
   difference() {
-    curve();
+    rotate_extrude(a=a_sweep)
+      translate(v=[d / 2, 0])
+        rotate(a=-a_tilt)
+          rib_cross();
 
-    for (i = [0:a:180]) {
+    for (i = [0:a:a_sweep]) {
       rotate(a=i)
-        translate(v=[d_rib / 2, 0, 0])
-          rotate(a=-45, v=[0, 1, 0])
-            rotate(a=a_hole)
-              rib_mask();
+        translate(v=[d / 2, 0, 0])
+          rotate(a=a_tilt, v=[0, 1, 0])
+            hole_mask(hole_dir=-1);
     }
   }
+}
 
+module line(l, hole_dir) {
+  rotate(a=90, v=[1, 0, 0])
+    difference() {
+      linear_extrude(h=l, center=true)
+        rib_cross();
+
+      for (i = [-l / 2:spacing_hole:l / 2]) {
+        translate(v=[0, 0, i])
+          hole_mask(hole_dir=hole_dir);
+      }
+    }
+}
+
+module cross_section_test() {
   difference() {
-    union() {
-      translate(v=[0, -l_rib / 2, -h / 2]) {
-        straight(shift_dir=-1);
-        straight(shift_dir=1);
-
-        rotate(a=90)
-          prismoid(
-            size1=[l_rib, od1],
-            size2=[l_rib, od1 + t2_rib * 2],
-            h=t2_rib,
-          );
-      }
+    linear_extrude(h=10, center=true) {
+      rib_cross();
     }
-    for (i = [0:gap_hole:l_rib - 1]) {
-      translate(v=[0, -i, 0]) {
-        translate(v=[d_rib / 2, 0, 0]) {
-          rotate(a=-45, v=[0, 1, 0])
-            rotate(a=a_hole)
-              rib_mask();
-        }
-        translate(v=[-d_rib / 2, 0, 0]) {
-          rotate(a=45, v=[0, 1, 0])
-            rotate(a=a_hole)
-              rib_mask();
-        }
-      }
-    }
+    hole_mask(hole_dir=1);
   }
+}
+
+module glasses() {
+  l = 50;
+  d = 30;
+  a_tilt = 45;
+
+  curve(a_sweep=180, a_tilt=a_tilt, d=d);
+
+  translate(v=[d / 2, -l / 2, 0])
+    rotate(a=a_tilt, v=[0, 1, 0])
+      line(l=l, hole_dir=1);
+
+  translate(v=[-d / 2, -l / 2, 0])
+    rotate(a=-a_tilt, v=[0, 1, 0])
+      line(l=l, hole_dir=-1);
 }
 
 render() {
-  translate(v=[0, 0, 0])
-    rib_curved();
-  // translate(v=[-120, 0, 0])
-  //   rib_straight(flat=true);
-  // translate(v=[-200, 0, 0])
-  //   rib_straight(flat=false);
+
+  if (model == "glasses")
+    glasses();
+
+  if (model == "cross_section_test")
+    cross_section_test();
 }
