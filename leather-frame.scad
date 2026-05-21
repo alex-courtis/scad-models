@@ -106,8 +106,8 @@ module cross_section_test() {
 }
 
 module glasses() {
-  l = 50;
-  d = 30;
+  l = 125;
+  d = 40;
   a_tilt = 45;
 
   z_base = t2_rib * sin(a_tilt);
@@ -122,6 +122,8 @@ module glasses() {
 
   d_base_inner = d_base_mid - t2_rib * cos(a_tilt);
   echo(d_base_inner=d_base_inner);
+
+  echo("end to end", l + d_base_inner);
 
   module spars() {
     rotate(a=180)
