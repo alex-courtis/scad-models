@@ -31,6 +31,8 @@ show = "quarter"; // ["quarter", "half", "whole"]
 
 show_points = false;
 
+show_tapered_tail_experiment = false;
+
 explode = 0; // [0:1:200]
 
 /* [Halving] */
@@ -319,17 +321,18 @@ module leg() {
       leg_poly();
 
     // tail covers entire leg
-    translate(v=[x_leg / 2, 0, 0])
-      rotate(a=90, v=[0, 0, -1])
-        rotate(a=90, v=[1, 0, 0])
-          dove_tail(
-            w=t_leg,
-            l=t_step_top,
-            l_tail=l_tail,
-            l1=y_leg,
-            t=x_leg,
-            ratio=0,
-          );
+    if (!show_tapered_tail_experiment)
+      translate(v=[x_leg / 2, 0, 0])
+        rotate(a=90, v=[0, 0, -1])
+          rotate(a=90, v=[1, 0, 0])
+            dove_tail(
+              w=t_leg,
+              l=t_step_top,
+              l_tail=l_tail,
+              l1=y_leg,
+              t=x_leg,
+              ratio=0,
+            );
 
     // halving covers entire leg
     translate(v=Q)
@@ -384,24 +387,130 @@ module legs() {
   }
 }
 
-render() {
+/*
+measuring tapered dovetail difference positioned flat vs oblique
 
-  if (show_points) {
-    d = 2;
-    color(c="yellow") {
-      for (p = [A, B, C, D, E, M, N, Q]) {
-        translate(v=p)
+needs scale 1
+
+2mm shim
+
+oblique - flat:
+
+wide:
+6.0809473493640738 - 6.0848359853412717 = -0.0038886359771979
+
+narrow:
+4.0579558304923715 - 4.0308979215651277 = 0.0270579089272438
+
+*/
+module tapered_tail_experiment() {
+
+  t_shim = 2.0;
+  echo(t_shim=t_shim);
+
+  w_top = 2 * (E.x - A.x);
+  echo(w_top=w_top);
+  a_perp = atan(t_shim / w_top);
+  echo(a_perp=a_perp);
+
+  a_oblique = a_perp;
+  echo(a_oblique=a_oblique);
+
+  poly_cut = [
+    [-3, 0],
+    [-3, 11.51],
+    [4.06, 11.51],
+    [2.04, 0],
+    [2.04, -1],
+  ];
+
+  module tapered_legs() {
+
+    leg();
+
+    rotate(a=180, v=[0, 1, 0])
+      mirror(v=[0, 0, 1])
+        leg();
+  }
+
+  module lifted_perp() {
+    color(brown_pair(0)[1])
+      rotate(a=-a_perp, v=[0, 1, 0])
+        translate(v=[E.x - A.x, -A.y, t_leg / 2])
+          tapered_legs();
+
+    color(brown_pair(0)[0])
+      translate(v=[0, -20, -10])
+        cube([300, 500, 10]);
+  }
+
+  module lifted_oblique() {
+    color(brown_pair(4)[1])
+      rotate(a=-a_leg_outer + 90)
+        rotate(a=-a_oblique, v=[0, 1, 0])
+          rotate(a=a_leg_outer - 90)
+            translate(v=[E.x - A.x, -A.y, t_leg / 2])
+              tapered_legs();
+
+    color(brown_pair(4)[0])
+      translate(v=[-150, -20, -10])
+        cube([450, 500, 10]);
+  }
+
+  module paring_mask() {
+
+    translate(v=[-(E.x - A.x) / 2, 0, t_leg])
+      rotate(a=90, v=[0, 1, 0])
+        linear_extrude(h=(E.x - A.x) * 3, center=false)
+          polygon(poly_cut);
+  }
+
+  module shim() {
+
+    color(c="yellow")
+      translate(v=[w_top - 15, 0, 0])
+        cube([30, 30, t_shim]);
+  }
+
+  translate(v=[420, 0, 0]) {
+    difference() {
+      lifted_perp();
+      color(c="lightgreen")
+        paring_mask();
+    }
+    shim();
+  }
+
+  difference() {
+    lifted_oblique();
+    color(c="hotpink")
+      paring_mask();
+  }
+  shim();
+}
+
+render() {
+  if (show_tapered_tail_experiment) {
+    tapered_tail_experiment();
+  } else {
+
+    if (show_points) {
+      d = 2;
+      color(c="yellow") {
+        for (p = [A, B, C, D, E, M, N, Q]) {
+          translate(v=p)
+            cylinder(d=d, h=t_leg * 2, center=true);
+        }
+      }
+      color(c="red") {
+        translate(v=[x_leg, y_leg])
           cylinder(d=d, h=t_leg * 2, center=true);
       }
     }
-    color(c="red") {
-      translate(v=[x_leg, y_leg])
-        cylinder(d=d, h=t_leg * 2, center=true);
-    }
-  }
 
-  legs();
-  floating_tenon();
-  step_top();
-  step_bottom();
+    legs();
+    floating_tenon();
+    step_top();
+    step_bottom();
+  }
 }
