@@ -164,21 +164,21 @@ module glasses() {
 
   module extra_base() {
     z_base_extra = t_base - z_base;
-    dz_base_extra = dz_base_mid - z_base_extra / 2 - z_base / 2;
+    dz_base_extra = dz_base_mid - (t_base - z_base) / 2;
     echo(z_base_extra=z_base_extra);
 
     color(c="pink")
       translate(v=[0, 0, dz_base_extra])
-        cyl(d=d_base_outer, z_base_extra);
+        cyl(d=d_base_outer, t_base);
 
     color(c="pink")
       translate(v=[0, l, 0])
         translate(v=[0, 0, dz_base_extra])
-          cyl(d=d_base_outer, z_base_extra);
+          cyl(d=d_base_outer, t_base);
 
     color(c="blue")
       translate(v=[0, l / 2, dz_base_extra])
-        cuboid([d_base_outer, l, z_base_extra]);
+        cuboid([d_base_outer, l, t_base]);
   }
 
   spars();
