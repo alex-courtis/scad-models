@@ -11,11 +11,12 @@ circular_holes = false;
 spacing_hole = 5;
 a_hole = 45;
 
-w_inner = 5;
-w_outer = 3.0;
+w_inner = 2.5;
+w_outer = 2.5;
 
 t1_rib = t_layer * 2;
-t2_rib = 2.4;
+t2_rib = 1.2;
+t_base = 1.2;
 
 l1_awl = 3.25;
 l_hole = l1_awl;
@@ -47,16 +48,17 @@ module rib_cross() {
 }
 
 module hole_mask(hole_dir) {
+  h = max(t1_rib, t2_rib);
   if (circular_holes)
     rotate(a=90, v=[0, 1, 0]) {
-      #cylinder(h=t2_rib * 3, d=1, center=true);
+      #cylinder(h=h, d=1, center=true);
     }
   else
     rotate(a=hole_dir * a_hole, v=[1, 0, 0]) {
       if (debug_holes)
-        #cuboid([t2_rib * 3, w_hole * 1, l_hole]);
+        #cuboid([h, w_hole * 1, l_hole]);
       else
-        cuboid([t2_rib * 3, w_hole * 1, l_hole]);
+        cuboid([h, w_hole * 1, l_hole]);
     }
 }
 
@@ -108,15 +110,81 @@ module glasses() {
   d = 30;
   a_tilt = 45;
 
-  curve(a_sweep=180, a_tilt=a_tilt, d=d);
+  z_base = t2_rib * sin(a_tilt);
+  echo(z_base=z_base);
 
-  translate(v=[d / 2, -l / 2, 0])
-    rotate(a=a_tilt, v=[0, 1, 0])
-      line(l=l, hole_dir=1);
+  dz_base_mid = -w_inner * cos(a_tilt);
+  echo(dz_base_mid=dz_base_mid);
 
-  translate(v=[-d / 2, -l / 2, 0])
-    rotate(a=-a_tilt, v=[0, 1, 0])
-      line(l=l, hole_dir=-1);
+  d_base_mid = d - 2 * w_inner * sin(a_tilt);
+  d_base_outer = d_base_mid + t2_rib * cos(a_tilt);
+  echo(d_base_outer=d_base_outer);
+
+  d_base_inner = d_base_mid - t2_rib * cos(a_tilt);
+  echo(d_base_inner=d_base_inner);
+
+  module spars() {
+    rotate(a=180)
+      curve(a_sweep=180, a_tilt=a_tilt, d=d);
+
+    translate(v=[0, l, 0])
+      curve(a_sweep=180, a_tilt=a_tilt, d=d);
+
+    translate(v=[d / 2, l / 2, 0])
+      rotate(a=a_tilt, v=[0, 1, 0])
+        line(l=l, hole_dir=1);
+
+    translate(v=[-d / 2, l / 2, 0])
+      rotate(a=-a_tilt, v=[0, 1, 0])
+        line(l=l, hole_dir=-1);
+  }
+
+  module joining_base() {
+
+    color(c="orange")
+      translate(v=[0, 0, dz_base_mid])
+        cyl(d1=d_base_outer, d2=d_base_inner, z_base);
+
+    color(c="orange")
+      translate(v=[0, l, 0])
+        translate(v=[0, 0, dz_base_mid])
+          cyl(d1=d_base_outer, d2=d_base_inner, z_base);
+
+    color(c="green")
+      translate(v=[0, l / 2, dz_base_mid])
+        prismoid(
+          size1=[d_base_outer, l],
+          size2=[d_base_inner, l],
+          h=z_base,
+          anchor=CENTER,
+        );
+  }
+
+  module extra_base() {
+    z_base_extra = t_base - z_base;
+    dz_base_extra = dz_base_mid - z_base_extra / 2 - z_base / 2;
+    echo(z_base_extra=z_base_extra);
+
+    color(c="pink")
+      translate(v=[0, 0, dz_base_extra])
+        cyl(d=d_base_outer, z_base_extra);
+
+    color(c="pink")
+      translate(v=[0, l, 0])
+        translate(v=[0, 0, dz_base_extra])
+          cyl(d=d_base_outer, z_base_extra);
+
+    color(c="blue")
+      translate(v=[0, l / 2, dz_base_extra])
+        cuboid([d_base_outer, l, z_base_extra]);
+  }
+
+  spars();
+
+  joining_base();
+
+  if (t_base > z_base)
+    extra_base();
 }
 
 render() {
