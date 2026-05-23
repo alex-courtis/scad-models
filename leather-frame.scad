@@ -112,8 +112,8 @@ module glasses() {
   d_glasses = 40; // of the holes
   w_glasses = 60; // wall piece
 
-  t_side = 2.4;
-  t_wall = 1.2;
+  t_side = 3.0;
+  t_wall = 1.6;
   a_tilt = 45;
 
   d_mid = d_glasses - 2 * w_inner * sin(a_tilt);
