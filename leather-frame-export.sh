@@ -12,12 +12,13 @@ openscad \
 
 openscad \
 	"${prefix}.scad" \
-	-o "${prefix}.wall.stl" \
+	-o "${prefix}.wall_left.stl" \
 	-D "model=\"glasses\"" \
-	-D "part=\"wall\""
+	-D "part=\"wall_left\""
 
 openscad \
 	"${prefix}.scad" \
-	-o "${prefix}.wall_test.stl" \
+	-o "${prefix}.wall_right.stl" \
 	-D "model=\"glasses\"" \
-	-D "part=\"wall_test\""
+	-D "part=\"wall_right\""
+

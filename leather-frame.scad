@@ -6,7 +6,7 @@ t_layer = 0.2;
 
 model = "glasses"; // ["glasses", "cross_section_test"]
 
-part = "all"; // ["all", "side", "wall", "wall_test"]
+part = "all"; // ["all", "side", "wall_left", "wall_right"]
 
 debug_holes = false;
 circular_holes = false;
@@ -31,6 +31,14 @@ w_glasses = 54; // wall piece
 t_side_glasses = 3.0;
 t_wall_glasses = 2.4;
 a_tilt_glasses = 45;
+
+gap_side_wall = 0.2;
+
+d_pin = 2;
+d_liner_hole = 1.2;
+
+d_magnet = 19.4;
+t_magnet = 2 + t_layer;
 
 $fn = 200;
 
@@ -190,19 +198,57 @@ module glasses() {
   }
 
   module wall() {
+
+    module pin() {
+      rotate(a=90, v=[0, 1, 0])
+        cyl(d=d_pin, h=wall_outer);
+    }
+
     translate(v=[0, 0, -w_glasses / 2 + z_t2_lower]) {
-      front_half()
-        tube(
-          h=w_glasses,
-          od=wall_outer,
-          id=wall_inner,
-        );
 
-      translate(v=[(wall_outer - t_wall_glasses) / 2, l_wall / 2, 0])
-        cuboid([t_wall_glasses, l_wall, w_glasses]);
+      difference() {
+        union() {
+          front_half()
+            tube(
+              h=w_glasses,
+              od=wall_outer + gap_side_wall * 2,
+              id=wall_inner + gap_side_wall * 2,
+            );
 
-      translate(v=[-(wall_outer - t_wall_glasses) / 2, l_wall / 2, 0])
-        cuboid([t_wall_glasses, l_wall, w_glasses]);
+          translate(v=[(wall_outer - t_wall_glasses) / 2 + gap_side_wall, l_wall / 2, 0])
+            cuboid([t_wall_glasses, l_wall, w_glasses]);
+
+          translate(v=[-(wall_outer - t_wall_glasses) / 2 - gap_side_wall, l_wall / 2, 0])
+            cuboid([t_wall_glasses, l_wall, w_glasses]);
+        }
+
+        translate(v=[0, -wall_outer / 2 + t_wall_glasses, -w_glasses / 3])
+          pin();
+
+        translate(v=[0, -wall_outer / 2 + t_wall_glasses, w_glasses / 3])
+          pin();
+
+        translate(v=[wall_inner / 2 + t_magnet / 2 + gap_side_wall, l_wall - d_magnet, 0])
+          rotate(a=90, v=[0, 1, 0])
+            cyl(h=t_magnet, d=d_magnet);
+
+        z_hole_bottom = -w_glasses / 2 + spacing_hole;
+        z_hole_top = w_glasses / 2 - spacing_hole;
+        z_hole_total = (abs(z_hole_top) + abs(z_hole_bottom));
+        z_spacing = z_hole_total / round(z_hole_total / spacing_hole);
+
+        for (y = [spacing_hole,l_wall - spacing_hole])
+          for (z = [z_hole_bottom:z_spacing:z_hole_top])
+            translate(v=[0, y, z])
+              rotate(a=90, v=[0, 1, 0])
+                cyl(h=wall_outer * 2, d=d_liner_hole);
+
+        for (z = [z_hole_bottom, z_hole_top])
+          for (y = [spacing_hole:spacing_hole:l_wall - spacing_hole])
+            translate(v=[0, y, z])
+              rotate(a=90, v=[0, 1, 0])
+                cyl(h=wall_outer * 2, d=d_liner_hole);
+      }
     }
   }
 
@@ -214,24 +260,13 @@ module glasses() {
     side_flange();
   }
 
-  if (part == "wall" || part == "all") {
-    wall();
+  if (part == "wall_left" || part == "all") {
+    left_half(s=l_wall * 4)
+      wall();
   }
-
-  if (part == "wall_test") {
-    cuboid(
-      [52, 52, t_wall_glasses]
-    );
-
-    translate(v=[60, 0, 0])
-      cuboid(
-        [54, 54, t_wall_glasses]
-      );
-
-    translate(v=[120, 0, 0])
-      cuboid(
-        [56, 56, t_wall_glasses]
-      );
+  if (part == "wall_right" || part == "all") {
+    right_half(s=l_wall * 4)
+      wall();
   }
 }
 
