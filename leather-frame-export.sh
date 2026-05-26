@@ -15,3 +15,9 @@ openscad \
 	-o "${prefix}.wall.stl" \
 	-D "model=\"glasses\"" \
 	-D "part=\"wall\""
+
+openscad \
+	"${prefix}.scad" \
+	-o "${prefix}.wall_test.stl" \
+	-D "model=\"glasses\"" \
+	-D "part=\"wall_test\""
