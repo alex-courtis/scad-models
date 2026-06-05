@@ -445,43 +445,50 @@ module sliding_small_square_conjoined() {
 }
 
 module small_square_with_standoffs() {
-  try_square(
-    outer=square_small_outer,
-    inner=square_small_inner,
-    a=square_small_angle,
-    x_cutout=square_small_cutout,
-    dxz_inner=square_small_shift,
-    round_top=false,
-  );
-
-  standoff = [square_small_outer.x, square_small_standoff_wall, square_small_standoff_height + square_chamfer];
-
-  translate(v=[0, 0, -(standoff.z + square_small_outer.z) / 2 + square_chamfer]) {
-    translate(v=[0, (square_small_outer.y - standoff.y) / 2, 0])
-      cuboid(
-        standoff,
-        chamfer=square_chamfer,
-        edges=[
-          BACK + BOTTOM,
-          BACK + LEFT,
-          BACK + RIGHT,
-          BOTTOM + LEFT,
-          BOTTOM + RIGHT,
-        ],
+  difference() {
+    union() {
+      try_square(
+        outer=square_small_outer,
+        inner=square_small_inner,
+        a=square_small_angle,
+        x_cutout=square_small_cutout,
+        dxz_inner=square_small_shift,
+        round_top=false,
       );
 
-    translate(v=[0, -(square_small_outer.y - standoff.y) / 2, 0])
-      cuboid(
-        standoff,
-        chamfer=square_chamfer,
-        edges=[
-          FRONT + BOTTOM,
-          FRONT + LEFT,
-          FRONT + RIGHT,
-          BOTTOM + LEFT,
-          BOTTOM + RIGHT,
-        ],
-      );
+      standoff = [square_small_outer.x, square_small_standoff_wall, square_small_standoff_height + square_chamfer];
+
+      translate(v=[0, 0, -(standoff.z + square_small_outer.z) / 2 + square_chamfer]) {
+        translate(v=[0, (square_small_outer.y - standoff.y) / 2, 0])
+          cuboid(
+            standoff,
+            chamfer=square_chamfer,
+            edges=[
+              BACK + BOTTOM,
+              BACK + LEFT,
+              BACK + RIGHT,
+              BOTTOM + LEFT,
+              BOTTOM + RIGHT,
+            ],
+          );
+
+        translate(v=[0, -(square_small_outer.y - standoff.y) / 2, 0])
+          cuboid(
+            standoff,
+            chamfer=square_chamfer,
+            edges=[
+              FRONT + BOTTOM,
+              FRONT + LEFT,
+              FRONT + RIGHT,
+              BOTTOM + LEFT,
+              BOTTOM + RIGHT,
+            ],
+          );
+      }
+    }
+    translate(v=[-9, 0, -4.0])
+      rotate(a=-square_small_angle, v=[0, 1, 0])
+        cylinder(h=4, d=15, center=true);
   }
 }
 
