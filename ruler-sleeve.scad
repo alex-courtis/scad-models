@@ -486,9 +486,9 @@ module small_square_with_standoffs() {
           );
       }
     }
-    translate(v=[-9, 0, -4.0])
+    translate(v=[-9, 0, -4.1])
       rotate(a=-square_small_angle, v=[0, 1, 0])
-        cylinder(h=4, d=15, center=true);
+        cylinder(h=4, d=16, center=true);
   }
 }
 
