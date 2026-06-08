@@ -11,18 +11,16 @@ part = "all"; // ["all", "side", "wall_left", "wall_right"]
 debug_holes = false;
 circular_holes = false;
 
-spacing_hole = 5;
-a_hole = 45;
-
 w_inner = 2.5;
 w_outer = 2.5;
 
 t1_rib = t_layer * 2;
 t2_rib = 2.0;
 
-l1_awl = 3.25;
-l_hole = l1_awl;
-w_hole = 1.2;
+spacing_hole = 5;
+a_hole = 0;
+l_hole = 3.25;
+w_hole = 1.8;
 
 l_glasses = 160; // aspirational, rounded to hole spacing
 d_glasses = 40; // of the holes
@@ -86,6 +84,8 @@ module curve(a_sweep, a_tilt, d) {
   a_isoc = 2 * asin(spacing_hole / d);
   a = 90 / round(90 / a_isoc);
 
+  echo(curve_spacing_hole=chord_len(d / 2, a));
+
   difference() {
     rotate_extrude(a=a_sweep)
       translate(v=[d / 2, 0])
@@ -96,7 +96,8 @@ module curve(a_sweep, a_tilt, d) {
       rotate(a=i)
         translate(v=[d / 2, 0, 0])
           rotate(a=a_tilt, v=[0, 1, 0])
-            hole_mask(hole_dir=-1);
+            rotate(a=90, v=[1, 0, 0])
+              hole_mask(hole_dir=1);
     }
   }
 }
@@ -237,7 +238,7 @@ module glasses() {
         z_hole_total = (abs(z_hole_top) + abs(z_hole_bottom));
         z_spacing = z_hole_total / round(z_hole_total / spacing_hole);
 
-        for (y = [spacing_hole,l_wall - spacing_hole])
+        for (y = [spacing_hole, l_wall - spacing_hole])
           for (z = [z_hole_bottom:z_spacing:z_hole_top])
             translate(v=[0, y, z])
               rotate(a=90, v=[0, 1, 0])

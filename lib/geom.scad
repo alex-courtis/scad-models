@@ -21,6 +21,9 @@ function round_num(n, dn) = round(n / dn) * dn;
 // round all elements in a vecton to nearest
 function round_vec(v, dv) = [ for (i = [0:1:len(v) - 1]) round(v[i] / dv[i]) * dv[i], ];
 
+// chord straight length
+function chord_len(a, r) = r * 2 * sin(a/2);
+
 /**
    Return poly ABCD
    d1 is perpendicular from AB to O
