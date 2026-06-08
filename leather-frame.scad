@@ -22,13 +22,24 @@ a_hole = 0; // [0:1:90]
 l_hole = 3.25; // [0.05:0.05:5]
 w_hole = 1.8; // [0.05:0.05:5]
 
+t_side = 2; // [0.05:0.05:5]
+
 // aspirational, rounded to hole spacing
 l_glasses = 160; // [20:1:300]
 
 // of the end holes
-d_glasses = 40; // [10:1:100]
+d_side = 40; // [10:1:100]
 
-a_tilt_glasses = 45; // [0:1:90]
+a_tilt = 45; // [0:1:90]
+
+w_side = d_side - 2 * w_inner * sin(a_tilt) + t2_rib * cos(a_tilt);
+echo(w_side=w_side);
+
+w_side_inner = w_side - 2 * t2_rib * cos(a_tilt);
+echo(w_side_inner=w_side_inner);
+
+l_side_straight = round_num(l_glasses - w_side_inner, spacing_hole);
+echo(l_side_straight=l_side_straight);
 
 $fn = 200;
 
@@ -116,73 +127,83 @@ module cross_section_test() {
   }
 }
 
+// inside oriented at origin
 module glasses() {
-  d_mid = d_glasses - 2 * w_inner * sin(a_tilt_glasses);
-  d_outer = d_mid + t2_rib * cos(a_tilt_glasses);
-  echo(d_outer=d_outer);
+  z_t2_lower = -w_inner * cos(a_tilt) - t2_rib / 2 * sin(a_tilt);
 
-  d_inner = d_mid - t2_rib * cos(a_tilt_glasses);
-  echo(d_inner=d_inner);
+  t_joining = t2_rib * sin(a_tilt);
+  echo(t_joining=t_joining);
 
-  l_wall = round_num(l_glasses - d_inner, spacing_hole);
-  echo(l_wall=l_wall);
+  t_remainder = t_side - t_joining;
+  echo(t_remainder=t_remainder);
 
-  z_t2_mid = -w_inner * cos(a_tilt_glasses);
-  z_t2_upper = z_t2_mid + t2_rib / 2 * sin(a_tilt_glasses);
-  z_t2_lower = z_t2_mid - t2_rib / 2 * sin(a_tilt_glasses);
-
-  t_side_glasses_joining = z_t2_upper - z_t2_lower;
-  echo(t_side_glasses_joining=t_side_glasses_joining);
-
-  module side_curves() {
+  module curves() {
 
     rotate(a=180)
-      curve(a_sweep=180, a_tilt=a_tilt_glasses, d=d_glasses);
+      curve(a_sweep=180, a_tilt=a_tilt, d=d_side);
 
-    translate(v=[0, l_wall, 0])
-      curve(a_sweep=180, a_tilt=a_tilt_glasses, d=d_glasses);
+    translate(v=[0, l_side_straight, 0])
+      curve(a_sweep=180, a_tilt=a_tilt, d=d_side);
   }
 
-  module side_lines() {
-    translate(v=[d_glasses / 2, l_wall / 2, 0])
-      rotate(a=a_tilt_glasses, v=[0, 1, 0])
-        line(l=l_wall, hole_dir=1);
+  module lines() {
+    translate(v=[d_side / 2, l_side_straight / 2, 0])
+      rotate(a=a_tilt, v=[0, 1, 0])
+        line(l=l_side_straight, hole_dir=1);
 
-    translate(v=[-d_glasses / 2, l_wall / 2, 0])
-      rotate(a=-a_tilt_glasses, v=[0, 1, 0])
-        line(l=l_wall, hole_dir=-1);
+    translate(v=[-d_side / 2, l_side_straight / 2, 0])
+      rotate(a=-a_tilt, v=[0, 1, 0])
+        line(l=l_side_straight, hole_dir=-1);
   }
 
-  module side_fill() {
-    if (t_side_glasses_joining > 0) {
+  module fill() {
+    if (t_joining > 0) {
 
-      translate(v=[0, 0, z_t2_lower + t_side_glasses_joining / 2]) {
+      translate(v=[0, 0, z_t2_lower + t_joining / 2]) {
 
-        cyl(d1=d_outer, d2=d_inner, t_side_glasses_joining);
+        cyl(d1=w_side, d2=w_side_inner, t_joining);
 
-        translate(v=[0, l_wall, 0])
-          cyl(d1=d_outer, d2=d_inner, t_side_glasses_joining);
+        translate(v=[0, l_side_straight, 0])
+          cyl(d1=w_side, d2=w_side_inner, t_joining);
 
-        translate(v=[0, l_wall / 2, 0])
+        translate(v=[0, l_side_straight / 2, 0])
           prismoid(
-            size1=[d_outer, l_wall],
-            size2=[d_inner, l_wall],
-            h=t_side_glasses_joining,
+            size1=[w_side, l_side_straight],
+            size2=[w_side_inner, l_side_straight],
+            h=t_joining,
             anchor=CENTER,
           );
       }
     }
   }
 
-  if (part == "side" || part == "all") {
-    color(c="brown")
-      side_curves();
+  module side() {
 
-    color(c="orange")
-      side_lines();
+    translate(v=[0, 0, -t_remainder / 2 + z_t2_lower]) {
+      cyl(d=w_side, t_remainder);
 
-    color(c="blue")
-      side_fill();
+      translate(v=[0, l_side_straight, 0])
+        cyl(d=w_side, t_remainder);
+
+      translate(v=[0, l_side_straight / 2, 0])
+        cuboid([w_side, l_side_straight, t_remainder]);
+    }
+  }
+
+  translate(v=[0, -l_side_straight / 2, -z_t2_lower + t_remainder]) {
+    if (part == "side" || part == "all") {
+      color(c="brown")
+        curves();
+
+      color(c="orange")
+        lines();
+
+      color(c="steelblue")
+        fill();
+
+      color(c="lightgray")
+        side();
+    }
   }
 }
 
