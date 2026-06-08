@@ -11,8 +11,8 @@ part = "all"; // ["all", "side", ]
 debug_holes = false;
 circular_holes = false;
 
-t1_rib = 0.3; // [0.05:0.05:5]
-t2_rib = 0.8; // [0.05:0.05:5]
+t1_rib = 0.4; // [0.05:0.05:5]
+t2_rib = 2.0; // [0.05:0.05:5]
 rib_inner = 2.5; // [1:0.1:7.5]
 rib_outer = 2.5; // [1:0.1:7.5]
 rib_tilt = 45; // [0:1:90]
@@ -22,14 +22,14 @@ a_hole = 0; // [0:1:90]
 l_hole = 3.25; // [0.05:0.05:5]
 w_hole = 1.8; // [0.05:0.05:5]
 
-t_side = 2.4; // [0.05:0.05:5]
+t_side = 1.6; // [0.05:0.05:5]
 
 // aspirational, rounded to hole spacing
 l_glasses = 100; // [20:1:300]
 
 // inside to inside
 w_wall = 30; // [20:1:200]
-t_wall = 1.2; // [0.05:0.05:5]
+t_wall = 1.6; // [0.05:0.05:5]
 
 // of the end holes
 d_side = 30; // [10:1:100]
