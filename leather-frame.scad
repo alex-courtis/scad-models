@@ -6,37 +6,29 @@ t_layer = 0.2;
 
 model = "glasses"; // ["glasses", "cross_section_test"]
 
-part = "all"; // ["all", "side", "wall_left", "wall_right"]
+part = "all"; // ["all", "side", ]
 
 debug_holes = false;
 circular_holes = false;
 
-w_inner = 2.5;
-w_outer = 2.5;
+w_inner = 2.5; // [1:0.1:7.5]
+w_outer = 2.5; // [1:0.1:7.5]
 
-t1_rib = t_layer * 2;
-t2_rib = 2.0;
+t1_rib = 0.3; // [0.05:0.05:5]
+t2_rib = 0.8; // [0.05:0.05:5]
 
-spacing_hole = 5;
-a_hole = 0;
-l_hole = 3.25;
-w_hole = 1.8;
+spacing_hole = 5; // [0.1:0.1:10]
+a_hole = 0; // [0:1:90]
+l_hole = 3.25; // [0.05:0.05:5]
+w_hole = 1.8; // [0.05:0.05:5]
 
-l_glasses = 160; // aspirational, rounded to hole spacing
-d_glasses = 40; // of the holes
-w_glasses = 54; // wall piece
+// aspirational, rounded to hole spacing
+l_glasses = 160; // [20:1:300]
 
-t_side_glasses = 3.0;
-t_wall_glasses = 2.4;
-a_tilt_glasses = 45;
+// of the end holes
+d_glasses = 40; // [10:1:100]
 
-gap_side_wall = 0.2;
-
-d_pin = 2;
-d_liner_hole = 1.2;
-
-d_magnet = 19.4;
-t_magnet = 2 + t_layer;
+a_tilt_glasses = 45; // [0:1:90]
 
 $fn = 200;
 
@@ -48,10 +40,10 @@ poly_rib = [
 ];
 
 poly_rib_hole = [
-  [-t2_rib / 2, -0.5],
-  [-t2_rib / 2, 0.5],
-  [t2_rib / 2, 0.5],
-  [t2_rib / 2, -0.5],
+  [-t2_rib / 2, -0.25],
+  [-t2_rib / 2, 0.25],
+  [t2_rib / 2, 0.25],
+  [t2_rib / 2, -0.25],
 ];
 
 module rib_cross() {
@@ -142,18 +134,16 @@ module glasses() {
   t_side_glasses_joining = z_t2_upper - z_t2_lower;
   echo(t_side_glasses_joining=t_side_glasses_joining);
 
-  wall_outer = d_outer;
-  wall_inner = d_outer - t_wall_glasses * 2;
+  module side_curves() {
 
-  echo("top to bottom", wall_inner);
-
-  module side_spars() {
     rotate(a=180)
       curve(a_sweep=180, a_tilt=a_tilt_glasses, d=d_glasses);
 
     translate(v=[0, l_wall, 0])
       curve(a_sweep=180, a_tilt=a_tilt_glasses, d=d_glasses);
+  }
 
+  module side_lines() {
     translate(v=[d_glasses / 2, l_wall / 2, 0])
       rotate(a=a_tilt_glasses, v=[0, 1, 0])
         line(l=l_wall, hole_dir=1);
@@ -163,18 +153,16 @@ module glasses() {
         line(l=l_wall, hole_dir=-1);
   }
 
-  module side_join() {
+  module side_fill() {
+    if (t_side_glasses_joining > 0) {
 
-    translate(v=[0, 0, z_t2_lower + t_side_glasses_joining / 2]) {
+      translate(v=[0, 0, z_t2_lower + t_side_glasses_joining / 2]) {
 
-      color(c="orange")
         cyl(d1=d_outer, d2=d_inner, t_side_glasses_joining);
 
-      color(c="orange")
         translate(v=[0, l_wall, 0])
           cyl(d1=d_outer, d2=d_inner, t_side_glasses_joining);
 
-      color(c="green")
         translate(v=[0, l_wall / 2, 0])
           prismoid(
             size1=[d_outer, l_wall],
@@ -182,92 +170,19 @@ module glasses() {
             h=t_side_glasses_joining,
             anchor=CENTER,
           );
-    }
-  }
-
-  module side_flange() {
-
-    translate(v=[0, 0, -t_side_glasses / 2 + z_t2_upper]) {
-      cyl(h=t_side_glasses, d=wall_inner);
-
-      translate(v=[0, l_wall, 0])
-        cyl(h=t_side_glasses, d=wall_inner);
-
-      translate(v=[0, l_wall / 2, 0])
-        cuboid([wall_inner, l_wall, t_side_glasses]);
-    }
-  }
-
-  module wall() {
-
-    module pin() {
-      rotate(a=90, v=[0, 1, 0])
-        cyl(d=d_pin, h=wall_outer);
-    }
-
-    translate(v=[0, 0, -w_glasses / 2 + z_t2_lower]) {
-
-      difference() {
-        union() {
-          front_half()
-            tube(
-              h=w_glasses,
-              od=wall_outer + gap_side_wall * 2,
-              id=wall_inner + gap_side_wall * 2,
-            );
-
-          translate(v=[(wall_outer - t_wall_glasses) / 2 + gap_side_wall, l_wall / 2, 0])
-            cuboid([t_wall_glasses, l_wall, w_glasses]);
-
-          translate(v=[-(wall_outer - t_wall_glasses) / 2 - gap_side_wall, l_wall / 2, 0])
-            cuboid([t_wall_glasses, l_wall, w_glasses]);
-        }
-
-        translate(v=[0, -wall_outer / 2 + t_wall_glasses, -w_glasses / 3])
-          pin();
-
-        translate(v=[0, -wall_outer / 2 + t_wall_glasses, w_glasses / 3])
-          pin();
-
-        translate(v=[wall_inner / 2 + t_magnet / 2 + gap_side_wall, l_wall - d_magnet, 0])
-          rotate(a=90, v=[0, 1, 0])
-            cyl(h=t_magnet, d=d_magnet);
-
-        z_hole_bottom = -w_glasses / 2 + spacing_hole;
-        z_hole_top = w_glasses / 2 - spacing_hole;
-        z_hole_total = (abs(z_hole_top) + abs(z_hole_bottom));
-        z_spacing = z_hole_total / round(z_hole_total / spacing_hole);
-
-        for (y = [spacing_hole, l_wall - spacing_hole])
-          for (z = [z_hole_bottom:z_spacing:z_hole_top])
-            translate(v=[0, y, z])
-              rotate(a=90, v=[0, 1, 0])
-                cyl(h=wall_outer * 2, d=d_liner_hole);
-
-        for (z = [z_hole_bottom, z_hole_top])
-          for (y = [spacing_hole:spacing_hole:l_wall - spacing_hole])
-            translate(v=[0, y, z])
-              rotate(a=90, v=[0, 1, 0])
-                cyl(h=wall_outer * 2, d=d_liner_hole);
       }
     }
   }
 
   if (part == "side" || part == "all") {
-    side_spars();
+    color(c="brown")
+      side_curves();
 
-    side_join();
+    color(c="orange")
+      side_lines();
 
-    side_flange();
-  }
-
-  if (part == "wall_left" || part == "all") {
-    left_half(s=l_wall * 4)
-      wall();
-  }
-  if (part == "wall_right" || part == "all") {
-    right_half(s=l_wall * 4)
-      wall();
+    color(c="blue")
+      side_fill();
   }
 }
 
