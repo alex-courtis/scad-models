@@ -89,6 +89,17 @@ module cord_cover() {
   }
 }
 
+module cord_hole() {
+  translate(v=[0, -3.1, -45])
+    cuboid(
+      [15, 7.5, 40],
+      rounding=2.5,
+      except=[
+        TOP,
+      ],
+    );
+}
+
 render() {
   color(c="green")
     extra_body();
@@ -103,6 +114,7 @@ render() {
     difference() {
       import("steam-controller-holder-model.stl", center=true);
       less_mask();
+      cord_hole();
     }
   }
 
