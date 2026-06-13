@@ -4,9 +4,7 @@ include <lib/geom.scad>
 d_filament = 0.4;
 t_layer = 0.2;
 
-model = "glasses"; // ["glasses", "cross_section_test"]
-
-part = "all"; // ["all", "side", ]
+model = "glasses"; // ["glasses", "glasses-side", "cross_section_test"]
 
 debug_holes = false;
 circular_holes = false;
@@ -22,26 +20,52 @@ a_hole = 0; // [0:1:90]
 l_hole = 3.25; // [0.05:0.05:5]
 w_hole = 1.8; // [0.05:0.05:5]
 
-t_side = 1.6; // [0.05:0.05:5]
+t_side = 3.0; // [0:0.05:5]
 
 // aspirational, rounded to hole spacing
 l_glasses = 100; // [20:1:300]
 
 // inside to inside
-w_wall = 30; // [20:1:200]
-t_wall = 1.6; // [0.05:0.05:5]
+w_wall = 60; // [20:1:200]
+t_wall = 1.6; // [0:0.05:5]
 
-// of the end holes
-d_side = 30; // [10:1:100]
+// of the end hole midpoints
+d_side = 40; // [10:1:100]
 
-w_side = d_side - 2 * rib_inner * sin(rib_tilt) + t2_rib * cos(rib_tilt);
-echo(w_side=w_side);
+z_t2 = t2_rib * sin(rib_tilt);
+echo(z_t2=z_t2);
+t_side_min = max(t_side, z_t2);
+echo(t_side_min=t_side_min);
 
-w_side_inner = w_side - 2 * t2_rib * cos(rib_tilt);
-echo(w_side_inner=w_side_inner);
+// round number of holes to a clean divisor of 90
+a_curve_hole = 90 / round(90 / asin(spacing_hole / d_side) / 2);
+echo(a_curve_hole=a_curve_hole);
+spacing_hole_curve = chord_len(d_side / 2, a_curve_hole);
+echo(spacing_hole_curve=spacing_hole_curve);
 
-l_side_straight = round_num(l_glasses - w_side_inner, spacing_hole);
+d_rib_outer = d_side - 2 * rib_inner * sin(rib_tilt) + t2_rib * cos(rib_tilt);
+echo(d_rib_outer=d_rib_outer);
+
+d_rib_inner = d_rib_outer - 2 * t2_rib * cos(rib_tilt);
+echo(d_rib_inner=d_rib_inner);
+
+l_side_straight = round_num(l_glasses - d_rib_inner, spacing_hole);
 echo(l_side_straight=l_side_straight);
+
+echo();
+echo("SIDE PIECE, covers ribs");
+echo(width=d_rib_inner + 2 * rib_inner + 2 * rib_outer);
+echo(length=l_side_straight + d_rib_inner + 2 * rib_inner + 2 * rib_outer);
+
+echo();
+echo("WALL PIECE, covers ribs, flat + quarter round");
+echo(width=w_wall + 2 * t_side - 2 * z_t2 + 2 * rib_inner + 2 * rib_outer);
+echo(length=l_side_straight + PI * d_rib_outer / 4);
+
+echo();
+echo("# half circle holes at", spacing_hole_curve, "=", 180 / a_curve_hole + 1);
+echo("# straight holes at", spacing_hole, "=", l_side_straight / spacing_hole + 1);
+echo("    ^ above intersect");
 
 $fn = 200;
 
@@ -85,19 +109,13 @@ module hole_mask(hole_dir) {
 
 module rib_curve(a_sweep, rib_tilt, d) {
 
-  // round number of holes to a clean divisor of 90
-  a_isoc = 2 * asin(spacing_hole / d);
-  a = 90 / round(90 / a_isoc);
-
-  echo(curve_spacing_hole=chord_len(d / 2, a));
-
   difference() {
     rotate_extrude(a=a_sweep)
       translate(v=[d / 2, 0])
         rotate(a=-rib_tilt)
           rib_cross();
 
-    for (i = [0:a:a_sweep]) {
+    for (i = [0:a_curve_hole:a_sweep]) {
       rotate(a=i)
         translate(v=[d / 2, 0, 0])
           rotate(a=rib_tilt, v=[0, 1, 0])
@@ -129,23 +147,15 @@ module cross_section_test() {
   }
 }
 
-// inside oriented at origin
+// mid t2 at origin
 module glasses_side() {
-  z_t2_lower = -rib_inner * cos(rib_tilt) - t2_rib / 2 * sin(rib_tilt);
-  echo(z_t2_lower=z_t2_lower);
 
-  t_joining = t2_rib * sin(rib_tilt);
-  echo(t_joining=t_joining);
-
-  t_remainder = t_side - t_joining;
-  echo(t_remainder=t_remainder);
+  // bottom of rib is at z 0
+  dz_rib = rib_inner * cos(rib_tilt) - z_t2 / 2 + t_side_min;
 
   module curves() {
-
-    // possible bug - part of the circle is removed by the fill prismoid 
-    translate(v=[0, 0, 0.00000001])
-      rotate(a=180)
-        rib_curve(a_sweep=180, rib_tilt=rib_tilt, d=d_side);
+    rotate(a=180)
+      rib_curve(a_sweep=180, rib_tilt=rib_tilt, d=d_side);
 
     translate(v=[0, l_side_straight, 0])
       rib_curve(a_sweep=180, rib_tilt=rib_tilt, d=d_side);
@@ -161,69 +171,45 @@ module glasses_side() {
         rib_straight(l=l_side_straight, hole_dir=-1);
   }
 
-  module fill() {
-    if (t_joining > 0) {
-
-      translate(v=[0, 0, z_t2_lower + t_joining / 2]) {
-
-        cyl(d1=w_side, d2=w_side_inner, t_joining);
-
-        translate(v=[0, l_side_straight, 0])
-          cyl(d1=w_side, d2=w_side_inner, t_joining);
-
-        translate(v=[0, l_side_straight / 2, 0])
-          prismoid(
-            size1=[w_side, l_side_straight],
-            size2=[w_side_inner, l_side_straight],
-            h=t_joining,
-            anchor=CENTER,
-          );
-      }
-    }
-  }
-
   module side() {
+    cyl(d=d_rib_outer, t_side_min);
 
-    translate(v=[0, 0, -t_remainder / 2 + z_t2_lower]) {
-      cyl(d=w_side, t_remainder);
+    translate(v=[0, l_side_straight, 0])
+      cyl(d=d_rib_outer, t_side_min);
 
-      translate(v=[0, l_side_straight, 0])
-        cyl(d=w_side, t_remainder);
-
-      translate(v=[0, l_side_straight / 2, 0])
-        cuboid([w_side, l_side_straight, t_remainder]);
-    }
+    translate(v=[0, l_side_straight / 2, 0])
+      cube([d_rib_outer, l_side_straight, t_side_min], center=true);
   }
 
-  translate(v=[0, -l_side_straight / 2, -z_t2_lower + t_remainder]) {
-    if (part == "side" || part == "all") {
-      color(c="brown")
+  translate(v=[0, -l_side_straight / 2, 0]) {
+    color(c="brown")
+      translate(v=[0, 0, dz_rib])
         curves();
 
-      color(c="orange")
+    color(c="tan")
+      translate(v=[0, 0, dz_rib])
         lines();
 
-      color(c="steelblue")
-        fill();
-
-      color(c="blue")
+    color(c="blue")
+      translate(v=[0, 0, t_side_min / 2])
         side();
-    }
   }
 }
 
 module glasses_wall() {
+  dx_flat = (t_wall - d_rib_outer) / 2;
+
   translate(v=[0, 0, -w_wall / 2]) {
-    color(c="brown")
+    color(c="tan")
       translate(v=[0, l_side_straight / 2, 0])
         back_half()
-          tube(od=w_side, id=w_side - 2 * t_wall, w_wall);
+          tube(od=d_rib_outer, id=d_rib_outer - t_wall * 2, h=w_wall);
 
-    color(c="orange") {
-      translate(v=[(w_side - t_wall) / 2, 0, 0])
+    color(c="brown") {
+      translate(v=[dx_flat, 0, 0])
         cuboid([t_wall, l_side_straight, w_wall]);
 
-      translate(v=[-(w_side - t_wall) / 2, 0, 0])
+      translate(v=[-dx_flat, 0, 0])
         cuboid([t_wall, l_side_straight, w_wall]);
     }
   }
