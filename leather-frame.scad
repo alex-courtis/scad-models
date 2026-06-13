@@ -4,7 +4,7 @@ include <lib/geom.scad>
 d_filament = 0.4;
 t_layer = 0.2;
 
-model = "glasses"; // ["glasses", "glasses-side", "cross_section_test"]
+model = "glasses"; // ["glasses", "cross_section_test"]
 
 debug_holes = false;
 circular_holes = false;
@@ -23,14 +23,28 @@ w_hole = 1.8; // [0.05:0.05:5]
 t_side = 3.0; // [0:0.05:5]
 
 // aspirational, rounded to hole spacing
-l_glasses = 100; // [20:1:300]
+l_straight = 120; // [20:1:300]
 
 // inside to inside
-w_wall = 60; // [20:1:200]
+w_wall = 45; // [20:1:200]
+
 t_wall = 1.6; // [0:0.05:5]
 
 // of the end hole midpoints
-d_side = 40; // [10:1:100]
+d_side = 35; // [10:1:100]
+
+d_rod = 2.1; // [0:0.05:5]
+l_rod = 29; // [0:0.05:50]
+
+d_liner_hole = 1.5; // [0:0.05:3]
+spacing_liner_hole = 6; // [0:0.05:3]
+
+d_hinge = 2.1; // [0:0.05:5]
+
+d_magnet = 11; // [0:0.1:50]
+
+gap_half = 1; // [0:0.1:5]
+gap_top = 2.0; // [0:0.1:5]
 
 z_t2 = t2_rib * sin(rib_tilt);
 echo(z_t2=z_t2);
@@ -43,28 +57,33 @@ echo(a_curve_hole=a_curve_hole);
 spacing_hole_curve = chord_len(d_side / 2, a_curve_hole);
 echo(spacing_hole_curve=spacing_hole_curve);
 
+a_curve_liner_hole = 90 / round(90 / asin(spacing_liner_hole / d_side) / 2);
+echo(a_curve_liner_hole=a_curve_liner_hole);
+spacing_liner_hole_curve = chord_len(d_side / 2, a_curve_liner_hole);
+echo(spacing_liner_hole_curve=spacing_liner_hole_curve);
+
 d_rib_outer = d_side - 2 * rib_inner * sin(rib_tilt) + t2_rib * cos(rib_tilt);
 echo(d_rib_outer=d_rib_outer);
 
 d_rib_inner = d_rib_outer - 2 * t2_rib * cos(rib_tilt);
 echo(d_rib_inner=d_rib_inner);
 
-l_side_straight = round_num(l_glasses - d_rib_inner, spacing_hole);
-echo(l_side_straight=l_side_straight);
+l_straight_adj = round_num(l_straight, spacing_hole);
+echo(l_straight_adj=l_straight_adj);
 
 echo();
 echo("SIDE PIECE, covers ribs");
 echo(width=d_rib_inner + 2 * rib_inner + 2 * rib_outer);
-echo(length=l_side_straight + d_rib_inner + 2 * rib_inner + 2 * rib_outer);
+echo(length=l_straight_adj + d_rib_inner + 2 * rib_inner + 2 * rib_outer);
 
 echo();
 echo("WALL PIECE, covers ribs, flat + quarter round");
 echo(width=w_wall + 2 * t_side - 2 * z_t2 + 2 * rib_inner + 2 * rib_outer);
-echo(length=l_side_straight + PI * d_rib_outer / 4);
+echo(length=l_straight_adj + PI * d_rib_outer / 4);
 
 echo();
 echo("# half circle holes at", spacing_hole_curve, "=", 180 / a_curve_hole + 1);
-echo("# straight holes at", spacing_hole, "=", l_side_straight / spacing_hole + 1);
+echo("# straight holes at", spacing_hole, "=", l_straight_adj / spacing_hole + 1);
 echo("    ^ above intersect");
 
 $fn = 200;
@@ -148,84 +167,229 @@ module cross_section_test() {
 }
 
 // mid t2 at origin
-module glasses_side() {
+module side(dir) {
 
-  // bottom of rib is at z 0
-  dz_rib = rib_inner * cos(rib_tilt) - z_t2 / 2 + t_side_min;
+  // to put bottom of side at z 0
+  dz = rib_inner * cos(rib_tilt) - z_t2 / 2 + t_side_min;
 
   module curves() {
     rotate(a=180)
       rib_curve(a_sweep=180, rib_tilt=rib_tilt, d=d_side);
 
-    translate(v=[0, l_side_straight, 0])
+    translate(v=[0, l_straight_adj, 0])
       rib_curve(a_sweep=180, rib_tilt=rib_tilt, d=d_side);
   }
 
   module lines() {
-    translate(v=[d_side / 2, l_side_straight / 2, 0])
+    translate(v=[d_side / 2, l_straight_adj / 2, 0])
       rotate(a=rib_tilt, v=[0, 1, 0])
-        rib_straight(l=l_side_straight, hole_dir=1);
+        rib_straight(l=l_straight_adj, hole_dir=1);
 
-    translate(v=[-d_side / 2, l_side_straight / 2, 0])
+    translate(v=[-d_side / 2, l_straight_adj / 2, 0])
       rotate(a=-rib_tilt, v=[0, 1, 0])
-        rib_straight(l=l_side_straight, hole_dir=-1);
+        rib_straight(l=l_straight_adj, hole_dir=-1);
   }
 
-  module side() {
-    cyl(d=d_rib_outer, t_side_min);
+  module body() {
+    cyl(d=d_rib_outer, h=t_side_min, rounding1=t_side_min / 2);
 
-    translate(v=[0, l_side_straight, 0])
+    translate(v=[0, l_straight_adj, 0])
       cyl(d=d_rib_outer, t_side_min);
 
-    translate(v=[0, l_side_straight / 2, 0])
-      cube([d_rib_outer, l_side_straight, t_side_min], center=true);
+    translate(v=[0, l_straight_adj / 2, 0])
+      cuboid([d_rib_outer, l_straight_adj, t_side_min]);
   }
 
-  translate(v=[0, -l_side_straight / 2, 0]) {
-    color(c="brown")
-      translate(v=[0, 0, dz_rib])
-        curves();
+  module rods_mask() {
+    if (d_rod > 0 && l_rod > 0) {
 
-    color(c="tan")
-      translate(v=[0, 0, dz_rib])
-        lines();
+      translate(v=[0, 0, t_side / 2]) {
 
-    color(c="blue")
-      translate(v=[0, 0, t_side_min / 2])
-        side();
+        y_rod_start = -l_straight_adj / 2 + d_rod * 3;
+        y_rod_end = l_straight_adj / 2 + d_rib_inner / 2;
+        y_rod_gap = (y_rod_end - y_rod_start) / 3 - d_rod * 1;
+
+        for (y = [y_rod_start:y_rod_gap:y_rod_end]) {
+          translate(v=[0, y, 0])
+            rotate(a=90, v=[0, 1, 0])
+              cylinder(d=d_rod, h=l_rod / 2, center=true);
+        }
+      }
+    }
+  }
+
+  module hinge_socket_mask() {
+    if (d_hinge) {
+      translate(v=[-dir * (d_rib_outer - d_hinge) / 2, -l_straight_adj / 2, t_side / 2 - 0.2])
+        cyl(d=d_hinge, h=t_side, center=true);
+    }
+  }
+
+  module magnet_mask() {
+    translate(v=[dir * (d_rib_inner / 2 - d_magnet / 2), -l_straight_adj / 2, t_side / 2])
+      cyl(d=d_magnet, h=t_side * 2, center=true);
+  }
+
+  difference() {
+    translate(v=[0, -l_straight_adj / 2, 0]) {
+      color(c="brown")
+        translate(v=[0, 0, dz])
+          curves();
+
+      color(c="tan")
+        translate(v=[0, 0, dz])
+          lines();
+
+      color(c="blue")
+        translate(v=[0, 0, t_side_min / 2])
+          body();
+    }
+
+    rods_mask();
+
+    hinge_socket_mask();
+
+    magnet_mask();
   }
 }
 
-module glasses_wall() {
-  dx_flat = (t_wall - d_rib_outer) / 2;
+module wall() {
 
-  translate(v=[0, 0, -w_wall / 2]) {
-    color(c="tan")
-      translate(v=[0, l_side_straight / 2, 0])
-        back_half()
-          tube(od=d_rib_outer, id=d_rib_outer - t_wall * 2, h=w_wall);
+  module body() {
+    dx_flat = (t_wall - d_rib_outer) / 2;
+    dy_flat = gap_top / 2;
 
-    color(c="brown") {
-      translate(v=[dx_flat, 0, 0])
-        cuboid([t_wall, l_side_straight, w_wall]);
+    module flat() {
+      cuboid(
+        [t_wall, l_straight_adj - gap_top, w_wall],
+        rounding=t_wall / 2,
+        edges=[
+          FRONT + LEFT,
+          FRONT + RIGHT,
+        ],
+      );
+    }
 
-      translate(v=[-dx_flat, 0, 0])
-        cuboid([t_wall, l_side_straight, w_wall]);
+    translate(v=[0, 0, -w_wall / 2]) {
+      color(c="tan")
+        translate(v=[0, l_straight_adj / 2, 0])
+          back_half()
+            tube(od=d_rib_outer, id=d_rib_outer - t_wall * 2, h=w_wall);
+
+      color(c="beige") {
+        translate(v=[0, dy_flat, 0]) {
+          translate(v=[dx_flat, 0, 0])
+            flat();
+
+          translate(v=[-dx_flat, 0, 0])
+            flat();
+        }
+      }
     }
   }
+
+  module liner_holes_mask() {
+    module straights_l() {
+      for (y = [-l_straight_adj / 2 + spacing_liner_hole:spacing_liner_hole:l_straight_adj / 2 - spacing_liner_hole]) {
+        translate(v=[0, y, 0])
+          rotate(a=90, v=[0, 1, 0])
+            cylinder(h=t_wall * 2, d=d_liner_hole, center=true);
+      }
+    }
+
+    module curveds_l() {
+      for (a = [0:a_curve_liner_hole:180]) {
+        rotate(a=-a)
+          translate(v=[-(d_rib_outer - t_wall) / 2, 0, 0])
+            rotate(a=90, v=[0, 1, 0])
+              cylinder(h=t_wall * 2, d=d_liner_hole, center=true);
+      }
+    }
+
+    module straights_w() {
+      dz = (w_wall - d_liner_hole) / spacing_liner_hole;
+      for (z = [0:dz:w_wall - dz])
+        translate(v=[0, 0, -z])
+          rotate(a=90, v=[0, 1, 0])
+            cylinder(h=t_wall * 2, d=d_liner_hole, center=true);
+    }
+
+    if (d_liner_hole > 0) {
+
+      dx_straights_l = (d_rib_outer - t_wall) / 2;
+      dz_bottom = -w_wall + d_liner_hole;
+
+      translate(v=[0, 0, -d_liner_hole / 2]) {
+
+        translate(v=[0, l_straight_adj / 2, 0]) {
+          translate(v=[-dx_straights_l, 0, 0])
+            straights_w();
+          translate(v=[dx_straights_l, 0, 0])
+            straights_w();
+        }
+
+        translate(v=[0, -l_straight_adj / 2 + spacing_liner_hole, 0]) {
+          translate(v=[-dx_straights_l, 0, 0])
+            straights_w();
+          translate(v=[dx_straights_l, 0, 0])
+            straights_w();
+        }
+
+        translate(v=[0, l_straight_adj / 2, 0]) {
+          rotate(a=90 - a_curve_liner_hole)
+            translate(v=[dx_straights_l, 0, 0])
+              straights_w();
+
+          rotate(a=90 + a_curve_liner_hole)
+            translate(v=[dx_straights_l, 0, 0])
+              straights_w();
+        }
+
+        translate(v=[-dx_straights_l, 0, 0]) {
+          straights_l();
+          translate(v=[0, 0, dz_bottom])
+            straights_l();
+        }
+
+        translate(v=[dx_straights_l, 0, 0]) {
+          straights_l();
+          translate(v=[0, 0, dz_bottom])
+            straights_l();
+        }
+
+        translate(v=[0, l_straight_adj / 2, 0]) {
+          curveds_l();
+          translate(v=[0, 0, dz_bottom])
+            curveds_l();
+        }
+      }
+    }
+  }
+
+  difference() {
+    body();
+    liner_holes_mask();
+  }
+}
+
+module full() {
+  side(dir=1);
+
+  wall();
+
+  translate(v=[0, 0, -w_wall])
+    rotate(a=180, v=[0, 1, 0])
+      side(dir=-1);
 }
 
 render() {
 
   if (model == "glasses") {
-    left_half(s=1000) {
-      glasses_side();
-
-      glasses_wall();
-
-      translate(v=[0, 0, -w_wall])
-        rotate(a=180, v=[0, 1, 0])
-          glasses_side();
+    left_half(s=1000, x=-gap_half/2) {
+      full();
+    }
+    right_half(s=1000, x=gap_half/2) {
+      full();
     }
   }
 
