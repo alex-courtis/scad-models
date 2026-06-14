@@ -47,12 +47,14 @@ d_side_magnet = 5; // [0:0.1:50]
 d_lid_magnet = 5; // [0:0.1:50]
 t_lid_magnet = 2; // [0:0.1:50]
 
-a_lid_magnet = -5; // [-180:1:0]
+a_lid_magnet = -6; // [-180:1:0]
 
 gap_half = 1; // [0:0.1:5]
-gap_lid_front = 2.0; // [0:0.1:5]
+gap_lid_front = 3.0; // [0:0.1:5]
 gap_lid_back = 4.0; // [0:0.1:5]
-gap_w_lid = 1.6; // [0:0.1:15]
+
+// inner side to outer lid
+gap_w_lid = 1.2; // [0:0.1:15]
 
 z_t2 = t2_rib * sin(rib_tilt);
 echo(z_t2=z_t2);
@@ -160,6 +162,15 @@ module rib_straight(l, hole_dir) {
     }
 }
 
+module top_holes_mask(t) {
+  dz = w_wall / round(w_wall / spacing_hole);
+
+  for (z = [dz / 2:dz:w_wall - dz / 2]) {
+    translate(v=[0, 0, -z])
+      cuboid([t, w_hole, l_hole]);
+  }
+}
+
 module cross_section_test() {
   difference() {
     linear_extrude(h=10, center=true) {
@@ -194,13 +205,21 @@ module side(dir) {
   }
 
   module body() {
-    cyl(d=d_rib_outer, h=t_side_min, chamfer1=t_side - z_t2);
+    translate(v=[0, 0, (t_side_min - z_t2) / 2])
+      cyl(d=d_rib_outer, h=z_t2);
 
     translate(v=[0, l_straight, 0])
       cyl(d=d_rib_outer, t_side_min);
 
     translate(v=[0, l_straight / 2, 0])
-      cuboid([d_rib_outer, l_straight, t_side_min]);
+      cuboid(
+        [d_rib_outer, l_straight, t_side_min],
+        chamfer=(t_side_min - z_t2),
+        edges=[
+          FRONT + BOTTOM,
+          FRONT + LEFT,
+        ],
+      );
   }
 
   module rods_mask() {
@@ -209,14 +228,14 @@ module side(dir) {
       translate(v=[0, 0, t_side / 2]) {
         for (
           y = [
-            -l_straight / 2,
+            -l_straight / 2 + d_rod * 2,
             0,
-            l_straight / 2,
+            l_straight / 2 - d_rod * 2,
           ]
         ) {
           translate(v=[0, y, 0])
             rotate(a=90, v=[0, 1, 0])
-              #cylinder(d=d_rod, h=l_rod, center=true);
+              cylinder(d=d_rod, h=l_rod, center=true);
         }
       }
     }
@@ -362,28 +381,15 @@ module wall() {
     }
   }
 
-  module top_holes_mask() {
-    module line_w() {
-      dz = w_wall / round(w_wall / spacing_hole);
-      for (z = [dz / 2:dz:w_wall - dz / 2]) {
-        translate(v=[0, 0, -z])
-          cuboid([t_wall, w_hole, l_hole]);
-      }
-    }
-
-    translate(v=[0, -l_straight / 2 + gap_lid_front + rib_outer, 0])
-      translate(v=[(d_rib_outer - t_wall) / 2, 0, 0])
-        line_w();
-
-    translate(v=[0, -l_straight / 2 + gap_lid_back + rib_outer, 0])
-      translate(v=[-(d_rib_outer - t_wall) / 2, 0, 0])
-        line_w();
-  }
-
   difference() {
     body();
     liner_holes_mask();
-    top_holes_mask();
+
+    translate(v=[(d_rib_outer - t_wall) / 2, -l_straight / 2 + gap_lid_front + rib_outer, 0])
+      top_holes_mask(t=t_wall * 2);
+
+    translate(v=[-(d_rib_outer - t_wall) / 2, -l_straight / 2 + gap_lid_back + rib_outer, 0])
+      top_holes_mask(t=t_wall * 2);
   }
 }
 
@@ -406,11 +412,11 @@ module lid() {
         translate(v=[0, 0, -w_lid_inner / 4])
           tube(od=d_rib_outer, id=d_rib_outer - t_lid * 2, h=w_lid_inner / 2);
       }
+
       color(c="maroon") {
         translate(v=[0, 0, t_lid_side / 2])
           cyl(
             d=d_rib_outer, h=t_lid_side,
-            chamfer2=t_lid_side,
           );
       }
     }
@@ -426,6 +432,7 @@ module lid() {
 
   module front_holes_mask() {
     dz = w_lid_inner / round(w_lid_inner / spacing_hole);
+    echo(front_holes_mask_dz=dz);
     translate(v=[0, -rib_outer, 0]) {
       for (z = [dz / 2:dz:w_lid_inner]) {
         for (x = [-1, 1]) {
@@ -436,22 +443,37 @@ module lid() {
     }
   }
 
+  module curve() {
+    dz = rib_inner * cos(rib_tilt) - z_t2 / 2 + t_lid_side;
+    color(c="pink") {
+      translate(v=[0, 0, dz])
+        rotate(a=180)
+          rib_curve(a_sweep=180, rib_tilt=rib_tilt, d=d_side);
+    }
+  }
+
   module half(dir) {
     translate(v=[0, 0, -gap_w_lid - t_lid_side]) {
+      curve();
       difference() {
         body();
         magnet_mask(a=(dir == 1 ? a_lid_magnet : 180 - a_lid_magnet));
-        front_holes_mask();
       }
     }
   }
 
   translate(v=[0, -l_straight / 2, 0]) {
-    {
-      half(dir=1);
-      translate(v=[0, 0, -w_wall])
-        rotate(a=180, v=[0, 1, 0])
-          half(dir=-1);
+    difference() {
+      union() {
+        half(dir=1);
+        translate(v=[0, 0, -w_wall])
+          rotate(a=180, v=[0, 1, 0])
+            half(dir=-1);
+      }
+      for (a = [-a_curve_hole / 2, 180 + a_curve_hole / 2])
+        rotate(a=a)
+          translate(v=[d_rib_outer / 2 - t_lid / 2, 0, 0])
+            top_holes_mask(t=t_lid * 2);
     }
   }
 }
