@@ -4,7 +4,7 @@ include <lib/geom.scad>
 d_filament = 0.4;
 t_layer = 0.2;
 
-model = "all"; // ["all", "glasses", "lid", "cross_section_test"]
+model = "all"; // ["all", "front", "back", "lid", "lid+front", "lid+back", "cross_section_test"]
 
 debug_holes = false;
 circular_holes = false;
@@ -480,18 +480,24 @@ module lid() {
 
 render() {
 
-  if (model == "glasses" || model == "all") {
-    left_half(s=1000, x=-gap_half / 2) {
+  if (model == "all") {
+    lid();
+    difference() {
       full();
-    }
-    right_half(s=1000, x=gap_half / 2) {
-      full();
+      cube([gap_half, 1000, 1000], center=true);
     }
   }
 
-  if (model == "lid" || model == "all") {
+  if (search("front", model))
+    right_half(s=1000, x=gap_half / 2)
+      full();
+
+  if (search("back", model))
+    left_half(s=1000, x=-gap_half / 2)
+      full();
+
+  if (search("lid", model))
     lid();
-  }
 
   if (model == "cross_section_test")
     cross_section_test();

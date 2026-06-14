@@ -6,19 +6,16 @@ rm -f ${prefix}*stl
 
 openscad \
 	"${prefix}.scad" \
-	-o "${prefix}.side.stl" \
-	-D "model=\"glasses\"" \
-	-D "part=\"side\""
+	-o "${prefix}.front.stl" \
+	-D "model=\"front\""
 
 openscad \
 	"${prefix}.scad" \
-	-o "${prefix}.wall_left.stl" \
-	-D "model=\"glasses\"" \
-	-D "part=\"wall_left\""
+	-o "${prefix}.back.stl" \
+	-D "model=\"back\""
 
 openscad \
 	"${prefix}.scad" \
-	-o "${prefix}.wall_right.stl" \
-	-D "model=\"glasses\"" \
-	-D "part=\"wall_right\""
+	-o "${prefix}.lid.stl" \
+	-D "model=\"lid\""
 
