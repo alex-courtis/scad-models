@@ -13,6 +13,7 @@ l1_awl = 3.25;
 l2_awl = 1.95;
 a_awl = 45;
 s_awl = 5;
+// s_awl = 5.47644;
 
 // keep this even to line up the long windows
 n_awl_straight = 18; // [6:2:50]
@@ -37,8 +38,10 @@ d_circle_holes = [20, 22.5, 25, 27.5, 30, 35, 40, 45, 50, 55, 60, 70, 80, 90, 10
 d_circle_hole = 27.5;
 
 font = "Space Mono:style=Regular";
-font_size = 7;
+font_size = 6;
 h_text = t_layer * 2;
+text_extra = undef;
+// text_extra = "ø35mm";
 
 poly_awl = [
   [0, l1_awl / 2],
@@ -113,11 +116,23 @@ module awl_guide_straight() {
             text(
               font=font,
               size=font_size,
-              text=str(s_awl, "mm"),
+              text=str(round(s_awl * 100) / 100, "mm"),
               valign="top",
               halign="right",
             );
           }
+
+        if (text_extra) {
+          linear_extrude(h=h_text, center=true) {
+            text(
+              font=font,
+              size=font_size,
+              text=str(text_extra),
+              valign="top",
+              halign="right",
+            );
+          }
+        }
 
         translate(v=[0, -l / 2 + s_awl, 0])
           linear_extrude(h=h_text, center=true) {
