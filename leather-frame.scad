@@ -409,15 +409,15 @@ module lid() {
   module body() {
     front_half() {
       color(c="chocolate") {
-        translate(v=[0, 0, -w_lid_inner / 4])
-          tube(od=d_rib_outer, id=d_rib_outer - t_lid * 2, h=w_lid_inner / 2);
+        // overlap to ensure manifold
+        z = w_lid_inner / 2 + t_lid_side;
+        translate(v=[0, 0, -z / 2 + t_lid_side])
+          tube(od=d_rib_outer, id=d_rib_outer - t_lid * 2, h=z);
       }
 
       color(c="maroon") {
         translate(v=[0, 0, t_lid_side / 2])
-          cyl(
-            d=d_rib_outer, h=t_lid_side,
-          );
+          cyl(d=d_rib_outer, h=t_lid_side);
       }
     }
   }
