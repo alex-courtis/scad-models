@@ -26,7 +26,7 @@ t_lid_side = 2.0; // [0:0.05:5]
 t_lid = 1.6; // [0:0.05:5]
 
 // aspirational, rounded to hole spacing
-l_straight = 120; // [20:1:300]
+l_straight_target = 120; // [20:1:300]
 
 // inside to inside
 w_wall = 55; // [20:1:200]
@@ -37,14 +37,13 @@ t_wall = 1.8; // [0:0.05:5]
 d_side = 35; // [10:1:100]
 
 d_rod = 2.2; // [0:0.05:5]
-l_rod = 29; // [0:0.05:50]
+l_rod = 18; // [0:0.05:50]
 
 d_liner_hole = 1.5; // [0:0.05:3]
-spacing_liner_hole = 16; // [0:0.05:3]
 
 d_hinge = 2.1; // [0:0.05:5]
 
-d_magnet = 5; // [0:0.1:50]
+d_side_magnet = 5; // [0:0.1:50]
 d_lid_magnet = 5; // [0:0.1:50]
 t_lid_magnet = 2; // [0:0.1:50]
 
@@ -72,25 +71,25 @@ echo(d_rib_outer=d_rib_outer);
 d_rib_inner = d_rib_outer - 2 * t2_rib * cos(rib_tilt);
 echo(d_rib_inner=d_rib_inner);
 
-l_straight_adj = round_num(l_straight, spacing_hole);
-echo(l_straight_adj=l_straight_adj);
+l_straight = round_num(l_straight_target, spacing_hole);
+echo(l_straight=l_straight);
 
 echo();
 echo("SIDE PIECE, covers ribs");
 echo(width=d_rib_inner + 2 * rib_inner + 2 * rib_outer);
-echo(length=l_straight_adj + d_rib_inner + 2 * rib_inner + 2 * rib_outer);
+echo(length=l_straight + d_rib_inner + 2 * rib_inner + 2 * rib_outer);
 
 echo();
 echo("WALL PIECE, covers ribs, flat + quarter round");
 echo(width=w_wall + 2 * t_side - 2 * z_t2 + 2 * rib_inner + 2 * rib_outer);
-echo(length=l_straight_adj + PI * d_rib_outer / 4);
+echo(length=l_straight + PI * d_rib_outer / 4);
 
 echo();
 echo("# half circle holes at", spacing_hole_curve, "=", 180 / a_curve_hole + 1);
-echo("# straight holes at", spacing_hole, "=", l_straight_adj / spacing_hole + 1);
+echo("# straight holes at", spacing_hole, "=", l_straight / spacing_hole + 1);
 echo("    ^ above intersect");
 
-$fn = 50;
+$fn = 200;
 
 poly_rib = [
   [-t2_rib / 2, -rib_inner],
@@ -180,28 +179,28 @@ module side(dir) {
     rotate(a=180)
       rib_curve(a_sweep=180, rib_tilt=rib_tilt, d=d_side);
 
-    translate(v=[0, l_straight_adj, 0])
+    translate(v=[0, l_straight, 0])
       rib_curve(a_sweep=180, rib_tilt=rib_tilt, d=d_side);
   }
 
   module lines() {
-    translate(v=[d_side / 2, l_straight_adj / 2, 0])
+    translate(v=[d_side / 2, l_straight / 2, 0])
       rotate(a=rib_tilt, v=[0, 1, 0])
-        rib_straight(l=l_straight_adj, hole_dir=1);
+        rib_straight(l=l_straight, hole_dir=1);
 
-    translate(v=[-d_side / 2, l_straight_adj / 2, 0])
+    translate(v=[-d_side / 2, l_straight / 2, 0])
       rotate(a=-rib_tilt, v=[0, 1, 0])
-        rib_straight(l=l_straight_adj, hole_dir=-1);
+        rib_straight(l=l_straight, hole_dir=-1);
   }
 
   module body() {
     cyl(d=d_rib_outer, h=t_side_min, chamfer1=t_side - z_t2);
 
-    translate(v=[0, l_straight_adj, 0])
+    translate(v=[0, l_straight, 0])
       cyl(d=d_rib_outer, t_side_min);
 
-    translate(v=[0, l_straight_adj / 2, 0])
-      cuboid([d_rib_outer, l_straight_adj, t_side_min]);
+    translate(v=[0, l_straight / 2, 0])
+      cuboid([d_rib_outer, l_straight, t_side_min]);
   }
 
   module rods_mask() {
@@ -210,14 +209,14 @@ module side(dir) {
       translate(v=[0, 0, t_side / 2]) {
         for (
           y = [
-            -l_straight_adj / 2,
+            -l_straight / 2,
             0,
-            l_straight_adj / 2,
+            l_straight / 2,
           ]
         ) {
           translate(v=[0, y, 0])
             rotate(a=90, v=[0, 1, 0])
-              cylinder(d=d_rod, h=l_rod / 2, center=true);
+              #cylinder(d=d_rod, h=l_rod, center=true);
         }
       }
     }
@@ -225,18 +224,18 @@ module side(dir) {
 
   module hinge_socket_mask() {
     if (d_hinge) {
-      translate(v=[-dir * (d_rib_outer - d_hinge) / 2, -l_straight_adj / 2 + d_hinge / 2, t_side / 2 - 0.2])
+      translate(v=[-dir * (d_rib_outer - d_hinge) / 2, -l_straight / 2 + d_hinge / 2, t_side / 2 - 0.2])
         cyl(d=d_hinge, h=t_side, center=true);
     }
   }
 
   module magnet_mask() {
-    translate(v=[dir * (d_rib_inner / 2 - d_magnet / 2), -l_straight_adj / 2, t_side / 2])
-      cyl(d=d_magnet, h=t_side * 2, center=true);
+    translate(v=[dir * (d_rib_inner / 2 - d_side_magnet / 2), -l_straight / 2, t_side / 2])
+      cyl(d=d_side_magnet, h=t_side * 2, center=true);
   }
 
   difference() {
-    translate(v=[0, -l_straight_adj / 2, 0]) {
+    translate(v=[0, -l_straight / 2, 0]) {
       color(c="brown")
         translate(v=[0, 0, dz])
           curves();
@@ -266,7 +265,7 @@ module wall() {
     module flat(gap) {
       translate(v=[0, gap / 2, 0]) {
         cuboid(
-          [t_wall, l_straight_adj - gap, w_wall],
+          [t_wall, l_straight - gap, w_wall],
           rounding=t_wall / 2,
           edges=[
             FRONT + LEFT,
@@ -278,7 +277,7 @@ module wall() {
 
     translate(v=[0, 0, -w_wall / 2]) {
       color(c="tan")
-        translate(v=[0, l_straight_adj / 2, 0])
+        translate(v=[0, l_straight / 2, 0])
           back_half()
             tube(od=d_rib_outer, id=d_rib_outer - t_wall * 2, h=w_wall);
 
@@ -294,7 +293,7 @@ module wall() {
 
   module liner_holes_mask() {
     module straights_l(gap) {
-      for (y = [l_straight_adj / 2:-spacing_hole:-l_straight_adj / 2 + gap + spacing_hole]) {
+      for (y = [l_straight / 2:-spacing_hole:-l_straight / 2 + gap + spacing_hole]) {
         translate(v=[0, y, 0])
           rotate(a=90, v=[0, 1, 0])
             cylinder(h=t_wall * 2, d=d_liner_hole, center=true);
@@ -325,14 +324,14 @@ module wall() {
 
       translate(v=[0, 0, -d_liner_hole / 2]) {
 
-        translate(v=[0, l_straight_adj / 2, 0]) {
+        translate(v=[0, l_straight / 2, 0]) {
           translate(v=[-dx_straights_l, 0, 0])
             straights_w();
           translate(v=[dx_straights_l, 0, 0])
             straights_w();
         }
 
-        translate(v=[0, l_straight_adj / 2, 0]) {
+        translate(v=[0, l_straight / 2, 0]) {
           rotate(a=90 - a_curve_hole)
             translate(v=[dx_straights_l, 0, 0])
               straights_w();
@@ -354,7 +353,7 @@ module wall() {
             straights_l(gap=gap_lid_front);
         }
 
-        translate(v=[0, l_straight_adj / 2, 0]) {
+        translate(v=[0, l_straight / 2, 0]) {
           curveds_l();
           translate(v=[0, 0, dz_bottom])
             curveds_l();
@@ -372,11 +371,11 @@ module wall() {
       }
     }
 
-    translate(v=[0, -l_straight_adj / 2 + gap_lid_front + rib_outer, 0])
+    translate(v=[0, -l_straight / 2 + gap_lid_front + rib_outer, 0])
       translate(v=[(d_rib_outer - t_wall) / 2, 0, 0])
         line_w();
 
-    translate(v=[0, -l_straight_adj / 2 + gap_lid_back + rib_outer, 0])
+    translate(v=[0, -l_straight / 2 + gap_lid_back + rib_outer, 0])
       translate(v=[-(d_rib_outer - t_wall) / 2, 0, 0])
         line_w();
   }
@@ -447,7 +446,7 @@ module lid() {
     }
   }
 
-  translate(v=[0, -l_straight_adj / 2, 0]) {
+  translate(v=[0, -l_straight / 2, 0]) {
     {
       half(dir=1);
       translate(v=[0, 0, -w_wall])
