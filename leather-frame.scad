@@ -4,7 +4,7 @@ include <lib/geom.scad>
 d_filament = 0.4;
 t_layer = 0.2;
 
-model = "glasses"; // ["glasses", "cross_section_test"]
+model = "all"; // ["all", "glasses", "lid", "cross_section_test"]
 
 debug_holes = false;
 circular_holes = false;
@@ -33,7 +33,7 @@ t_wall = 1.6; // [0:0.05:5]
 // of the end hole midpoints
 d_side = 35; // [10:1:100]
 
-d_rod = 2.1; // [0:0.05:5]
+d_rod = 2.15; // [0:0.05:5]
 l_rod = 29; // [0:0.05:50]
 
 d_liner_hole = 1.5; // [0:0.05:3]
@@ -41,10 +41,13 @@ spacing_liner_hole = 6; // [0:0.05:3]
 
 d_hinge = 2.1; // [0:0.05:5]
 
-d_magnet = 11; // [0:0.1:50]
+d_magnet = 10; // [0:0.1:50]
+
+a_lid_magnet = -20; // [-180:1:0]
 
 gap_half = 1; // [0:0.1:5]
 gap_top = 2.0; // [0:0.1:5]
+gap_w_lid = 3; // [0:0.1:15]
 
 z_t2 = t2_rib * sin(rib_tilt);
 echo(z_t2=z_t2);
@@ -86,7 +89,7 @@ echo("# half circle holes at", spacing_hole_curve, "=", 180 / a_curve_hole + 1);
 echo("# straight holes at", spacing_hole, "=", l_straight_adj / spacing_hole + 1);
 echo("    ^ above intersect");
 
-$fn = 200;
+$fn = 50;
 
 poly_rib = [
   [-t2_rib / 2, -rib_inner],
@@ -219,7 +222,7 @@ module side(dir) {
   }
 
   module hinge_socket_mask() {
-    if (d_hinge) {
+    if(d_hinge) {
       translate(v=[-dir * (d_rib_outer - d_hinge) / 2, -l_straight_adj / 2, t_side / 2 - 0.2])
         cyl(d=d_hinge, h=t_side, center=true);
     }
@@ -382,15 +385,84 @@ module full() {
       side(dir=-1);
 }
 
+module lid() {
+  module body() {
+    front_half() {
+      color(c="chocolate") {
+        translate(v=[0, 0, -w_wall / 4])
+          tube(od=d_rib_outer, id=d_rib_outer - t_wall * 2, h=w_wall / 2);
+      }
+      color(c="maroon") {
+        // translate(v=[0, 0, -w_wall - t_side / 2])
+        //   cyl(d=d_rib_outer, h=t_side);
+        translate(v=[0, 0, t_side / 2])
+          cyl(d=d_rib_outer, h=t_side);
+      }
+    }
+  }
+
+  module magnet_mask() {
+    z = w_wall * 2;
+    rotate(a=a_lid_magnet)
+      translate(v=[d_rib_inner / 2 - d_magnet / 2, 0, -w_wall / 2])
+        cyl(d=d_magnet, h=z, center=true);
+  }
+
+  module hinge_socket_mask() {
+    if (d_hinge) {
+      translate(v=[-(d_rib_outer - d_hinge) / 2, 0, 0])
+
+        cyl(d=d_hinge, h=t_side * 100, center=true);
+    }
+  }
+
+  module curve() {
+    rotate(a=180)
+      rib_curve(a_sweep=180, rib_tilt=rib_tilt, d=d_side);
+  }
+
+  module curves() {
+    // to put bottom of inner at z 0
+    dz = rib_inner * cos(rib_tilt) - z_t2 / 2 + t_side_min;
+
+    translate(v=[0, 0, dz])
+      curve();
+  }
+
+  module half() {
+    translate(v=[0, 0, -gap_w_lid - t_side]) {
+      body();
+      curves();
+    }
+  }
+
+  translate(v=[0, -l_straight_adj / 2, 0]) {
+    difference() {
+      union() {
+        half();
+        translate(v=[0, 0, -w_wall])
+          rotate(a=180, v=[0, 1, 0])
+            half();
+      }
+      magnet_mask();
+      hinge_socket_mask();
+    }
+  }
+}
+
 render() {
 
-  if (model == "glasses") {
-    left_half(s=1000, x=-gap_half/2) {
+  if (model == "glasses" || model == "all") {
+    left_half(s=1000, x=-gap_half / 2) {
       full();
     }
-    right_half(s=1000, x=gap_half/2) {
+    right_half(s=1000, x=gap_half / 2) {
       full();
     }
+  }
+
+  if (model == "lid" || model == "all") {
+    lid();
   }
 
   if (model == "cross_section_test")
