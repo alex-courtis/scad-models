@@ -19,3 +19,7 @@ openscad \
 	-o "${prefix}.lid.stl" \
 	-D "model=\"lid\""
 
+openscad \
+	"${prefix}.scad" \
+	-o "${prefix}.lid_insert.stl" \
+	-D "model=\"lid_insert\""

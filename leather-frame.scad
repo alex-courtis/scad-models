@@ -4,7 +4,7 @@ include <lib/geom.scad>
 d_filament = 0.4;
 t_layer = 0.2;
 
-model = "all"; // ["all", "front", "back", "lid", "lid+front", "lid+back", "cross_section_test"]
+model = "all"; // ["all", "front", "back", "lid", "lid_insert", "lid+lid_insert", "lid+front", "lid+back", "cross_section_test"]
 
 debug_holes = false;
 circular_holes = false;
@@ -56,6 +56,12 @@ gap_lid_back = 4.0; // [0:0.1:5]
 // inner side to outer lid
 gap_w_lid = 1.2; // [0:0.1:15]
 
+// each side
+gap_d_insert = 2; // [0:0.1:15]
+
+// each side
+gap_w_insert = 2; // [0:0.1:15]
+
 z_t2 = t2_rib * sin(rib_tilt);
 echo(z_t2=z_t2);
 t_side_min = max(t_side, z_t2);
@@ -76,6 +82,9 @@ echo(d_rib_inner=d_rib_inner);
 l_straight = round_num(l_straight_target, spacing_hole);
 echo(l_straight=l_straight);
 
+w_lid_inner = w_wall - 2 * gap_w_lid - 2 * t_lid_side;
+echo(w_lid_inner=w_lid_inner);
+
 echo();
 echo("SIDE PIECE, covers ribs");
 echo(width=d_rib_inner + 2 * rib_inner + 2 * rib_outer);
@@ -90,6 +99,16 @@ echo();
 echo("# half circle holes at", spacing_hole_curve, "=", 180 / a_curve_hole + 1);
 echo("# straight holes at", spacing_hole, "=", l_straight / spacing_hole + 1);
 echo("    ^ above intersect");
+
+echo();
+echo("LID SIDE PIECE, outside only, covers ribs");
+echo(width=d_rib_inner + 2 * rib_inner + 2 * rib_outer);
+echo(length=d_rib_inner / 2 + rib_inner + rib_outer);
+
+echo();
+echo("LID COVER PIECE, outside only, covers ribs");
+echo(width=w_wall - 2 * gap_w_lid - 2 * t_side + 2 * t_side - 2 * z_t2 + 2 * rib_inner + 2 * rib_outer);
+echo(length=PI * d_rib_outer / 2);
 
 $fn = 200;
 
@@ -404,7 +423,6 @@ module full() {
 }
 
 module lid() {
-  w_lid_inner = w_wall - 2 * gap_w_lid - 2 * t_lid_side;
 
   module body() {
     front_half() {
@@ -478,26 +496,52 @@ module lid() {
   }
 }
 
+module lid_insert() {
+  d = d_rib_outer - t_lid * 2 - gap_d_insert * 2;
+  h = w_lid_inner - gap_w_insert * 2;
+
+  color(c="yellow")
+    translate(
+      v=[
+        0,
+        -l_straight / 2,
+        -w_lid_inner / 2 - gap_w_lid - t_lid_side,
+      ]
+    )
+      front_half(y=d/8)
+        cyl(
+          d=d,
+          h=h,
+          chamfer=0.5,
+        );
+}
+
 render() {
 
   if (model == "all") {
     lid();
+    lid_insert();
     difference() {
       full();
       cube([gap_half, 1000, 1000], center=true);
     }
   }
 
-  if (search("front", model))
+  if (model == "lid+front" || model == "front")
     right_half(s=1000, x=gap_half / 2)
       full();
 
-  if (search("back", model))
+  if (model == "lid+back" || model == "back")
     left_half(s=1000, x=-gap_half / 2)
       full();
 
-  if (search("lid", model))
+  // intersection() {
+  if (model == "lid" || model == "lid+lid_insert")
     lid();
+
+  if (model == "lid_insert" || model == "lid+lid_insert")
+    lid_insert();
+  // }
 
   if (model == "cross_section_test")
     cross_section_test();
