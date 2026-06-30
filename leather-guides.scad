@@ -380,13 +380,13 @@ render() {
   rotate(a=180, v=[1, 0, 0]) {
     if (show_awl_guide_circle)
       translate(v=[0, 120, 0]) {
-        if (d_circle_hole) {
-          awl_guide_circle(d=d_circle_hole);
-        } else {
+        if (is_undef(d_circle_hole)) {
           for (i = [0:1:len(d_circle_holes) - 1]) {
             translate(v=[120 * i, 0, 0])
               awl_guide_circle(d=d_circle_holes[i]);
           }
+        } else {
+          awl_guide_circle(d=d_circle_hole);
         }
       }
 

@@ -57,10 +57,10 @@ gap_lid_back = 4.0; // [0:0.1:5]
 gap_w_lid = 1.2; // [0:0.1:15]
 
 // each side
-gap_d_insert = 2; // [0:0.1:15]
+gap_d_insert = 0.5; // [0:0.1:15]
 
 // each side
-gap_w_insert = 2; // [0:0.1:15]
+gap_w_insert = 0.5; // [0:0.1:15]
 
 z_t2 = t2_rib * sin(rib_tilt);
 echo(z_t2=z_t2);
