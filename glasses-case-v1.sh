@@ -1,6 +1,6 @@
 #!/bin/sh
 
-prefix="leather-frame"
+prefix="glasses-case-v1"
 
 rm -f ${prefix}*stl
 
