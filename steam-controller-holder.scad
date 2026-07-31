@@ -3,6 +3,8 @@ include <lib/geom.scad>
 
 $fn = 400;
 
+mount = "back"; // ["back", "front", "org"]
+
 x = 125;
 y = 70;
 z = 101.3465;
@@ -100,7 +102,7 @@ module cord_hole() {
     );
 }
 
-render() {
+module mount_front() {
   color(c="green")
     extra_body();
 
@@ -110,7 +112,7 @@ render() {
   color(c="yellow")
     less_fill();
 
-  color(c="brown") {
+  color(c="tan") {
     difference() {
       import("steam-controller-holder-model.stl", center=true);
       less_mask();
@@ -120,4 +122,134 @@ render() {
 
   color(c="steelblue")
     cord_cover();
+}
+
+module mount_back() {
+  t_back = 8;
+  w_back = 40;
+  h_back = z - 1;
+  dh_back = 8 / 2;
+
+  // fits into body
+  t_mid = 14.9;
+  dt_mid = -1.8025;
+
+  // fits into top
+  t_top = 15;
+  dt_top = dt_mid - 0.051;
+
+  w_top = w_back;
+  h_top = 14.3;
+  dh_top = 0.62;
+
+  w_cord_hole = 14.15;
+  t_cord_hole = 6;
+  dt_cord_hole = -3.253;
+  h_cord_hole = h_top;
+  r_cord_hole = 2;
+
+  z_top_rotated = 53.2182;
+
+  module back(rounding) {
+    translate(v=[0, y / 2 - t_back / 2, dh_back])
+      cuboid(
+        [w_back, t_back, h_back],
+        rounding=rounding,
+        edges=[
+          FRONT,
+        ],
+      );
+  }
+
+  module top(size, edges, dt, rounding) {
+    difference() {
+      rotate(a=-a / 2, v=[1, 0, 0]) {
+        translate(v=[0, dt, z_top_rotated - dh_top + h_top / 2]) {
+          difference() {
+            cuboid(
+              size,
+              rounding=rounding,
+              edges=edges,
+            );
+          }
+        }
+      }
+
+      translate(v=[0, t_back, z / 2]) {
+        back();
+      }
+    }
+  }
+
+  module clip_strengthener() {
+    x_cover = 52;
+    y_cover = 24;
+    dy_cover = 53.219;
+    z_cover = 6;
+    dz_cover = -2.645;
+    y_cover_fill = 28.0;
+
+    rotate(a=a, v=[1, 0, 0]) {
+      translate(v=[0, y_cover / 2 + dy_cover - y_cover_fill, dz_cover])
+        difference() {
+          cuboid(
+            [x_cover, y_cover, z_cover],
+          );
+        }
+    }
+  }
+
+  // intersection() {
+  union() {
+    difference() {
+      union() {
+        color(c="chocolate")
+          import("steam-controller-holder-model.stl", center=true);
+
+        back(rounding=2.5);
+
+        // top shroud
+        top(
+          [w_top, t_top, h_top],
+		  dt = dt_top,
+		  rounding = 2.5,
+          edges=[
+            LEFT + TOP,
+            RIGHT + TOP,
+            FRONT + TOP,
+          ]
+        );
+
+		clip_strengthener();
+      }
+
+      // top cord hole
+      top(
+        [w_cord_hole, t_cord_hole, h_cord_hole + 0.01],
+		dt = dt_cord_hole,
+		rounding = r_cord_hole,
+        edges=[
+          LEFT + FRONT,
+          LEFT + BACK,
+          RIGHT + FRONT,
+          RIGHT + BACK,
+        ]
+      );
+    }
+  }
+}
+
+module mount_raw() {
+  color(c="darkgreen")
+    import("steam-controller-holder-model.stl", center=true);
+}
+
+render() {
+  if (mount == "front") {
+    mount_front();
+  } else if (mount == "back") {
+    mount_back();
+  } else if (mount == "org") {
+    mount_raw();
+  }
 }
