@@ -139,12 +139,13 @@ module mount_back() {
   dt_top = dt_mid - 0.051;
 
   w_top = w_back;
-  h_top = 14.3;
+  h_top = 16.3;
   dh_top = 0.62;
+  r_top = 0.5;
 
   w_cord_hole = 14.15;
-  t_cord_hole = 6;
-  dt_cord_hole = -3.253;
+  t_cord_hole = 8.5;
+  dt_cord_hole = -3.253 - 2.5 / 2;
   h_cord_hole = h_top;
   r_cord_hole = 2;
 
@@ -161,15 +162,19 @@ module mount_back() {
       );
   }
 
-  module top(size, edges, dt, rounding) {
+  module top() {
     difference() {
       rotate(a=-a / 2, v=[1, 0, 0]) {
-        translate(v=[0, dt, z_top_rotated - dh_top + h_top / 2]) {
+        translate(v=[0, dt_top, z_top_rotated - dh_top + h_top / 2]) {
           difference() {
             cuboid(
-              size,
-              rounding=rounding,
-              edges=edges,
+              size=[w_top, t_top, h_top],
+              rounding=r_top,
+              edges=[
+                LEFT + TOP,
+                RIGHT + TOP,
+                FRONT + TOP,
+              ]
             );
           }
         }
@@ -177,6 +182,25 @@ module mount_back() {
 
       translate(v=[0, t_back, z / 2]) {
         back();
+      }
+    }
+  }
+
+  module cord_hole() {
+    rotate(a=-a / 2, v=[1, 0, 0]) {
+      translate(v=[0, dt_cord_hole, z_top_rotated - dh_top + h_top / 2]) {
+        difference() {
+          cuboid(
+            size=[w_cord_hole, t_cord_hole, h_cord_hole + 0.01],
+            rounding=r_cord_hole,
+            edges=[
+              LEFT + FRONT,
+              LEFT + BACK,
+              RIGHT + FRONT,
+              RIGHT + BACK,
+            ]
+          );
+        }
       }
     }
   }
@@ -208,33 +232,12 @@ module mount_back() {
 
         back(rounding=2.5);
 
-        // top shroud
-        top(
-          [w_top, t_top, h_top],
-		  dt = dt_top,
-		  rounding = 2.5,
-          edges=[
-            LEFT + TOP,
-            RIGHT + TOP,
-            FRONT + TOP,
-          ]
-        );
+        top();
 
-		clip_strengthener();
+        clip_strengthener();
       }
 
-      // top cord hole
-      top(
-        [w_cord_hole, t_cord_hole, h_cord_hole + 0.01],
-		dt = dt_cord_hole,
-		rounding = r_cord_hole,
-        edges=[
-          LEFT + FRONT,
-          LEFT + BACK,
-          RIGHT + FRONT,
-          RIGHT + BACK,
-        ]
-      );
+      cord_hole();
     }
   }
 }
