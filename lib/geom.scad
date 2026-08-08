@@ -15,6 +15,9 @@ function vector_multiply(v, n) = [for (i = [0:1:len(v) - 1]) v[i] * n];
 // add a scalar to vector contents
 function vector_add(v, n) = [for (i = [0:1:len(v) - 1]) v[i] + n];
 
+// sum of contents
+function vector_sum(v, i = 0) = i < len(v) ? v[i] + vector_sum(v, i + 1) : 0;
+
 // round a number to nearest
 function round_num(n, dn) = round(n / dn) * dn;
 
