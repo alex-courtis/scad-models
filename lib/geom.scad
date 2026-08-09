@@ -27,6 +27,12 @@ function round_vec(v, dv) = [ for (i = [0:1:len(v) - 1]) round(v[i] / dv[i]) * d
 // chord straight length
 function chord_len(a, r) = r * 2 * sin(a/2);
 
+// chord angle from radius
+function chord_angle(c, r) = 2 * asin(c / (2 * r));
+
+// radius from chord
+function chord_radius(a, c) = c / (2 * sin(a/2));
+
 /**
    Return poly ABCD
    d1 is perpendicular from AB to O
