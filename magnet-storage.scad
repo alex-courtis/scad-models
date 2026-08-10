@@ -13,13 +13,18 @@ text_depth = 0.6;
 // d_magnets = [2, 3, 4, 5, 6, 6, 8, 10, 10, 12, 12];
 // t_side = 3;
 
-l = 75;
+// l = 75;
+// h = 27.5;
+// t_side = 3;
+// d_magnets = [20, 15, 20, 15, 20];
+// // d_magnets = [15, 20, 15, 20, 15];
+
+l = 112.5;
 h = 27.5;
 t_side = 3;
-d_magnets = [20, 15, 20, 15, 20];
-// d_magnets = [15, 20, 15, 20, 15];
+d_magnets = [25, 25, 25];
 
-d_hole = 2.15;
+d_hole = 2.25;
 n_holes = 4;
 t_base_hole = 1.2;
 
