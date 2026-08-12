@@ -4,7 +4,7 @@ include <lib/geom.scad>
 d_filament = 0.4;
 t_layer = 0.2;
 
-model = "all"; // ["all", "front", "back", "lid", "lid_insert", "lid+lid_insert",]
+model = "all"; // ["all", "front", "back", "lid", "lid_insert", "lid+lid_insert"]
 
 half = false;
 
@@ -80,27 +80,18 @@ module shell_ext() {
 module shell_int() {
   cuboid(size=int);
 
+  // lid cylinder
   translate(v=[int.x / 2, 0, 0]) {
     rotate(a=90, v=[1, 0, 0]) {
       cyl(d=int.z, h=int.y);
     }
   }
 
-  translate(v=[-int.x / 2, 0, 0]) {
-    rotate(a=90, v=[1, 0, 0]) {
-      cyl(d=int.z, h=int.y);
-    }
-  }
-
-  // xz = int.z / sqrt(2);
-  //
-  // translate(v=[int.x / 2, 0, 0])
-  //   rotate(a=45, v=[0, 1, 0])
-  //     cuboid(size=[xz, int.y, xz]);
-  //
-  // translate(v=[-int.x / 2, 0, 0])
-  //   rotate(a=45, v=[0, 1, 0])
-  //     cuboid(size=[xz, int.y, xz]);
+  // body square
+  xz = int.z / sqrt(2);
+  translate(v=[-int.x / 2, 0, 0])
+    rotate(a=45, v=[0, 1, 0])
+      cuboid(size=[xz, int.y, xz]);
 }
 
 module hole_outer(ay) {
@@ -148,7 +139,7 @@ module hole_outers() {
   }
 }
 
-module body() {
+module shell() {
   difference() {
     shell_ext();
     shell_int();
@@ -159,9 +150,9 @@ module body() {
 }
 
 module gap_half() {
-  translate(v=[-ext.z / 4 - gap_lid / 4, 0, 0]) {
+  translate(v=[-ext.z / 4 - gap_lid / 2, 0, 0]) {
     gap = [
-      ext.x + ext.z / 2 - gap_lid / 2,
+      ext.x + ext.z / 2 - gap_lid,
       ext.y,
       gap_half,
     ];
@@ -176,7 +167,7 @@ module gap_half() {
 }
 
 module gap_lid() {
-  translate(v=[int.x / 2, 0, 0])
+  translate(v=[(int.x - gap_lid) / 2, 0, 0])
     cube(size=[gap_lid, ext.y, ext.z], center=true);
 }
 
@@ -189,17 +180,35 @@ module pins() {
   }
 }
 
+module body() {
+  difference() {
+    shell();
+
+    gap_half();
+
+    gap_lid();
+
+    pins();
+  }
+}
+
 render() {
-  right_half(s=500, x=model == "lid" ? ext.x / 2 : -250) {
-    bottom_half(s=300, z=half ? 0 : 150) {
-      difference() {
-        body();
-
-        gap_half();
-
-        gap_lid();
-
-        pins();
+  if (model == "all") {
+    body();
+  } else if (model == "lid") {
+    right_half(s=500, x=ext.x / 2) {
+      body();
+    }
+  } else if (model == "front" || model == "back") {
+    left_half(s=500, x=ext.x / 2) {
+      if (model == "front") {
+        top_half(s=300, z=0) {
+          body();
+        }
+      } else {
+        bottom_half(s=300, z=0) {
+          body();
+        }
       }
     }
   }
