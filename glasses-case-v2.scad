@@ -6,12 +6,10 @@ include <lib/colours.scad>
 show_lid = false;
 show_back = false;
 show_front = true;
-show_leather = false;
-move_templates = false;
-show_template_front = true;
-show_template_back = false;
-show_template_side_left = false;
-show_template_side_right = false;
+show_leather_front = true;
+show_leather_back = false;
+show_leather_side_left = false;
+show_leather_side_right = false;
 
 /* [Debug] */
 debug_gaps = false;
@@ -260,29 +258,7 @@ module back() {
         body();
 }
 
-module leather_wall_rect(top) {
-  color(c=brown_pair(top ? 0 : 1)[top ? 0 : 1])
-    translate(v=[-gap_lid / 2, 0, 0]) {
-      translate(v=[0, 0, -(ext.z + leather_wall_flat.z) / 2])
-        cube(leather_wall_flat, center=true);
-    }
-}
-module leather_side() {
-
-  translate(v=[0, (ext.y + t_leather) / 2, 0]) {
-    cube([ext.x, t_leather, leather_d_side], center=true);
-
-    translate(v=[ext.x / 2, 0, 0])
-      rotate(a=90, v=[1, 0, 0])
-        cyl(h=t_leather, d=leather_d_side, center=true);
-
-    translate(v=[-ext.x / 2, 0, 0])
-      rotate(a=90, v=[1, 0, 0])
-        cyl(h=t_leather, d=leather_d_side, center=true);
-  }
-}
-
-module mask_template_wall_holes(a) {
+module mask_leather_wall_holes(a) {
   x_off = (180 / a_curve_rounded) % 2 == 1 ? hole_outer_spacing / 2 : 0;
 
   translate(v=[0, ext.y / 2 - hole_outer_inset, 0]) {
@@ -295,7 +271,7 @@ module mask_template_wall_holes(a) {
   }
 }
 
-module template_wall(top) {
+module leather_wall(top) {
   color(c=brown_pair(top ? 0 : 1)[top ? 0 : 1])
     mirror(v=[0, 0, top ? 1 : 0])
       translate(v=[-gap_lid / 2, 0, 0])
@@ -313,75 +289,81 @@ module template_wall(top) {
       cube(leather_wall_end, center=true);
 }
 
-module template_back() {
-  translate(v=[0, move_templates ? ext.y * 2 : 0, 0]) {
-    difference() {
-      template_wall(top=false);
-      mask_template_wall_holes(a=45);
-      mirror(v=[0, 1, 0])
-        mask_template_wall_holes(a=45);
-    }
+module leather_back() {
+  difference() {
+    leather_wall(top=false);
+    mask_leather_wall_holes(a=45);
+    mirror(v=[0, 1, 0])
+      mask_leather_wall_holes(a=45);
   }
 }
 
-module template_front() {
-  translate(v=[0, move_templates ? ext.y * 4 : 0, 0]) {
-    difference() {
-      template_wall(top=true);
-      mask_template_wall_holes(a=45);
-      mirror(v=[0, 1, 0])
-        mask_template_wall_holes(a=45);
-    }
+module leather_front() {
+  difference() {
+    leather_wall(top=true);
+    mask_leather_wall_holes(a=45);
+    mirror(v=[0, 1, 0])
+      mask_leather_wall_holes(a=45);
   }
 }
 
-module mask_template_side_hole(a) {
+module mask_leather_side_hole(a) {
   rotate(a=a, v=[0, 1, 0])
     cube([hole_outer_w, ext.y + t_leather * 2 + 0.001, hole_outer_l], center=true);
 }
 
-module mask_template_side_holes(a) {
+module mask_leather_side_holes(a) {
   translate(v=[0, 0, ext.z / 2 - hole_outer_inset])for (i = [-ext.x / 2:hole_outer_spacing:ext.x / 2])
     translate(v=[i, 0, 0])
-      mask_template_side_hole(a=a);
+      mask_leather_side_hole(a=a);
 
   translate(v=[0, 0, -ext.z / 2 + hole_outer_inset])for (i = [-ext.x / 2:hole_outer_spacing:ext.x / 2])
     translate(v=[i, 0, 0])
-      mask_template_side_hole(a=a);
+      mask_leather_side_hole(a=a);
 
   translate(v=[-ext.x / 2, 0, 0])for (ay = [0:a_curve_rounded:180])
     rotate(a=ay, v=[0, 1, 0])
       translate(v=[0, 0, -ext.z / 2 + hole_outer_inset])
-        mask_template_side_hole(a=a);
+        mask_leather_side_hole(a=a);
 
   translate(v=[ext.x / 2, 0, 0])for (ay = [180:a_curve_rounded:360])
     rotate(a=ay, v=[0, 1, 0])
       translate(v=[0, 0, -ext.z / 2 + hole_outer_inset])
-        mask_template_side_hole(a=a);
+        mask_leather_side_hole(a=a);
 }
 
-module template_side_left() {
+module leather_side() {
+  translate(v=[0, (ext.y + t_leather) / 2, 0]) {
+    cube([ext.x, t_leather, leather_d_side], center=true);
+
+    translate(v=[ext.x / 2, 0, 0])
+      rotate(a=90, v=[1, 0, 0])
+        cyl(h=t_leather, d=leather_d_side, center=true);
+
+    translate(v=[-ext.x / 2, 0, 0])
+      rotate(a=90, v=[1, 0, 0])
+        cyl(h=t_leather, d=leather_d_side, center=true);
+  }
+}
+
+module leather_side_left() {
   color(c=brown_pair(2)[0]) {
-    translate(v=[0, move_templates ? ext.y * 6 : 0, 0]) {
-      left_half(s=ext.x * 2, x=ext.x / 2 - gap_lid) {
-        difference() {
-          leather_side();
-          mask_template_side_holes(a=-45);
-        }
+    left_half(s=ext.x * 2, x=ext.x / 2 - gap_lid) {
+      difference() {
+        leather_side();
+        mask_leather_side_holes(a=-45);
       }
     }
   }
 }
 
-module template_side_right() {
+module leather_side_right() {
   color(c=brown_pair(2)[1]) {
-    translate(v=[0, move_templates ? ext.y * 6 : 0, 0]) {
-      left_half(s=ext.x * 2, x=ext.x / 2 - gap_lid) {
-        difference() {
-          mirror(v=[0, 1, 0])
-            leather_side();
-          mask_template_side_holes(a=-45);
-        }
+    left_half(s=ext.x * 2, x=ext.x / 2 - gap_lid) {
+      difference() {
+        mirror(v=[0, 1, 0])
+          leather_side();
+        mask_leather_side_holes(a=-45);
       }
     }
   }
@@ -398,15 +380,15 @@ render() {
   if (show_front)
     front();
 
-  if (show_template_front)
-    template_front();
+  if (show_leather_front)
+    leather_front();
 
-  if (show_template_back)
-    template_back();
+  if (show_leather_back)
+    leather_back();
 
-  if (show_template_side_left)
-    template_side_left();
+  if (show_leather_side_left)
+    leather_side_left();
 
-  if (show_template_side_right)
-    template_side_right();
+  if (show_leather_side_right)
+    leather_side_right();
 }
