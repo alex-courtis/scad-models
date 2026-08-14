@@ -1,10 +1,15 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
+include <lib/colours.scad>
 
 /* [Show] */
-show_lid = true;
-show_back = true;
+show_lid = false;
+show_back = false;
 show_front = false;
+show_leather = false;
+move_templates = false;
+show_template_front = false;
+show_template_back = false;
 
 /* [Debug] */
 debug_gaps = false;
@@ -20,6 +25,9 @@ int_target = [130, 70, 35];
 
 t_side = 3.6; // [0:0.05:10]
 t_wall = 2.4; // [0:0.05:10]
+
+t_leather = 0.8; // [0:0.05:5]
+t_leather_overhang = 0.6; // [0:0.05:5]
 
 gap_half = 1; // [0:0.05:5]
 gap_lid = 2; // [0:0.05:5]
@@ -62,10 +70,19 @@ int = [int_target.x, int_target.y, ext_z_rounded - 2 * t_wall];
 echo(int=int);
 echo(int_target=int_target);
 
+leather_wall_flat = [ext.x - gap_lid, ext.y + t_leather_overhang * 2, t_leather];
+echo(leather_wall_flat=leather_wall_flat);
+
+leather_wall_end = [PI * (ext.z + t_leather) / 4, leather_wall_flat.y, leather_wall_flat.z];
+echo(leather_wall_end=leather_wall_end);
+
+leather_d_side = ext.z + t_leather_overhang * 2;
+echo(leather_d_side=leather_d_side);
+
 $fn = 120;
 
 module mask_hole_outer(ay) {
-  z_hole = sqrt(2 * hole_outer_inset ^ 2) + sqrt((2 * hole_outer_w / 2) ^ 2);
+  z_hole = sqrt(2 * hole_outer_inset ^ 2) + sqrt((2 * hole_outer_w / 2) ^ 2) + 2 * t_leather * sqrt(2);
 
   rotate(a=ay, v=[0, 1, 0])
     translate(v=[0, -hole_outer_inset / 2, -hole_outer_inset / 2])
@@ -74,7 +91,7 @@ module mask_hole_outer(ay) {
           cube(size=[hole_outer_l, hole_outer_w, z_hole], center=true);
 }
 
-module mask_hole_outers() {
+module mask_hole_outers_half() {
 
   // clockwise looking from +y
 
@@ -108,6 +125,18 @@ module mask_hole_outers() {
     for (ay = [180:-a_curve_rounded:0]) {
       mask_hole_outer(ay=ay);
     }
+  }
+}
+
+module mask_hole_outers() {
+  if (debug_holes) {
+    #mask_hole_outers_half();
+    mirror(v=[0, 1, 0])
+      #mask_hole_outers_half();
+  } else {
+    mask_hole_outers_half();
+    mirror(v=[0, 1, 0])
+      mask_hole_outers_half();
   }
 }
 
@@ -183,16 +212,6 @@ module shell() {
       #shell_int();
     else
       shell_int();
-
-    if (debug_holes) {
-      #mask_hole_outers();
-      mirror(v=[0, 1, 0])
-        #mask_hole_outers();
-    } else {
-      mask_hole_outers();
-      mirror(v=[0, 1, 0])
-        mask_hole_outers();
-    }
   }
 }
 
@@ -214,27 +233,149 @@ module body() {
       #mask_pins();
     else
       mask_pins();
+
+    mask_hole_outers();
   }
 }
 
 module lid() {
-color(c="slateblue")
-  right_half(s=ext.y, x=ext.x / 2)
-    body();
+  color(c="slateblue")
+    right_half(s=ext.y, x=ext.x / 2)
+      body();
 }
 
 module front() {
-color(c="royalblue")
-  top_half(s=ext.x + ext.z, z=0)
-    left_half(s=ext.x + ext.z, x=ext.x / 2)
-      body();
+  color(c="royalblue")
+    top_half(s=ext.x + ext.z, z=0)
+      left_half(s=ext.x + ext.z, x=ext.x / 2)
+        body();
 }
 
 module back() {
-color(c="lightskyblue")
-  bottom_half(s=ext.x + ext.z, z=0)
-    left_half(s=ext.x + ext.z, x=ext.x / 2)
-      body();
+  color(c="lightskyblue")
+    bottom_half(s=ext.x + ext.z, z=0)
+      left_half(s=ext.x + ext.z, x=ext.x / 2)
+        body();
+}
+
+module leather_end() {
+  translate(v=[ext.x / 2, 0, 0])
+    rotate(a=90, v=[1, 0, 0])
+      front_half()
+        right_half()
+          tube(
+            h=leather_wall_flat.y,
+            od=ext.z + t_leather * 2,
+            id=ext.z,
+          );
+}
+
+module leather_wall_rect(top) {
+  color(c=brown_pair(top ? 0 : 1)[top ? 0 : 1])
+    translate(v=[-gap_lid / 2, 0, 0]) {
+      translate(v=[0, 0, -(ext.z + leather_wall_flat.z) / 2])
+        cube(leather_wall_flat, center=true);
+    }
+}
+module leather_wall(top) {
+  leather_wall_rect(top);
+
+  color(c=brown_pair(top ? 0 : 1)[top ? 1 : 0])
+    mirror(v=[1, 0, 0])
+      leather_end();
+}
+
+module leather_lid() {
+  leather_end();
+}
+
+module leather_side() {
+
+  translate(v=[0, (ext.y + t_leather) / 2, 0]) {
+    cube([ext.x, t_leather, leather_d_side], center=true);
+
+    translate(v=[ext.x / 2, 0, 0])
+      rotate(a=90, v=[1, 0, 0])
+        cyl(h=t_leather, d=leather_d_side, center=true);
+
+    translate(v=[-ext.x / 2, 0, 0])
+      rotate(a=90, v=[1, 0, 0])
+        cyl(h=t_leather, d=leather_d_side, center=true);
+  }
+}
+
+module leather_sides() {
+  leather_side();
+  mirror(v=[0, 1, 0])
+    leather_side();
+}
+
+module leather() {
+  difference() {
+    union() {
+      leather_wall(top=false);
+      mirror(v=[0, 0, 1])
+        leather_wall(top=true);
+
+      color(c=brown_pair(1)[0])
+        leather_lid();
+
+      color(c=brown_pair(1)[1])
+        leather_sides();
+    }
+
+    mask_hole_outers();
+  }
+}
+
+module mask_template_wall_holes(a) {
+  #translate(v=[0, ext.y / 2 - hole_outer_inset, 0]) {
+    // TODO start in middle of round end to confirm correct length of curve
+    // for (i = [-ext.x/2 - leather_wall_end.x:hole_outer_spacing:ext.x/2]) {
+    for (i = [-ext.x:hole_outer_spacing:ext.x / 2]) {
+      translate(v=[i, 0, 0]) {
+        rotate(a=a)
+          cube([hole_outer_l, hole_outer_w, ext.z + t_leather * 2], center=true);
+      }
+    }
+  }
+}
+
+module template_wall(top) {
+  mirror(v=[0, 0, top ? 1 : 0])
+    leather_wall_rect(top=top);
+
+  color(c=brown_pair(top ? 0 : 1)[top ? 1 : 0])
+    translate(
+      v=[
+        -(leather_wall_flat.x + leather_wall_end.x) / 2 - gap_lid / 2,
+        0,
+        (top ? 1 : -1) * (ext.z + t_leather) / 2,
+      ]
+    )
+      cube(leather_wall_end, center=true);
+}
+
+module template_back() {
+  translate(v=[0, move_templates ? ext.y * 2 : 0, 0]) {
+    difference() {
+      template_wall(top=false);
+      mask_template_wall_holes(a=45);
+      mirror(v=[0, 1, 0])
+        mask_template_wall_holes(a=45);
+    }
+  }
+}
+
+module template_front() {
+  translate(v=[0, move_templates ? ext.y * 4 : 0, 0]) {
+    difference() {
+      template_wall(top=true);
+      mask_template_wall_holes(a=45);
+      mirror(v=[0, 1, 0])
+        mask_template_wall_holes(a=45);
+    }
+  }
 }
 
 render() {
@@ -247,4 +388,13 @@ render() {
 
   if (show_front)
     front();
+
+  if (show_leather)
+    leather();
+
+  if (show_template_front)
+    template_front();
+
+  if (show_template_back)
+    template_back();
 }
