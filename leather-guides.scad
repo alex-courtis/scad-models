@@ -1,4 +1,5 @@
 include <BOSL2/std.scad>
+include <lib/geom.scad>
 
 render_text = true;
 show_text_only = false;
@@ -35,7 +36,8 @@ w_window_top = 2.75;
 d_circle_holes = [20, 22.5, 25, 27.5, 30, 35, 40, 45, 50, 55, 60, 70, 80, 90, 100];
 
 // set to produce just one
-d_circle_hole = 27.5;
+// d_circle_hole = 27.5;
+d_circle_hole = 31.9623;
 
 font = "Space Mono:style=Regular";
 font_size = 6;
@@ -218,6 +220,8 @@ module awl_guide_circle(d) {
 
   d_outer = max(d + s_awl * 2, 70);
 
+  s_awl_actual = round(chord_len(a, d / 2) * 10) / 10;
+
   module txt() {
     translate([0, 0, (h_guide - h_text) / 2]) {
 
@@ -233,7 +237,7 @@ module awl_guide_circle(d) {
             text(
               font=font,
               size=font_size,
-              text=str("ø", d, "mm"),
+              text=str("ø", round(d * 10) / 10, "mm"),
               valign="center",
               halign="center",
             );
@@ -244,7 +248,7 @@ module awl_guide_circle(d) {
             text(
               font=font,
               size=font_size,
-              text=str(s_awl, "mm"),
+              text=str(s_awl_actual, "mm"),
               valign="center",
               halign="center",
             );
