@@ -33,6 +33,15 @@ function chord_angle(c, r) = 2 * asin(c / (2 * r));
 // radius from chord
 function chord_radius(a, c) = c / (2 * sin(a/2));
 
+// arc from radius
+function arc_len(a, r) = 2 * r * sin(a / 2);
+
+// arc angle from radius
+function arc_angle(l, r) = l * 360 / (2 * PI * r);
+
+// radius from arc
+function arc_radius(a, l) = l * 360 / (2 * PI * a);
+
 /**
    Return poly ABCD
    d1 is perpendicular from AB to O

@@ -5,11 +5,12 @@ include <lib/colours.scad>
 /* [Show] */
 show_lid = false;
 show_back = false;
-show_front = false;
+show_front = true;
 show_leather = false;
 move_templates = false;
-show_template_front = false;
+show_template_front = true;
 show_template_back = false;
+show_template_side = false;
 
 /* [Debug] */
 debug_gaps = false;
@@ -38,42 +39,40 @@ hole_outer_w = 1.5; // [0:0.1:5]
 
 // centre of hole to edge
 hole_outer_inset = 4; // [0:0.1:10]
+// TODO inset is no longer correct
 hole_outer_spacing = 5; // [0:0.1:10]
 
 /* [Pins] */
 d_pin = 2.2; // [0:0.05:5]
 l_pin = 18; // [0:0.1:50]
 
-r_holes = (int_target.z + 2 * t_wall) / 2 - hole_outer_inset;
-echo(r_holes=r_holes);
+// outside of leather
+r_end = int_target.z / 2 + t_wall + t_leather;
+echo(r_end=r_end);
 
 // angle at spacing_hole
-a_curve_hole = chord_angle(hole_outer_spacing, r_holes);
+a_curve_hole = arc_angle(hole_outer_spacing, r_end);
 echo(a_curve_hole=a_curve_hole);
 
 // round this angle to fit a clean divisor of 180
 a_curve_rounded = 180 / round(180 / a_curve_hole);
 echo(a_curve_rounded=a_curve_rounded);
 
-// new z
-r_holes_rounded = chord_radius(a_curve_rounded, hole_outer_spacing);
-echo(r_holes_rounded=r_holes_rounded);
-echo(d_holes_rounded=r_holes_rounded * 2);
+// new total z
+r_end_rounded = arc_radius(a_curve_rounded, hole_outer_spacing);
+echo(r_end_rounded=r_end_rounded);
 
-ext_z_rounded = 2 * r_holes_rounded + hole_outer_inset * 2;
-echo(ext_z_rounded=ext_z_rounded);
-
-ext = [int_target.x, int_target.y + 2 * t_side, ext_z_rounded];
+ext = [int_target.x, int_target.y + 2 * t_side, 2 * (r_end_rounded - t_leather)];
 echo(ext=ext);
 
-int = [int_target.x, int_target.y, ext_z_rounded - 2 * t_wall];
-echo(int=int);
+int = [int_target.x, int_target.y, ext.z - 2 * t_wall];
 echo(int_target=int_target);
+echo(int=int);
 
 leather_wall_flat = [ext.x - gap_lid, ext.y + t_leather_overhang * 2, t_leather];
 echo(leather_wall_flat=leather_wall_flat);
 
-leather_wall_end = [PI * (ext.z + t_leather) / 4, leather_wall_flat.y, leather_wall_flat.z];
+leather_wall_end = [2 * r_end_rounded * PI / 4, leather_wall_flat.y, leather_wall_flat.z];
 echo(leather_wall_end=leather_wall_end);
 
 leather_d_side = ext.z + t_leather_overhang * 2;
@@ -164,7 +163,8 @@ module mask_lid_gap() {
 
 module mask_pins() {
   for (i = [-1, 1]) {
-    for (x = [-ext.x / 2 - r_holes / 3, 0, ext.x / 2 - r_holes / 2]) {
+    // TODO better insets
+    for (x = [-ext.x / 2 - r_end_rounded / 3, 0, ext.x / 2 - r_end_rounded / 2]) {
       translate(v=[x, i * (ext.y + int.y) / 4, 0])
         cylinder(d=d_pin, h=l_pin, center=true);
     }
@@ -258,7 +258,7 @@ module back() {
         body();
 }
 
-module leather_end() {
+module leather_end_quarter() {
   translate(v=[ext.x / 2, 0, 0])
     rotate(a=90, v=[1, 0, 0])
       front_half()
@@ -282,11 +282,13 @@ module leather_wall(top) {
 
   color(c=brown_pair(top ? 0 : 1)[top ? 1 : 0])
     mirror(v=[1, 0, 0])
-      leather_end();
+      leather_end_quarter();
 }
 
 module leather_lid() {
-  leather_end();
+  leather_end_quarter();
+  mirror(v=[0, 0, 1])
+    leather_end_quarter();
 }
 
 module leather_side() {
@@ -305,9 +307,12 @@ module leather_side() {
 }
 
 module leather_sides() {
-  leather_side();
-  mirror(v=[0, 1, 0])
+  color(c=brown_pair(2)[0])
     leather_side();
+
+  color(c=brown_pair(3)[0])
+    mirror(v=[0, 1, 0])
+      leather_side();
 }
 
 module leather() {
@@ -320,8 +325,7 @@ module leather() {
       color(c=brown_pair(1)[0])
         leather_lid();
 
-      color(c=brown_pair(1)[1])
-        leather_sides();
+      leather_sides();
     }
 
     mask_hole_outers();
@@ -329,10 +333,8 @@ module leather() {
 }
 
 module mask_template_wall_holes(a) {
-  #translate(v=[0, ext.y / 2 - hole_outer_inset, 0]) {
-    // TODO start in middle of round end to confirm correct length of curve
-    // for (i = [-ext.x/2 - leather_wall_end.x:hole_outer_spacing:ext.x/2]) {
-    for (i = [-ext.x:hole_outer_spacing:ext.x / 2]) {
+  translate(v=[0, ext.y / 2 - hole_outer_inset, 0]) {
+    for (i = [-ext.x / 2 - leather_wall_end.x + hole_outer_spacing / 2:hole_outer_spacing:ext.x / 2]) {
       translate(v=[i, 0, 0]) {
         rotate(a=a)
           cube([hole_outer_l, hole_outer_w, ext.z + t_leather * 2], center=true);
@@ -378,6 +380,14 @@ module template_front() {
   }
 }
 
+module template_side() {
+  translate(v=[0, move_templates ? ext.y * 6 : 0, 0]) {
+    difference() {
+      leather_side();
+    }
+  }
+}
+
 render() {
 
   if (show_lid)
@@ -397,4 +407,7 @@ render() {
 
   if (show_template_back)
     template_back();
+
+  if (show_template_side)
+    template_side();
 }
