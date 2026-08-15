@@ -9,20 +9,23 @@ function line_angle(A, B) = B[1] == A[1] ? 0 : atan((B[1] - A[1]) / (B[0] - A[0]
 // round a point
 function point_round(P) = [round(P[0]), round(P[1])];
 
+// multiply scalar elements in two vectors
+function vector_multiply_vector(v1, v2) = [for (i = [0:1:len(v1) - 1]) v1[i] * v2[i]];
+
 // multiply vector contents by a scalar
-function vector_multiply(v, n) = [for (i = [0:1:len(v) - 1]) v[i] * n];
+function vector_multiply_scalar(v, n) = [for (i = [0:1:len(v) - 1]) v[i] * n];
 
 // add a scalar to vector contents
-function vector_add(v, n) = [for (i = [0:1:len(v) - 1]) v[i] + n];
+function vector_add_scalar(v, n) = [for (i = [0:1:len(v) - 1]) v[i] + n];
 
 // sum of contents
 function vector_sum(v, i = 0) = i < len(v) ? v[i] + vector_sum(v, i + 1) : 0;
 
-// round a number to nearest
-function round_num(n, dn) = round(n / dn) * dn;
-
 // round all elements in a vecton to nearest
-function round_vec(v, dv) = [ for (i = [0:1:len(v) - 1]) round(v[i] / dv[i]) * dv[i], ];
+function vector_round_nearest(v, dv) = [ for (i = [0:1:len(v) - 1]) round(v[i] / dv[i]) * dv[i], ];
+
+// round a number to nearest
+function round_nearest(n, dn) = round(n / dn) * dn;
 
 // chord straight length
 function chord_len(a, r) = r * 2 * sin(a/2);
@@ -149,10 +152,10 @@ function circle_centre(A, B, r) =
     h = sqrt(r ^ 2 - t_ ^ 2 / 4),
 
     // solution 1
-    c1 = M + vector_multiply(n, h / n_),
+    c1 = M + vector_multiply_scalar(n, h / n_),
 
     // solution 2
-    c2 = M - vector_multiply(n, h / n_),
+    c2 = M - vector_multiply_scalar(n, h / n_),
   ) [c1, c2];
 
 // white cylinder marking a point, text size based on r

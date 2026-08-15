@@ -176,7 +176,7 @@ module tongue() {
   ];
 
   difference() {
-    translate(v=vector_multiply(C_knob, -1)) {
+    translate(v=vector_multiply_scalar(C_knob, -1)) {
 
       color(c="gray") {
         translate(v=[0, -base[1] / 2, base[2] / 2])
@@ -415,7 +415,7 @@ render() {
   if (debug_points) {
     h = z_shroud_upper + 2;
     r = 0.075;
-    translate(v=vector_multiply(C_knob, -1)) {
+    translate(v=vector_multiply_scalar(C_knob, -1)) {
       point_marker(P=A, h=h, r=r, t="A");
       point_marker(P=B, h=h, r=r, t="B");
       point_marker(P=C_knob, h=h, r=r, t="C");

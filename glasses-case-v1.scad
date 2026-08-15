@@ -79,7 +79,7 @@ echo(d_rib_outer=d_rib_outer);
 d_rib_inner = d_rib_outer - 2 * t2_rib * cos(rib_tilt);
 echo(d_rib_inner=d_rib_inner);
 
-l_straight = round_num(l_straight_target, spacing_hole);
+l_straight = round_nearest(l_straight_target, spacing_hole);
 echo(l_straight=l_straight);
 
 w_lid_inner = w_wall - 2 * gap_w_lid - 2 * t_lid_side;

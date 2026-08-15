@@ -46,7 +46,7 @@ $fn = 200; // [0:1:500]
 ruler = [
   w_ruler,
   t_ruler,
-  round_num(z_body, t_layer),
+  round_nearest(z_body, t_layer),
 ];
 echo(ruler=ruler);
 
@@ -64,21 +64,21 @@ body = slot + [
 ];
 echo(body=body);
 
-top = [body[0], round_num(t_nut_inset + t_nut/2, d_filament), body[2]];
+top = [body[0], round_nearest(t_nut_inset + t_nut/2, d_filament), body[2]];
 echo(top=top);
 
 // round stop z to account for gaps
 stop = [
   body[0],
-  round_num(y_stop, t_layer),
-  round_num(z_stop + body[2], d_filament) - body[2],
+  round_nearest(y_stop, t_layer),
+  round_nearest(z_stop + body[2], d_filament) - body[2],
 ];
 echo(stop=stop);
 
-function round_num(n, dn) =
+function round_nearest(n, dn) =
   round(n / dn) * dn;
 
-function round_vec(v, dv) =
+function vector_round_nearest(v, dv) =
   [
     for (i = [0:1:len(v) - 1]) round(v[i] / dv[i]) * dv[i],
   ];

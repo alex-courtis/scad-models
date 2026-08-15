@@ -74,7 +74,7 @@ module body() {
         except=[BOTTOM],
       );
 
-    cube(vector_add(switch, 2 * g_switch), center=true);
+    cube(vector_add_scalar(switch, 2 * g_switch), center=true);
 
     translate(
       v=[
