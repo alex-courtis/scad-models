@@ -10,7 +10,7 @@ function line_angle(A, B) = B[1] == A[1] ? 0 : atan((B[1] - A[1]) / (B[0] - A[0]
 function point_round(P) = [round(P[0]), round(P[1])];
 
 // multiply scalar elements in two vectors
-function vector_multiply_vector(v1, v2) = [for (i = [0:1:len(v1) - 1]) v1[i] * v2[i]];
+function vector_multiply_vector(v1, v2) = [for (i = [0:1:len(v1) - 1]) (v1[i] * v2[i])];
 
 // multiply vector contents by a scalar
 function vector_multiply_scalar(v, n) = [for (i = [0:1:len(v) - 1]) v[i] * n];

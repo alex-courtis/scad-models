@@ -16,6 +16,8 @@ fold_leather = true;
 debug_gaps = false;
 debug_holes = false;
 debug_int = false;
+debug_magnet = false;
+debug_hinge = false;
 
 /* [Dimensions] */
 
@@ -25,8 +27,8 @@ debug_int = false;
 // z quantized for curved hole spacing, arc outside of leather
 int_target = [132, 70, 35];
 
-t_side = 3.6; // [0:0.05:10]
-t_wall = 2.4; // [0:0.05:10]
+t_side = 5; // [0:0.05:10]
+t_wall = 5; // [0:0.05:10]
 
 t_leather = 0.8; // [0:0.05:5]
 t_leather_overhang = 0.4; // [0:0.05:5]
@@ -48,12 +50,20 @@ hole_stitch_spacing = 5; // [0:0.1:10]
 d_pin = 2.2; // [0:0.05:5]
 l_pin = 18; // [0:0.1:50]
 
+/* [Magnets] */
+d_magnet = 6; // [0:0.05:10]
+t_magnet = 4; // [0:0.05:10]
+
+/* [hinges] */
+d_hinge = t_wall; // [0:0.05:10]
+l_hinge = 20; // [0:0.05:10]
+
 // quantize external x - linear
-x_quant = round_num(int_target.x, hole_stitch_spacing) - hole_stitch_spacing + hole_stitch_inset;
+x_quant = round_nearest(int_target.x, hole_stitch_spacing) - hole_stitch_spacing + hole_stitch_inset;
 echo(x_quant=x_quant);
 
 // quantize external y - linear
-y_quant = round_num(int_target.y + 2 * t_side - 2 * hole_stitch_inset, hole_stitch_spacing) + 2 * hole_stitch_inset;
+y_quant = round_nearest(int_target.y + 2 * t_side - 2 * hole_stitch_inset, hole_stitch_spacing) + 2 * hole_stitch_inset;
 echo(y_quant=y_quant);
 
 // quantize external z - end radius outside of leather
@@ -177,14 +187,23 @@ module shell() {
   }
 
   module mask_foldover() {
-    mask = [
-      w_foldover + 0.001,
+    mask_wide = [
+      w_foldover,
       int.y + t_foldover * 2,
+      int.z,
+    ];
+
+    translate(v=[(ext.x - mask_wide.x) / 2, 0, 0])
+      cube(size=mask_wide, center=true);
+
+    mask_deep = [
+      w_foldover + 0.001,
+      int.y,
       int.z + t_foldover * 2,
     ];
 
-    translate(v=[(ext.x - mask.x) / 2 + 0.001, 0, 0])
-      cube(size=mask, center=true);
+    translate(v=[(ext.x - mask_deep.x) / 2 + 0.001, 0, 0])
+      cube(size=mask_deep, center=true);
   }
 
   module mask_pins() {
@@ -194,6 +213,24 @@ module shell() {
           cylinder(d=d_pin, h=l_pin, center=true);
       }
     }
+  }
+
+  module mask_magnet() {
+    inset = [(ext.x - t_magnet) / 2, (ext.y - d_magnet) / 2, (ext.z - d_magnet) / 2];
+
+    for (i = [-1, 1])
+      translate(v=vector_multiply_vector(inset, [1, i, 1]))
+        rotate(a=90, v=[0, 1, 0])
+          cylinder(h=t_magnet, d=d_magnet, center=true);
+  }
+
+  module mask_hinge() {
+    inset = [ext.x / 2, (ext.y - t_side) / 2 - t_foldover, -(ext.z - t_wall) / 2 + t_foldover];
+
+    for (i = [-1, 1])
+      translate(v=vector_multiply_vector(inset, [1, i, 1]))
+        rotate(a=90, v=[0, 1, 0])
+          cylinder(h=l_hinge, d=d_hinge, center=true);
   }
 
   module mask_int() {
@@ -232,6 +269,10 @@ module shell() {
 
     if (debug_holes) #mask_pins(); else mask_pins();
 
+    if (debug_magnet) #mask_magnet(); else mask_magnet();
+
+    if (debug_hinge) #mask_hinge(); else mask_hinge();
+
     mask_stitches();
   }
 }
@@ -260,7 +301,7 @@ module leather_wall(back) {
   dz = (back ? -1 : 1) * ext.z / 2;
 
   module mask_long_stitches() {
-    x0 = -ext.x / 2 - round_num(leather_wall_round_quarter.x, hole_stitch_spacing);
+    x0 = -ext.x / 2 - round_nearest(leather_wall_round_quarter.x, hole_stitch_spacing);
     x1 = ext.x / 2;
 
     for (i = [-1, 1])
