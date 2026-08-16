@@ -27,7 +27,7 @@ scale_awl = 1.156;
 
 d1_nub = 1.2;
 d2_nub = 1.6;
-h_nub = 0.4;
+h_nub = 0.6;
 
 chamfer_guide = h_guide * 0.25;
 
