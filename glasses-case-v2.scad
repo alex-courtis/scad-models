@@ -4,7 +4,7 @@ include <lib/colours.scad>
 
 /* [Show] */
 show_lid = false;
-show_back = false;
+show_back = true;
 show_front = true;
 show_leather_wall_front = true;
 show_leather_wall_back = false;
@@ -16,8 +16,8 @@ fold_leather = true;
 debug_gaps = false;
 debug_holes = false;
 debug_int = false;
-debug_magnet = false;
-debug_hinge = false;
+debug_magnet = true;
+debug_hinge = true;
 
 /* [Dimensions] */
 
@@ -102,7 +102,7 @@ $fn = 120;
 
 module mask_stitch(ax, ay, az) {
 
-  module actual() {
+  module mask() {
     z_hole = sqrt(2 * hole_stitch_inset ^ 2) + sqrt((2 * hole_stitch_w / 2) ^ 2) + 2 * t_leather * sqrt(2);
 
     rotate(a=ay, v=[0, 1, 0])
@@ -112,11 +112,12 @@ module mask_stitch(ax, ay, az) {
   }
 
   if (debug_holes)
-    #actual();
+    #mask();
   else
-    actual();
+    mask();
 }
 
+// TODO evenly space
 // x0 -> x1
 module mask_stitches_long(ax, az, x0, x1) {
   for (dx = [x0:hole_stitch_spacing:x1]) {
@@ -143,7 +144,7 @@ module mask_stitches_foldover_deep(dy) {
 }
 
 module mask_stitches_semicircle(ax, ay, dy, dz) {
-  for (a = [0:-a_end_quant:-180])
+  for (a = [-180:a_end_quant:0])
     rotate(a=a, v=[0, 1, 0])
       translate(v=[0, dy, dz])
         mask_stitch(ax=ax, ay=ay, az=0);
@@ -318,7 +319,7 @@ module leather_wall(back) {
     body = [t_leather, int.y, t_leather + t_wall - t_foldover];
 
     folded = [
-      ext.x / 2 + body.x / 2,
+      (ext.x + body.x) / 2,
       0,
       (back ? -1 : 1) * ( (ext.z - body.z) / 2 + t_leather),
     ];
@@ -381,24 +382,25 @@ module leather_wall(back) {
     foldover_inner();
 }
 
-module leather_side(left) {
-  dy = (left ? 1 : -1) * ext.y / 2;
+module leather_side(a, c0, c1) {
+  // stitches
+  dy = ext.y / 2;
   dz = ext.z / 2 - hole_stitch_inset;
 
   module mask_long_stitches() {
     for (i = [-1, 1])
       translate(v=[0, dy, i * dz])
-        rotate(a=90, v=[1, 0, 0])
-          mask_stitches_long(ax=0, az=45, x0=-ext.x / 2, x1=ext.x / 2);
+        rotate(a=-90, v=[1, 0, 0])
+          mask_stitches_long(ax=0, az=a, x0=-ext.x / 2, x1=ext.x / 2);
   }
 
   module mask_round_stitches() {
     translate(v=[-ext.x / 2, 0, 0])
-      mask_stitches_semicircle(ax=90, ay=-45, dy=dy, dz=dz);
+      mask_stitches_semicircle(ax=90, ay=a, dy=dy, dz=dz);
   }
 
   module body() {
-    translate(v=[0, (left ? 1 : -1) * (ext.y + t_leather) / 2, 0]) {
+    translate(v=[0, (ext.y + t_leather) / 2, 0]) {
       cube([ext.x, t_leather, leather_side_d], center=true);
 
       translate(v=[-ext.x / 2, 0, 0])
@@ -408,7 +410,7 @@ module leather_side(left) {
   }
 
   difference() {
-    color(c=brown_pair(2)[left ? 0 : 1])
+    color(c=c0)
       body();
 
     mask_long_stitches();
@@ -438,8 +440,9 @@ render() {
     leather_wall(back=true);
 
   if (show_leather_side_left)
-    leather_side(left=true);
+    leather_side(a=-45, c0=brown_pair(2)[0], c1=brown_pair(2)[1]);
 
   if (show_leather_side_right)
-    leather_side(left=false);
+    rotate(a=180, v=[1, 0, 0])
+      leather_side(a=45, c0=brown_pair(2)[1], c1=brown_pair(2)[0]);
 }
