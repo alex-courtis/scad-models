@@ -6,6 +6,7 @@ show_text_only = false;
 show_awl_guide_straight = true;
 show_awl_guide_circle = true;
 show_holder = false;
+show_test_piece = false;
 
 d_filament = 0.4;
 t_layer = 0.2;
@@ -45,12 +46,13 @@ h_text = t_layer * 2;
 text_extra = undef;
 // text_extra = "ø35mm";
 
-poly_awl = [
-  [0, l1_awl / 2],
-  [-l2_awl / 2, 0],
-  [0, -l1_awl / 2],
-  [l2_awl / 2, 0],
-];
+function poly_awl(l1, l2) =
+  [
+    [0, l1 / 2],
+    [-l2 / 2, 0],
+    [0, -l1 / 2],
+    [l2 / 2, 0],
+  ];
 
 l_holder = 50;
 
@@ -66,7 +68,7 @@ module awl_mask(s = scale_awl, l1 = l1_awl, l2 = l2_awl) {
     [0, 0, h_guide / 2 + 0.00001],
     scale=s,
   )
-    polygon(poly_awl);
+    polygon(poly_awl(l1, l2));
 }
 
 module window_mask(l) {
@@ -378,6 +380,44 @@ module holder() {
   }
 }
 
+// double sized for testing stitching
+module test_piece() {
+  l = s_awl * n_awl_straight;
+
+  w1 = s_awl * 2;
+  w2 = s_awl * 5;
+
+  module body() {
+    difference() {
+      translate(v=[0, (w2 - w1) / 2, 0])
+        cuboid(
+          [l, w1 + w2, h_guide * 2],
+          chamfer=h_guide * 2,
+          edges=[TOP + FRONT],
+        );
+
+      // awl
+      for (i = [-l / 2:s_awl * 2:l / 2]) {
+        for (j = [-1, 1]) {
+          translate(v=[i, 0, j * h_guide / 2])
+            rotate(a=a_awl)
+              awl_mask(s=1, l1=l1_awl * 3, l2=l2_awl * 2);
+        }
+      }
+    }
+  }
+
+  body();
+
+  translate(v=[0, -(w2 + w2), 0])
+    body();
+
+  translate(v=[l * 1.5, 0, 0])
+    rotate(a=180, v=[0, 1, 0])
+      mirror(v=[0, 0, 1])
+        body();
+}
+
 render() {
 
   // flip for print
@@ -405,4 +445,7 @@ render() {
       rotate(a=-90, v=[0, 1, 0])
         translate(v=[0, 120, 0])
           holder();
+
+  if (show_test_piece)
+    test_piece();
 }
