@@ -111,7 +111,6 @@ module mask_stitch(ax, ay, az) {
     mask();
 }
 
-// TODO evenly space
 // x0 -> x1
 module mask_stitches_long(ax, az, x0, x1) {
   for (dx = [x0:hole_stitch_spacing:x1]) {
@@ -130,11 +129,14 @@ module mask_stitches_foldover_wide(dz) {
 }
 
 module mask_stitches_foldover_deep(dy) {
-  z = ext.z / 2 - hole_stitch_inset - hole_stitch_spacing;
+  z = ext.z / 2 - hole_stitch_inset;
 
-  for (dz = [-z:hole_stitch_spacing:z])
+  spacing = z / round_nearest(z, hole_stitch_spacing) * hole_stitch_spacing;
+
+  for (dz = [-z + spacing:spacing:z - spacing]) {
     translate(v=[ext.x / 2 - hole_stitch_inset, dy, dz])
       mask_stitch(ax=90, ay=90, az=0);
+  }
 }
 
 module mask_stitches_semicircle(ax, ay, az, dy, dz) {
@@ -292,6 +294,7 @@ module back() {
         shell();
 }
 
+// TODO overlap to join
 module leather_wall(c) {
   b_flat = [ext.x, ext.y + t_leather_overhang * 2, t_leather];
   b_end = [2 * r_end_quant * PI / 4, b_flat.y, b_flat.z];
