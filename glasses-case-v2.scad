@@ -31,7 +31,7 @@ t_side = 5; // [0:0.05:10]
 t_wall = 5; // [0:0.05:10]
 
 t_leather = 0.8; // [0:0.05:5]
-t_leather_overhang = 0.4; // [0:0.05:5]
+t_leather_overhang = 0.0; // [0:0.05:5]
 
 t_foldover = 1.2; // [0:0.05:5]
 w_foldover = 6; // [0:0.05:5]
@@ -162,8 +162,8 @@ module shell() {
       dy = 3 * t_side;
       cube(size=gap - [0, dy, 0], center=true);
 
-      dx = (3 * t_wall) / 2;
-      translate(v=[dx / 2, 0, 0])
+      dx = (3 * t_wall);
+      translate(v=[0, 0, 0])
         cube(size=gap - [dx + 0, 0, 0], center=true);
     }
   }
@@ -208,7 +208,7 @@ module shell() {
 
   module mask_pins() {
     for (i = [-1, 1]) {
-      for (x = [-ext.x / 2, 0, ext.x / 2 - w_foldover * 1.5]) {
+      for (x = [-ext.x / 2, 0, ext.x / 2 - w_foldover * 2]) {
         translate(v=[x, i * (ext.y + int.y) / 4, 0])
           cylinder(d=d_pin, h=l_pin, center=true);
       }
@@ -236,10 +236,9 @@ module shell() {
   module mask_int() {
     cube(size=int, center=true);
 
-    xz = int.z / sqrt(2);
     translate(v=[-int.x / 2, 0, 0])
-      rotate(a=45, v=[0, 1, 0])
-        cube(size=[xz, int.y, xz], center=true);
+      rotate(a=90, v=[1, 0, 0])
+        cylinder(h=int.y, d=int.z, center=true);
   }
 
   module body() {
