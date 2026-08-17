@@ -4,7 +4,6 @@ include <lib/colours.scad>
 
 // TODO 
 // d_hinge: 3 or 4 and position it
-// chamfer foldover
 // diagonal foldovers for magnet
 // foldover cutouts for hinge
 // slant foldover holes
@@ -37,14 +36,18 @@ debug_hinge = false;
 // z quantized for curved hole spacing, arc outside of leather
 int_target = [132, 70, 35];
 
-t_side = 5; // [0:0.05:10]
-t_wall = 5; // [0:0.05:10]
+t_side = 4; // [0:0.05:10]
+t_wall = 4; // [0:0.05:10]
+
+shell_chamfer = 0.6; // [0:0.05:2]
 
 t_leather = 0.8; // [0:0.05:5]
 t_leather_overhang = 0.0; // [0:0.05:5]
 
-t_foldover = 1.2; // [0:0.05:5]
-w_foldover = 6; // [0:0.05:5]
+t_foldover = 1.6; // [0:0.05:5]
+w_foldover = 6.5; // [0:0.05:5]
+
+foldover_chamfer = 0.8; // [0:0.05:2]
 
 gap_half = 1; // [0:0.05:5]
 
@@ -214,6 +217,32 @@ module shell() {
 
     translate(v=[(ext.x - mask_deep.x) / 2 + 0.001, 0, 0])
       cube(size=mask_deep, center=true);
+
+    translate(v=[ext.x / 2, 0, 0]) {
+      for (i = [-1, 1]) {
+        translate(v=[0, 0, i * (ext.z / 2 - t_wall + t_foldover)])
+          chamfer_edge_mask(l=int.y, chamfer=foldover_chamfer, orient=FRONT);
+
+        translate(v=[0, 0, i * (ext.z / 2)])
+          chamfer_edge_mask(l=ext.y, chamfer=foldover_chamfer, orient=FRONT);
+
+        translate(v=[0, i * (ext.y / 2 - t_side + t_foldover), 0])
+          chamfer_edge_mask(l=int.z, chamfer=foldover_chamfer, orient=BOTTOM);
+
+        translate(v=[0, i * (ext.y / 2), 0])
+          chamfer_edge_mask(l=ext.z, chamfer=foldover_chamfer, orient=BOTTOM);
+      }
+    }
+
+    translate(v=[ext.x / 2 - w_foldover, 0, 0]) {
+      for (i = [-1, 1]) {
+        translate(v=[0, 0, i * (ext.z / 2 - t_wall)])
+          chamfer_edge_mask(l=int.y, chamfer=foldover_chamfer, orient=FRONT);
+
+        translate(v=[0, i * (ext.y / 2 - t_side), 0])
+          chamfer_edge_mask(l=int.z, chamfer=foldover_chamfer, orient=BOTTOM);
+      }
+    }
   }
 
   module mask_pins() {
@@ -252,17 +281,21 @@ module shell() {
   }
 
   module body() {
-    cube(size=ext, center=true);
-
-    translate(v=[ext.x / 2, 0, 0]) {
-      rotate(a=90, v=[1, 0, 0]) {
-        cylinder(d=ext.z, h=ext.y, center=true);
-      }
-    }
+    cuboid(
+      size=ext,
+      chamfer=shell_chamfer,
+      edges=[
+        TOP + FRONT,
+        BOTTOM + FRONT,
+        TOP + BACK,
+        BOTTOM + BACK,
+      ],
+    );
 
     translate(v=[-ext.x / 2, 0, 0]) {
       rotate(a=90, v=[1, 0, 0]) {
-        cylinder(d=ext.z, h=ext.y, center=true);
+        left_half()
+          cyl(d=ext.z, h=ext.y, chamfer=shell_chamfer);
       }
     }
   }
