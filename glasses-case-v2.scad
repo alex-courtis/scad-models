@@ -2,6 +2,16 @@ include <BOSL2/std.scad>
 include <lib/geom.scad>
 include <lib/colours.scad>
 
+// TODO 
+// d_hinge: 3 or 4 and position it
+// chamfer foldover
+// diagonal foldovers for magnet
+// foldover cutouts for hinge
+// slant foldover holes
+// magnet clearance for printing
+// lid
+// liner holes
+
 /* [Show] */
 show_lid = false;
 show_back = true;
@@ -169,8 +179,8 @@ module shell() {
   }
 
   module mask_stitches() {
-    dy = (ext.y) / 2 - hole_stitch_inset / 2;
-    dz = (ext.z) / 2 - hole_stitch_inset / 2;
+    dy = (ext.y) / 2 - hole_stitch_inset / 2 + t_leather / 2;
+    dz = (ext.z) / 2 - hole_stitch_inset / 2 + t_leather / 2;
 
     for (i = [-1, 1]) {
       for (j = [-1, 1])
