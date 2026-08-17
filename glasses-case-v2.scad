@@ -342,8 +342,8 @@ module back() {
 module leather_wall(c) {
   b_flat = [ext.x, ext.y + t_leather_overhang * 2, t_leather];
   b_end = [2 * r_end_quant * PI / 4 + t_leather_overhang, b_flat.y, b_flat.z];
-  b_fedge = [t_leather, int.y, t_leather + t_wall - t_foldover];
-  b_finner = [t_leather + w_foldover, int.y, t_leather];
+  b_fedge = [t_leather, int.y, t_leather + t_wall - t_foldover + t_leather];
+  b_finner = [w_foldover, int.y, t_leather];
 
   module mask_flat_stitches() {
     x0 = -ext.x / 2;
@@ -428,7 +428,7 @@ module leather_wall(c) {
 
   module foldover_inner() {
     folded = [
-      (ext.x + b_finner.x) / 2 - b_finner.x + t_leather,
+      (ext.x + b_finner.x) / 2 - b_finner.x,
       0,
       (ext.z - b_finner.z) / 2 - t_wall + t_foldover,
     ];
@@ -473,8 +473,8 @@ module leather_wall(c) {
 module leather_side(c) {
   d = ext.z + t_leather_overhang * 2;
 
-  b_fedge = [t_leather, t_leather + t_wall - t_foldover, int.z];
-  b_finner = [t_leather + w_foldover, t_leather, int.z];
+  b_fedge = [t_leather, t_leather + t_wall - t_foldover + t_leather, int.z];
+  b_finner = [w_foldover, t_leather, int.z];
 
   dz_stitch = ext.z / 2 - hole_stitch_inset;
 
@@ -513,8 +513,8 @@ module leather_side(c) {
 
   module foldover_inner() {
     folded = [
-      (ext.x + b_finner.x) / 2 - b_finner.x + t_leather,
-      (ext.y + b_finner.y) / 2 - b_fedge.y,
+      (ext.x + b_finner.x) / 2 - b_finner.x,
+      (ext.y + b_finner.y) / 2 - b_fedge.y + t_leather,
       0,
     ];
     shifted = [
