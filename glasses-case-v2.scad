@@ -4,7 +4,6 @@ include <lib/colours.scad>
 
 // TODO 
 // d_hinge: 3 or 4 and position it
-// slant foldover holes
 // magnet clearance for printing
 // lid
 // liner holes
@@ -142,22 +141,22 @@ module mask_stitches_long(ax, az, x0, x1) {
   }
 }
 
-module mask_stitches_wide(dx, dz) {
+module mask_stitches_wide(az, dx, dz, az) {
   y = ext.y / 2 - hole_stitch_inset - hole_stitch_spacing;
 
   for (dy = [-y:hole_stitch_spacing:y])
     translate(v=[dx, dy, dz])
-      mask_stitch(ax=0, ay=0, az=90);
+      mask_stitch(ax=0, ay=0, az=az);
 }
 
-module mask_stitches_foldover_deep(dy) {
+module mask_stitches_foldover_deep(ay, dy) {
   z = ext.z / 2 - hole_stitch_inset;
 
   spacing = z / round_nearest(z, hole_stitch_spacing) * hole_stitch_spacing;
 
   for (dz = [-z + spacing:spacing:z - spacing]) {
     translate(v=[ext.x / 2 - hole_stitch_inset, dy, dz])
-      mask_stitch(ax=90, ay=90, az=0);
+      mask_stitch(ax=90, ay=ay, az=0);
   }
 }
 
@@ -220,9 +219,9 @@ module shell() {
       translate(v=[-ext.x / 2, 0, 0])
         mask_stitches_semicircle(ax=i * 45, ay=0, az=0, dy=i * dy, dz=dz);
 
-      mask_stitches_wide(dx=ext.x / 2 - hole_stitch_inset, dz=i * ext.z / 2);
+      mask_stitches_wide(az=90, dx=ext.x / 2 - hole_stitch_inset, dz=i * (ext.z - t_wall + t_foldover) / 2);
 
-      mask_stitches_foldover_deep(dy=i * dy);
+      mask_stitches_foldover_deep(ay=90, dy=i * (ext.y - t_side + t_foldover) / 2);
     }
   }
 
@@ -374,7 +373,7 @@ module leather_wall(c, front) {
 
     translate(v=[-ext.x / 2, 0, 0])
       rotate(a=-90 + a_end_quant / 2, v=[0, 1, 0])
-        mask_stitches_wide(dx=0, dz=ext.z / 2);
+        mask_stitches_wide(az=90, dx=0, dz=ext.z / 2);
   }
 
   module mask_end_stitches_unfolded() {
@@ -385,7 +384,7 @@ module leather_wall(c, front) {
       translate(v=[0, i * ( (ext.y) / 2 - hole_stitch_inset), ext.z / 2])
         mask_stitches_long(ax=0, az=i * a_stitch, x0=x0, x1=x1);
 
-    mask_stitches_wide(dx=-ext.x / 2 - b_end.x + hole_stitch_spacing / 2 + t_leather_overhang, dz=ext.z / 2);
+    mask_stitches_wide(az=90, dx=-ext.x / 2 - b_end.x + hole_stitch_spacing / 2 + t_leather_overhang, dz=ext.z / 2);
   }
 
   module mask_end_stitches() {
@@ -459,7 +458,7 @@ module leather_wall(c, front) {
           difference() {
             translate(v=folded)
               cube(b_finner, center=true);
-            mask_stitches_wide(dx=ext.x / 2 - hole_stitch_inset, dz=ext.z / 2);
+            mask_stitches_wide(az=a_stitch, dx=ext.x / 2 - hole_stitch_inset, dz=(ext.z - t_wall) / 2);
             if (front)
               mask_magnet();
             else
@@ -480,7 +479,7 @@ module leather_wall(c, front) {
 
     mask_end_stitches();
 
-    mask_stitches_wide(dx=ext.x / 2 - hole_stitch_inset, dz=ext.z / 2);
+    mask_stitches_wide(az=a_stitch, dx=ext.x / 2 - hole_stitch_inset, dz=ext.z / 2);
   }
 
   color(c=c[0])
@@ -555,7 +554,7 @@ module leather_side(c) {
           difference() {
             translate(v=folded)
               cube(b_finner, center=true);
-            mask_stitches_foldover_deep(dy=ext.y / 2);
+            mask_stitches_foldover_deep(ay=a_stitch, dy=(ext.y - t_side) / 2);
             mask_magnet();
             mask_hinge();
           }
@@ -579,7 +578,7 @@ module leather_side(c) {
 
     mask_round_stitches();
 
-    mask_stitches_foldover_deep(dy=ext.y / 2);
+    mask_stitches_foldover_deep(ay=a_stitch, dy=ext.y / 2);
   }
 
   color(c=c[0])
