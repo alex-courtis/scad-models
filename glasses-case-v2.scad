@@ -107,6 +107,16 @@ echo(int=int);
 
 $fn = 120;
 
+function poly_foldover_edge(b, y_int) =
+  [
+    [-b.x / 2, -b.y / 2],
+    [-b.x / 2, b.y / 2],
+    [-b.x / 2 + t_leather, b.y / 2],
+    [b.x / 2, y_int],
+    [b.x / 2, -y_int],
+    [-b.x / 2 + t_leather, -b.y / 2],
+  ];
+
 module mask_stitch(ax, ay, az) {
 
   module mask() {
@@ -341,9 +351,13 @@ module back() {
 
 module leather_wall(c) {
   b_flat = [ext.x, ext.y + t_leather_overhang * 2, t_leather];
+
   b_end = [2 * r_end_quant * PI / 4 + t_leather_overhang, b_flat.y, b_flat.z];
-  b_fedge = [t_leather, int.y, t_leather + t_wall - t_foldover + t_leather];
+
   b_finner = [w_foldover, int.y, t_leather];
+
+  b_fedge = [t_wall - t_foldover + t_leather * 2, ext.y + t_leather_overhang * 2, t_leather];
+  p_fedge = poly_foldover_edge(b_fedge, int.y / 2);
 
   module mask_flat_stitches() {
     x0 = -ext.x / 2;
@@ -407,23 +421,25 @@ module leather_wall(c) {
 
   module foldover_edge() {
     folded = [
-      (ext.x + b_fedge.x) / 2,
-      0,
-      (ext.z - b_fedge.z) / 2 + t_leather,
-    ];
-    shifted = [
       (ext.x + b_fedge.z) / 2,
       0,
-      (ext.z + b_fedge.x) / 2,
+      (ext.z - b_fedge.x) / 2 + t_leather,
+    ];
+    shifted = [
+      (ext.x + b_fedge.x) / 2,
+      0,
+      (ext.z + b_fedge.z) / 2,
     ];
 
     if (fold_leather)
       translate(v=folded)
-        cube(b_fedge, center=true);
+        rotate(a=90, v=[0, 1, 0])
+          linear_extrude(h=t_leather, center=true)
+            polygon(p_fedge);
     else
       translate(v=shifted)
-        rotate(a=90, v=[0, 1, 0])
-          cube(b_fedge, center=true);
+        linear_extrude(h=t_leather, center=true)
+          polygon(p_fedge);
   }
 
   module foldover_inner() {
@@ -433,7 +449,7 @@ module leather_wall(c) {
       (ext.z - b_finner.z) / 2 - t_wall + t_foldover,
     ];
     shifted = [
-      (ext.x + b_finner.x) / 2 + b_fedge.z,
+      (ext.x + b_finner.x) / 2 + b_fedge.x,
       0,
       (ext.z + b_finner.z) / 2,
     ];
@@ -473,8 +489,10 @@ module leather_wall(c) {
 module leather_side(c) {
   d = ext.z + t_leather_overhang * 2;
 
-  b_fedge = [t_leather, t_leather + t_wall - t_foldover + t_leather, int.z];
   b_finner = [w_foldover, t_leather, int.z];
+
+  b_fedge = [t_side - t_foldover + t_leather * 2, ext.z + t_leather_overhang * 2, t_leather];
+  p_fedge = poly_foldover_edge(b_fedge, int.z / 2);
 
   dz_stitch = ext.z / 2 - hole_stitch_inset;
 
@@ -492,33 +510,37 @@ module leather_side(c) {
 
   module foldover_edge() {
     folded = [
-      (ext.x + b_fedge.x) / 2,
-      (ext.y - b_fedge.y) / 2 + t_leather,
+      (ext.x + b_fedge.z) / 2,
+      (ext.y - b_fedge.x) / 2 + t_leather,
       0,
     ];
     shifted = [
-      (ext.x + b_fedge.y) / 2,
-      (ext.y + t_leather) / 2,
+      (ext.x + b_fedge.x) / 2,
+      (ext.y + b_fedge.z) / 2,
       0,
     ];
 
     if (fold_leather)
       translate(v=folded)
-        cube(b_fedge, center=true);
+        rotate(a=-90, v=[0, 0, 1])
+          rotate(a=90, v=[1, 0, 0])
+            linear_extrude(h=t_leather, center=true)
+              polygon(p_fedge);
     else
       translate(v=shifted)
-        rotate(a=90, v=[0, 0, 1])
-          cube(b_fedge, center=true);
+        rotate(a=90, v=[1, 0, 0])
+          linear_extrude(h=t_leather, center=true)
+            polygon(p_fedge);
   }
 
   module foldover_inner() {
     folded = [
       (ext.x + b_finner.x) / 2 - b_finner.x,
-      (ext.y + b_finner.y) / 2 - b_fedge.y + t_leather,
+      (ext.y - b_finner.y) / 2 - t_side + t_foldover,
       0,
     ];
     shifted = [
-      (ext.x + b_finner.x) / 2 + b_fedge.y,
+      (ext.x + b_finner.x) / 2 + b_fedge.x,
       (ext.y + t_leather) / 2,
       0,
     ];
