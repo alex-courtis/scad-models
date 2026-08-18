@@ -5,7 +5,6 @@ include <lib/colours.scad>
 // TODO 
 // d_hinge: 3 or 4 and position it
 // lid
-// liner holes
 // liner template
 
 /* [Show] */
@@ -48,7 +47,7 @@ foldover_chamfer = 0.8; // [0:0.05:2]
 
 gap_half = 1; // [0:0.05:5]
 
-/* [Holes] */
+/* [Leather Stitch Holes] */
 hole_stitch_l = 3.5; // [0:0.1:5]
 hole_stitch_w = 1.5; // [0:0.1:5]
 
@@ -58,6 +57,10 @@ hole_stitch_spacing = 5; // [0:0.1:10]
 
 // sides and wall
 a_stitch = -45; // [0:1:90]
+
+/* [Liner Holes] */
+hole_liner_d = 1.8;
+channel_liner_xy = 0.4;
 
 /* [Pins] */
 d_pin = 2.3; // [0:0.05:5]
@@ -224,6 +227,43 @@ module shell() {
     }
   }
 
+  module mask_liner_holes() {
+    dy = (int.y - hole_liner_d) / 2 - hole_liner_d/2;
+    dz = (int.z + t_wall) / 2;
+    x0 = -ext.x / 2;
+    x1 = ext.x / 2 - hole_stitch_inset - hole_stitch_spacing * 2;
+
+    for (i = [-1, 1]) {
+      for (j = [-1, 1]) {
+        translate(v=[0, i * dy, 0]) {
+
+          // long channels
+          for (zc = [ext.z / 2, ext.z / 2 - t_wall]) {
+            translate(v=[-ext.x / 2 + (x1 - x0) / 2, 0, j * zc])
+              rotate(a=45, v=[1, 0, 0])
+                cube(size=[x1 - x0, channel_liner_xy, channel_liner_xy], center=true);
+          }
+
+          //long holes
+          for (dx = [x0 + hole_stitch_spacing:hole_stitch_spacing:x1]) {
+            translate(v=[dx, 0, j * dz])
+              cylinder(d=hole_liner_d, h=t_wall, center=true);
+          }
+
+          // round end holes
+          translate(v=[x0, 0, 0]) {
+            for (a = [0:a_end_quant:90 - a_end_quant]) {
+              rotate(a=a, v=[0, 1, 0])
+                translate(v=[0, 0, j * dz]) {
+                  cylinder(d=hole_liner_d, h=t_wall * 2, center=true);
+                }
+            }
+          }
+        }
+      }
+    }
+  }
+
   module mask_foldover() {
     mask_wide = [
       w_foldover,
@@ -323,6 +363,8 @@ module shell() {
     if (debug_hinge) #mask_hinge(); else mask_hinge();
 
     mask_stitches();
+
+    mask_liner_holes();
   }
 }
 
