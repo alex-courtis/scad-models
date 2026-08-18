@@ -4,7 +4,6 @@ include <lib/colours.scad>
 
 // TODO 
 // d_hinge: 3 or 4 and position it
-// magnet clearance for printing
 // lid
 // liner holes
 // liner template
@@ -65,8 +64,8 @@ d_pin = 2.3; // [0:0.05:5]
 l_pin = 16; // [0:0.1:50]
 
 /* [Magnets] */
-d_magnet = 6; // [0:0.05:10]
-t_magnet = 4; // [0:0.05:10]
+d_magnet = 6.1; // [0:0.05:10]
+t_magnet = 4.05; // [0:0.05:10]
 
 /* [hinges] */
 d_hinge = t_wall; // [0:0.05:10]
@@ -175,8 +174,8 @@ module mask_magnet() {
 
   for (i = [-1, 1])
     translate(v=vector_multiply_vector(inset, [1, i, 1]))
-      rotate(a=90, v=[0, 1, 0])
-        cylinder(h=t_magnet, d=d_magnet, center=true);
+      rotate(a=90, v=[0, 0, 1])
+        teardrop(h=t_magnet, d=d_magnet, orient=DOWN, ang=60);
 }
 
 module mask_hinge() {
@@ -184,8 +183,8 @@ module mask_hinge() {
 
   for (i = [-1, 1])
     translate(v=vector_multiply_vector(inset, [1, i, 1]))
-      rotate(a=90, v=[0, 1, 0])
-        cylinder(h=l_hinge, d=d_hinge, center=true);
+      rotate(a=90, v=[0, 0, 1])
+        teardrop(h=l_hinge, d=d_hinge, ang=60);
 }
 
 module shell() {
