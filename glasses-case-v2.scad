@@ -5,7 +5,7 @@ include <lib/colours.scad>
 // TODO 
 // d_hinge: 3 or 4 and position it
 // lid
-// liner template
+// chamfered internal walls
 
 /* [Show] */
 show_lid = false;
@@ -15,7 +15,8 @@ show_leather_wall_front = true;
 show_leather_wall_back = false;
 show_leather_side_left = true;
 show_leather_side_right = false;
-fold_leather = true;
+show_liner_template = false;
+fold = true;
 
 /* [Debug] */
 debug_gaps = false;
@@ -70,9 +71,12 @@ l_pin = 16; // [0:0.1:50]
 d_magnet = 6.1; // [0:0.05:10]
 t_magnet = 4.05; // [0:0.05:10]
 
-/* [hinges] */
+/* [Hinges] */
 d_hinge = t_wall; // [0:0.05:10]
 l_hinge = 20; // [0:0.05:10]
+
+/* [Liner] */
+t_liner = 0.6; // [0:0.05:10]
 
 // quantize external x - linear
 x_quant = round_nearest(int_target.x, hole_stitch_spacing) - hole_stitch_spacing + hole_stitch_inset;
@@ -228,7 +232,7 @@ module shell() {
   }
 
   module mask_liner_holes() {
-    dy = (int.y - hole_liner_d) / 2 - hole_liner_d/2;
+    dy = (int.y - hole_liner_d) / 2 - hole_liner_d / 2;
     dz = (int.z + t_wall) / 2;
     x0 = -ext.x / 2;
     x1 = ext.x / 2 - hole_stitch_inset - hole_stitch_spacing * 2;
@@ -429,7 +433,7 @@ module leather_wall(c, front) {
   }
 
   module mask_end_stitches() {
-    if (fold_leather)
+    if (fold)
       mask_end_stitches_folded();
     else
       mask_end_stitches_unfolded();
@@ -452,7 +456,7 @@ module leather_wall(c, front) {
   }
 
   module end() {
-    if (fold_leather)
+    if (fold)
       end_folded();
     else
       end_unfolded();
@@ -470,7 +474,7 @@ module leather_wall(c, front) {
       (ext.z + t_leather) / 2,
     ];
 
-    if (fold_leather)
+    if (fold)
       translate(v=folded)
         rotate(a=90, v=[0, 1, 0])
           linear_extrude(h=t_leather, center=true)
@@ -493,9 +497,9 @@ module leather_wall(c, front) {
       (ext.z + b_finner.z) / 2,
     ];
 
-    translate(v=fold_leather ? [0, 0, 0] : shifted)
-      rotate(a=fold_leather ? 0 : 180, v=[0, 1, 0])
-        translate(v=fold_leather ? [0, 0, 0] : -folded)
+    translate(v=fold ? [0, 0, 0] : shifted)
+      rotate(a=fold ? 0 : 180, v=[0, 1, 0])
+        translate(v=fold ? [0, 0, 0] : -folded)
           difference() {
             translate(v=folded)
               cube(b_finner, center=true);
@@ -564,7 +568,7 @@ module leather_side(c) {
       0,
     ];
 
-    if (fold_leather)
+    if (fold)
       translate(v=folded)
         rotate(a=-90, v=[0, 0, 1])
           rotate(a=90, v=[1, 0, 0])
@@ -589,9 +593,9 @@ module leather_side(c) {
       0,
     ];
 
-    translate(v=fold_leather ? [0, 0, 0] : shifted)
-      rotate(a=fold_leather ? 0 : 180, v=[0, 1, 0])
-        translate(v=fold_leather ? [0, 0, 0] : -folded)
+    translate(v=fold ? [0, 0, 0] : shifted)
+      rotate(a=fold ? 0 : 180, v=[0, 1, 0])
+        translate(v=fold ? [0, 0, 0] : -folded)
           difference() {
             translate(v=folded)
               cube(b_finner, center=true);
@@ -629,6 +633,52 @@ module leather_side(c) {
     foldover_inner();
 }
 
+module liner_template(c) {
+
+  module straight() {
+    translate(v=[0, 0, -(int.z - t_liner) / 2])
+      cube(size=[int.x, int.y, t_liner], center=true);
+
+    translate(v=[-int.x / 2, 0, 0])
+      rotate(a=90, v=[1, 0, 0])
+        left_half()
+          front_half()
+            difference() {
+              cylinder(d=int.z, h=int.y, center=true);
+              cylinder(d=int.z - 2 * t_liner, h=int.y, center=true);
+            }
+  }
+
+  module side() {
+    module body() {
+      cube(size=[int.x, int.z / 2, t_liner], center=true);
+      translate(v=[-int.x / 2, -int.z / 4, 0])
+        left_half()
+          back_half()
+            cylinder(d=int.z, h=t_liner, center=true);
+    }
+
+    if (fold) {
+      translate(v=[0, (int.y - t_liner) / 2, -int.z / 4])
+        rotate(a=-90, v=[1, 0, 0])
+          body();
+    } else {
+      translate(v=[0, int.y / 2 + int.z / 4, -(int.z - t_liner) / 2]) {
+        body();
+      }
+    }
+  }
+
+  color(c=c[0])
+    straight();
+
+  color(c=c[1]) {
+    side();
+    mirror(v=[0, 1, 0])
+      side();
+  }
+}
+
 render() {
 
   if (show_lid)
@@ -654,4 +704,7 @@ render() {
   if (show_leather_side_left)
     mirror(v=[0, 1, 0])
       leather_side(c=brown_pair(3));
+
+  if (show_liner_template)
+    liner_template(c=brown_pair(6));
 }
