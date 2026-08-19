@@ -645,14 +645,20 @@ module liner_template(c) {
     translate(v=[0, 0, -(int.z - t_liner) / 2])
       cube(size=[int.x, int.y, t_liner], center=true);
 
-    translate(v=[-int.x / 2, 0, 0])
-      rotate(a=90, v=[1, 0, 0])
-        left_half()
-          front_half()
-            difference() {
-              cylinder(d=int.z, h=int.y, center=true);
-              cylinder(d=int.z - 2 * t_liner, h=int.y, center=true);
-            }
+    if (fold) {
+      translate(v=[-int.x / 2, 0, 0])
+        rotate(a=90, v=[1, 0, 0])
+          left_half()
+            front_half()
+              difference() {
+                cylinder(d=int.z, h=int.y, center=true);
+                cylinder(d=int.z - 2 * t_liner, h=int.y, center=true);
+              }
+    } else {
+      x = int.z * PI / 4;
+      translate(v=[-(int.x + x) / 2, 0, -(int.z - t_liner) / 2])
+        cube(size=[x, int.y, t_liner], center=true);
+    }
   }
 
   module side() {
@@ -669,7 +675,7 @@ module liner_template(c) {
         rotate(a=-90, v=[1, 0, 0])
           body();
     } else {
-      translate(v=[0, int.y / 2 + int.z / 4, -(int.z - t_liner) / 2]) {
+      translate(v=[0, -int.y / 2 - int.z / 4, -(int.z - t_liner) / 2]) {
         body();
       }
     }
