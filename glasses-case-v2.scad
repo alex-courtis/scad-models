@@ -175,6 +175,23 @@ module mask_stitches_semicircle(ax, ay, az, dy, dz) {
   }
 }
 
+module mask_half_gap() {
+  translate(v=[-ext.z / 4, 0, 0]) {
+    gap = [
+      ext.x + ext.z / 2,
+      ext.y,
+      gap_half,
+    ];
+
+    dy = 3 * t_side;
+    cube(size=gap - [0, dy, 0], center=true);
+
+    dx = (3 * t_wall);
+    translate(v=[0, 0, 0])
+      cube(size=gap - [dx + 0, 0, 0], center=true);
+  }
+}
+
 module mask_magnet() {
   inset = [(ext.x - t_magnet) / 2, (ext.y - t_side - chamfer_int) / 2, -( -ext.z + t_wall + chamfer_int) / 2];
 
@@ -193,36 +210,72 @@ module mask_hinge() {
         teardrop(h=l_hinge, d=d_hinge, ang=60);
 }
 
-module shell() {
+module shell_end() {
 
-  module mask_half_gap() {
-    translate(v=[-ext.z / 4, 0, 0]) {
-      gap = [
-        ext.x + ext.z / 2,
-        ext.y,
-        gap_half,
-      ];
+  module mask_stitches() {
+    dx = -ext.x / 2;
+    dy = (ext.y) / 2 - hole_stitch_inset / 2 + t_leather / 2;
+    dz = (ext.z) / 2 - hole_stitch_inset / 2 + t_leather / 2;
 
-      dy = 3 * t_side;
-      cube(size=gap - [0, dy, 0], center=true);
-
-      dx = (3 * t_wall);
-      translate(v=[0, 0, 0])
-        cube(size=gap - [dx + 0, 0, 0], center=true);
+    for (i = [-1, 1]) {
+      translate(v=[dx, 0, 0])
+        mask_stitches_semicircle(ax=i * 45, ay=0, az=0, dy=i * dy, dz=dz);
     }
   }
+
+  module mask_liner_holes() {
+    dx = -ext.x / 2;
+    dy = (int.y) / 2 - chamfer_int - hole_liner_d / 2;
+    dz = (int.z + t_wall) / 2;
+
+    for (a = [0:a_end_quant:90 - a_end_quant])
+      for (i = [-1, 1])
+        translate(v=[dx, i * dy, 0])
+          rotate(a=a, v=[0, 1, 0])
+            translate(v=[0, 0, -dz])
+              cylinder(d=hole_liner_d, h=t_wall * 2, center=true);
+  }
+
+  module mask_int() {
+    translate(v=[-int.x / 2, 0, 0])
+      rotate(a=90, v=[1, 0, 0])
+        front_half()
+          left_half()
+            cyl(h=int.y, d=int.z, chamfer=chamfer_int);
+  }
+
+  module body() {
+    translate(v=[-ext.x / 2, 0, 0])
+      rotate(a=90, v=[1, 0, 0])
+        front_half()
+          left_half()
+            cyl(d=ext.z, h=ext.y, chamfer=chamfer_outer);
+  }
+
+  difference() {
+    body();
+
+    if (debug_int) #mask_int(); else mask_int();
+
+    if (debug_gaps) #mask_half_gap(); else mask_half_gap();
+
+    mask_stitches();
+
+    mask_liner_holes();
+  }
+}
+
+module shell_long() {
 
   module mask_stitches() {
     dy = (ext.y) / 2 - hole_stitch_inset / 2 + t_leather / 2;
     dz = (ext.z) / 2 - hole_stitch_inset / 2 + t_leather / 2;
 
     for (i = [-1, 1]) {
-      for (j = [-1, 1])
+      for (j = [-1, 1]) {
         translate(v=[0, i * dy, j * dz])
           mask_stitches_long(ax=i * j * 45, az=0, x0=-ext.x / 2, x1=ext.x / 2);
-
-      translate(v=[-ext.x / 2, 0, 0])
-        mask_stitches_semicircle(ax=i * 45, ay=0, az=0, dy=i * dy, dz=dz);
+      }
 
       mask_stitches_wide(az=90, dx=ext.x / 2 - hole_stitch_inset, dz=i * (ext.z - t_wall + t_foldover) / 2);
 
@@ -247,20 +300,10 @@ module shell() {
                 cube(size=[x1 - x0, channel_liner_xy, channel_liner_xy], center=true);
           }
 
-          //long holes
-          for (dx = [x0 + hole_stitch_spacing:hole_stitch_spacing:x1]) {
+          // long holes
+          for (dx = [x0:hole_stitch_spacing:x1]) {
             translate(v=[dx, 0, j * dz])
               cylinder(d=hole_liner_d, h=t_wall, center=true);
-          }
-
-          // round end holes
-          translate(v=[x0, 0, 0]) {
-            for (a = [0:a_end_quant:90 - a_end_quant]) {
-              rotate(a=a, v=[0, 1, 0])
-                translate(v=[0, 0, j * dz]) {
-                  cylinder(d=hole_liner_d, h=t_wall * 2, center=true);
-                }
-            }
           }
         }
       }
@@ -315,7 +358,7 @@ module shell() {
 
   module mask_pins() {
     for (i = [-1, 1]) {
-      for (x = [-ext.x / 2, 0, ext.x / 2 - w_foldover * 2]) {
+      for (x = [-ext.x / 2 + d_pin / 2, 0, ext.x / 2 - w_foldover * 2]) {
         translate(v=[x, i * (ext.y + int.y) / 4, 0])
           cylinder(d=d_pin, h=l_pin, center=true);
       }
@@ -323,40 +366,27 @@ module shell() {
   }
 
   module mask_int() {
-    cuboid(
-      size=int,
-      chamfer=chamfer_int,
-      edges=[
-        FRONT + TOP,
-        FRONT + BOTTOM,
-        BACK + TOP,
-        BACK + BOTTOM,
-      ],
-    );
-
-    translate(v=[-int.x / 2, 0, 0])
-      rotate(a=90, v=[1, 0, 0])
-        cyl(h=int.y, d=int.z, chamfer=chamfer_int);
+    translate(v=[0, 0, -int.z / 4])
+      cuboid(
+        size=[int.x, int.y, int.z / 2],
+        chamfer=chamfer_int,
+        edges=[
+          BOTTOM + FRONT,
+          BOTTOM + BACK,
+        ],
+      );
   }
 
   module body() {
-    cuboid(
-      size=ext,
-      chamfer=chamfer_outer,
-      edges=[
-        TOP + FRONT,
-        BOTTOM + FRONT,
-        TOP + BACK,
-        BOTTOM + BACK,
-      ],
-    );
-
-    translate(v=[-ext.x / 2, 0, 0]) {
-      rotate(a=90, v=[1, 0, 0]) {
-        left_half()
-          cyl(d=ext.z, h=ext.y, chamfer=chamfer_outer);
-      }
-    }
+    translate(v=[0, 0, -ext.z / 4])
+      cuboid(
+        size=[ext.x, ext.y, ext.z / 2],
+        chamfer=chamfer_outer,
+        edges=[
+          BOTTOM + FRONT,
+          BOTTOM + BACK,
+        ],
+      );
   }
 
   difference() {
@@ -370,10 +400,6 @@ module shell() {
 
     if (debug_holes) #mask_pins(); else mask_pins();
 
-    if (debug_magnet) #mask_magnet(); else mask_magnet();
-
-    if (debug_hinge) #mask_hinge(); else mask_hinge();
-
     mask_stitches();
 
     mask_liner_holes();
@@ -381,23 +407,37 @@ module shell() {
 }
 
 module lid() {
-  color(c="slateblue")
-    right_half(s=ext.y, x=ext.x / 2)
-      shell();
+  color(c="slateblue") {
+    mirror(v=[1, 0, 0]) {
+      shell_end();
+      mirror(v=[0, 0, 1])
+        shell_end();
+    }
+  }
 }
 
 module front() {
-  color(c="royalblue")
-    top_half(s=ext.x + ext.z, z=0)
-      left_half(s=ext.x + ext.z, x=ext.x / 2)
-        shell();
+  color(c="royalblue") {
+    difference() {
+      mirror(v=[0, 0, 1]) {
+        shell_end();
+        shell_long();
+      }
+      if (debug_magnet) #mask_magnet(); else mask_magnet();
+    }
+  }
 }
 
 module back() {
-  color(c="lightskyblue")
-    bottom_half(s=ext.x + ext.z, z=0)
-      left_half(s=ext.x + ext.z, x=ext.x / 2)
-        shell();
+  color(c="lightskyblue") {
+    difference() {
+      union() {
+        shell_end();
+        shell_long();
+      }
+      if (debug_hinge) #mask_hinge(); else mask_hinge();
+    }
+  }
 }
 
 module leather_wall(c, front) {
@@ -694,7 +734,7 @@ module liner_template(c) {
 render() {
 
   if (show_lid)
-    translate(v=[20, 0, 0])
+    translate(v=[40, 0, 0])
       lid();
 
   if (show_back)
