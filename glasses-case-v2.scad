@@ -11,6 +11,7 @@ show_leather_wall_back = false;
 show_front = true;
 show_leather_wall_front = true;
 show_lid = false;
+show_leather_wall_lid = true;
 show_leather_side_left = true;
 show_leather_side_right = false;
 show_liner_template = false;
@@ -165,12 +166,11 @@ module mask_stitches_foldover_deep(ay, dy) {
   }
 }
 
-module mask_stitches_semicircle(ax, ay, az, dy, dz) {
-  for (a = [0:-a_end_quant:-180]) {
+module mask_stitches_quartercircle(ax, ay, az, dy, dz) {
+  for (a = [-180:a_end_quant:-90]) {
     rotate(a=a, v=[0, 1, 0]) {
-      a_adj = (a == -90) ? 0 : (a < -90 ? -ay : ay);
       translate(v=[0, dy, dz])
-        mask_stitch(ax=ax, ay=a_adj, az=-az);
+        mask_stitch(ax=ax, ay=(a == -90 ? 0 : ay), az=(a == -90 ? 0 : -az));
     }
   }
 }
@@ -210,7 +210,7 @@ module mask_hinge() {
         teardrop(h=l_hinge, d=d_hinge, ang=60);
 }
 
-module shell_end() {
+module shell_end(liner_holes) {
 
   module mask_stitches() {
     dx = -ext.x / 2;
@@ -219,7 +219,7 @@ module shell_end() {
 
     for (i = [-1, 1]) {
       translate(v=[dx, 0, 0])
-        mask_stitches_semicircle(ax=i * 45, ay=0, az=0, dy=i * dy, dz=dz);
+        mask_stitches_quartercircle(ax=i * 45, ay=0, az=0, dy=i * dy, dz=dz);
     }
   }
 
@@ -259,13 +259,14 @@ module shell_end() {
 
     if (debug_gaps) #mask_half_gap(); else mask_half_gap();
 
-    if (debug_holes) #mask_liner_holes(); else mask_liner_holes();
+    if (liner_holes)
+      if (debug_holes) #mask_liner_holes(); else mask_liner_holes();
 
     mask_stitches();
   }
 }
 
-module shell_long() {
+module shell_long(liner_holes) {
 
   module mask_stitches() {
     dy = (ext.y - hole_stitch_inset + t_leather) / 2;
@@ -395,18 +396,27 @@ module shell_long() {
 
     if (debug_holes) #mask_pins(); else mask_pins();
 
-    if (debug_holes) #mask_liner_holes(); else mask_liner_holes();
+    if (liner_holes)
+      if (debug_holes) #mask_liner_holes(); else mask_liner_holes();
 
     mask_stitches();
+  }
+}
+
+module leather_wall_lid(c) {
+  mirror(v=[1, 0, 0]) {
+    leather_wall_end(c=c, wide_stitches=false);
+    mirror(v=[0, 0, 1])
+      leather_wall_end(c=c, wide_stitches=false);
   }
 }
 
 module lid() {
   color(c="slateblue") {
     mirror(v=[1, 0, 0]) {
-      shell_end();
+      shell_end(liner_holes=false);
       mirror(v=[0, 0, 1])
-        shell_end();
+        shell_end(liner_holes=false);
     }
   }
 }
@@ -415,8 +425,8 @@ module front() {
   color(c="royalblue") {
     difference() {
       mirror(v=[0, 0, 1]) {
-        shell_end();
-        shell_long();
+        shell_end(liner_holes=true);
+        shell_long(liner_holes=true);
       }
       if (debug_magnet) #mask_magnet(); else mask_magnet();
     }
@@ -427,25 +437,26 @@ module back() {
   color(c="lightskyblue") {
     difference() {
       union() {
-        shell_end();
-        shell_long();
+        shell_end(liner_holes=true);
+        shell_long(liner_holes=true);
       }
       if (debug_hinge) #mask_hinge(); else mask_hinge();
     }
   }
 }
 
-module leather_wall_end(c) {
+module leather_wall_end(c, wide_stitches) {
   b_end = [2 * r_end_quant * PI / 4 + t_leather_overhang, ext.y + t_leather_overhang * 2, t_leather];
 
   module mask_end_stitches_folded() {
     for (i = [-1, 1])
       translate(v=[-ext.x / 2, 0, 0])
-        mask_stitches_semicircle(ax=0, ay=0, az=i * a_stitch, dy=i * (ext.y / 2 - hole_stitch_inset), dz=ext.z / 2);
+        mask_stitches_quartercircle(ax=0, ay=0, az=i * a_stitch, dy=i * (ext.y / 2 - hole_stitch_inset), dz=ext.z / 2);
 
-    translate(v=[-ext.x / 2, 0, 0])
-      rotate(a=-90 - a_end_quant / 2, v=[0, 1, 0])
-        mask_stitches_wide(az=90, dx=0, dz=ext.z / 2);
+    if (wide_stitches)
+      translate(v=[-ext.x / 2, 0, 0])
+        rotate(a=-90 - a_end_quant / 2, v=[0, 1, 0])
+          mask_stitches_wide(az=90, dx=0, dz=ext.z / 2);
   }
 
   module mask_end_stitches_unfolded() {
@@ -456,7 +467,8 @@ module leather_wall_end(c) {
       translate(v=[0, i * ( (ext.y) / 2 - hole_stitch_inset), -ext.z / 2])
         mask_stitches_long(ax=0, az=i * a_stitch, x0=x0, x1=x1);
 
-    mask_stitches_wide(az=90, dx=-ext.x / 2 - b_end.x + hole_stitch_spacing / 2 + t_leather_overhang, dz=-ext.z / 2);
+    if (wide_stitches)
+      mask_stitches_wide(az=90, dx=-ext.x / 2 - b_end.x + hole_stitch_spacing / 2 + t_leather_overhang, dz=-ext.z / 2);
   }
 
   module mask_end_stitches() {
@@ -585,13 +597,13 @@ module leather_wall_long(c, front) {
 
 module leather_wall_front(c) {
   mirror(v=[0, 0, 1]) {
-    leather_wall_end(c=c);
+    leather_wall_end(c=c, wide_stitches=true);
     leather_wall_long(c=c, front=true);
   }
 }
 
 module leather_wall_back(c) {
-  leather_wall_end(c=c);
+  leather_wall_end(c=c, wide_stitches=true);
   leather_wall_long(c=c, front=false);
 }
 
@@ -611,8 +623,11 @@ module leather_side(c) {
         rotate(a=-90, v=[1, 0, 0])
           mask_stitches_long(ax=0, az=i * a_stitch, x0=-ext.x / 2, x1=ext.x / 2);
 
-    translate(v=[-ext.x / 2, 0, 0])
-      mask_stitches_semicircle(ax=90, ay=a_stitch, az=0, dy=ext.y / 2, dz=dz_stitch);
+    translate(v=[-ext.x / 2, 0, 0]) {
+      mask_stitches_quartercircle(ax=90, ay=-a_stitch, az=0, dy=ext.y / 2, dz=dz_stitch);
+      mirror(v=[0, 0, 1])
+        mask_stitches_quartercircle(ax=90, ay=-a_stitch, az=0, dy=ext.y / 2, dz=dz_stitch);
+    }
 
     mask_stitches_foldover_deep(ay=a_stitch, dy=ext.y / 2);
   }
@@ -743,9 +758,13 @@ module liner_template(c) {
 
 render() {
 
-  if (show_lid)
-    translate(v=[40, 0, 0])
+  translate(v=[40, 0, 0]) {
+    if (show_lid)
       lid();
+
+    if (show_leather_wall_lid)
+      leather_wall_lid(brown_pair(5));
+  }
 
   if (show_back)
     back();
