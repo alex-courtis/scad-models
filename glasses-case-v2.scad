@@ -572,7 +572,7 @@ module leather_wall_long(c, front) {
           difference() {
             translate(v=folded)
               cube(b_finner, center=true);
-            mask_stitches_wide(az=a_stitch, dx=ext.x / 2 - hole_stitch_inset, dz=( -ext.z + t_wall) / 2);
+            mask_stitches_wide(az=-a_stitch, dx=ext.x / 2 - hole_stitch_inset, dz=( -ext.z + t_wall) / 2);
           }
   }
 
