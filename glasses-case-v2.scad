@@ -3,8 +3,9 @@ include <lib/geom.scad>
 include <lib/colours.scad>
 
 // TODO 
-// lid
 // hinge clearance
+// lid liner
+// shorten lid
 
 /* [Show] */
 show_back = true;
@@ -21,13 +22,13 @@ show_liner_template = false;
 fold = true;
 
 /* [Debug] */
-debug_dx_lid = 20; // [0:1:180]
-debug_lid_angle = 45; // [0:1:180]
+debug_dx_lid = 0; // [0:0.1:180]
+debug_lid_angle = 90; // [0:1:180]
 debug_gaps = false;
 debug_holes = false;
 debug_int = false;
 debug_magnet = false;
-debug_hinge = false;
+debug_hinge = true;
 debug_lid_long = false;
 
 /* [Dimensions] */
@@ -79,7 +80,9 @@ t_magnet = 4.05; // [0:0.05:10]
 
 /* [Hinges] */
 d_hinge = 4; // [0:0.05:10]
-l_hinge = 30; // [0:0.05:10]
+l_hinge = 30; // [0:0.05:100]
+// added to d_hinge/2 + t_leather
+clearance_hinge = 2; // [-5:0.05:5]
 
 /* [Liner] */
 t_liner = 0.6; // [0:0.05:10]
@@ -121,10 +124,13 @@ echo(ext_lid=ext_lid);
 int_lid = ext_lid - [0, 2 * t_side, 2 * t_wall];
 echo(int_lid=int_lid);
 
+dx_hinge = d_hinge / 2 + t_leather + clearance_hinge;
+echo(dx_hinge=dx_hinge);
+
 dz_hinge = (t_wall + chamfer_int) / 2;
 echo(dz_hinge=dz_hinge);
 
-$fn = 120;
+$fn = 100;
 
 function poly_foldover_edge(b) =
   [
@@ -262,12 +268,20 @@ module mask_magnet(ext) {
 }
 
 module mask_hinge(ext) {
-  inset = [ext.x / 2, (ext.y - t_side - chamfer_int) / 2, -ext_main.z / 2 + dz_hinge];
+  tr = [
+    ext.x / 2 + dx_hinge,
+    (ext.y - t_side - chamfer_int) / 2,
+    -ext_main.z / 2 + dz_hinge,
+  ];
 
-  for (i = [-1, 1])
-    translate(v=vector_multiply_vector(inset, [1, i, 1]))
-      rotate(a=90, v=[0, 0, 1])
-        teardrop(h=l_hinge, d=d_hinge, ang=60);
+  for (i = [-1, 1]) {
+    translate(v=vector_multiply_vector(tr, [1, i, 1])) {
+      translate(v=[-l_hinge / 4 + 0, 0, 0])
+        rotate(a=90, v=[0, 0, 1])
+          teardrop(h=l_hinge / 2, d=d_hinge, ang=60);
+      sphere(d=d_hinge);
+    }
+  }
 }
 
 module mask_pins(ext, int) {
@@ -453,7 +467,7 @@ module lid() {
 }
 
 module lid_position() {
-  tr = [-ext_lid.x / 2 - t_leather, 0, ext_lid.z / 2 - dz_hinge];
+  tr = [-ext_lid.x / 2 - dx_hinge, 0, ext_lid.z / 2 - dz_hinge];
 
   mirror(v=[1, 0, 0])
     translate(v=[-debug_dx_lid + ( -ext_main.x + ext_lid.x) / 2 + tr.x, tr.y, -tr.z])
