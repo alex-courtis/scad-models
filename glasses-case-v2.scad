@@ -13,6 +13,8 @@ show_leather_wall_front = true;
 show_leather_side_left = true;
 show_leather_side_right = false;
 show_lid = false;
+show_lid_end = false;
+show_lid_long = false;
 show_leather_wall_lid = false;
 show_liner_template = false;
 fold = true;
@@ -105,9 +107,15 @@ echo(r_end_quant=r_end_quant);
 ext_main = [x_quant, y_quant, 2 * (r_end_quant - t_leather)];
 echo(ext_main=ext_main);
 
-int_main = [x_quant, y_quant - 2 * t_side, ext_main.z - 2 * t_wall];
+int_main = ext_main - [0, 2 * t_side, 2 * t_wall];
 echo(int_main_target=int_main_target);
 echo(int_main=int_main);
+
+ext_lid = [hole_stitch_inset + hole_stitch_spacing, ext_main.y, ext_main.z];
+echo(ext_lid=ext_lid);
+
+int_lid = ext_lid - [0, 2 * t_side, 2 * t_wall];
+echo(int_lid=int_lid);
 
 $fn = 120;
 
@@ -172,6 +180,51 @@ module mask_stitches_quartercircle(ax, ay, az, dy, dz) {
       translate(v=[0, dy, dz])
         mask_stitch(ax=ax, ay=(a == -90 ? 0 : ay), az=(a == -90 ? 0 : -az));
     }
+  }
+}
+
+module mask_foldover(ext, int) {
+  mask_wide = [
+    w_foldover,
+    int.y + t_foldover * 2,
+    int.z / 2 - chamfer_int,
+  ];
+
+  translate(v=[(ext.x - mask_wide.x) / 2, 0, -mask_wide.z / 2])
+    cube(size=mask_wide, center=true);
+
+  mask_deep = [
+    w_foldover,
+    int.y - chamfer_int * 2,
+    int.z / 2 + t_foldover,
+  ];
+
+  translate(v=[(ext.x - mask_deep.x) / 2, 0, -mask_deep.z / 2])
+    cube(size=mask_deep, center=true);
+
+  translate(v=[ext.x / 2, 0, 0]) {
+    translate(v=[0, 0, -ext.z / 2 + t_wall - t_foldover])
+      chamfer_edge_mask(l=int.y - chamfer_int * 2, chamfer=chamfer_foldover, orient=FRONT, excess=0);
+
+    translate(v=[0, 0, -ext.z / 2])
+      chamfer_edge_mask(l=ext.y, chamfer=chamfer_foldover, orient=FRONT, excess=0);
+
+    for (i = [-1, 1]) {
+      translate(v=[0, i * (ext.y / 2 - t_side + t_foldover), 0])
+        chamfer_edge_mask(l=int.z - chamfer_int * 2, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
+
+      translate(v=[0, i * (ext.y / 2), 0])
+        chamfer_edge_mask(l=ext.z, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
+    }
+  }
+
+  translate(v=[ext.x / 2 - w_foldover, 0, 0]) {
+    translate(v=[0, 0, -ext.z / 2 + t_wall])
+      chamfer_edge_mask(l=int.y - 2 * chamfer_int, chamfer=chamfer_foldover, orient=FRONT, excess=0);
+
+    for (i = [-1, 1])
+      translate(v=[0, i * (ext.y / 2 - t_side), 0])
+        chamfer_edge_mask(l=int.z - 2 * chamfer_int, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
   }
 }
 
@@ -309,51 +362,6 @@ module shell_long(ext, int) {
     mask_stitches_wide(ext=ext, az=90, dx=ext.x / 2 - hole_stitch_inset, dz=( -ext.z + t_wall - t_foldover) / 2);
   }
 
-  module mask_foldover() {
-    mask_wide = [
-      w_foldover,
-      int.y + t_foldover * 2,
-      int.z / 2 - chamfer_int,
-    ];
-
-    translate(v=[(ext.x - mask_wide.x) / 2, 0, -mask_wide.z / 2])
-      cube(size=mask_wide, center=true);
-
-    mask_deep = [
-      w_foldover,
-      int.y - chamfer_int * 2,
-      int.z / 2 + t_foldover,
-    ];
-
-    translate(v=[(ext.x - mask_deep.x) / 2, 0, -mask_deep.z / 2])
-      cube(size=mask_deep, center=true);
-
-    translate(v=[ext.x / 2, 0, 0]) {
-      translate(v=[0, 0, -ext.z / 2 + t_wall - t_foldover])
-        chamfer_edge_mask(l=int.y - chamfer_int * 2, chamfer=chamfer_foldover, orient=FRONT, excess=0);
-
-      translate(v=[0, 0, -ext.z / 2])
-        chamfer_edge_mask(l=ext.y, chamfer=chamfer_foldover, orient=FRONT, excess=0);
-
-      for (i = [-1, 1]) {
-        translate(v=[0, i * (ext.y / 2 - t_side + t_foldover), 0])
-          chamfer_edge_mask(l=int.z - chamfer_int * 2, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
-
-        translate(v=[0, i * (ext.y / 2), 0])
-          chamfer_edge_mask(l=ext.z, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
-      }
-    }
-
-    translate(v=[ext.x / 2 - w_foldover, 0, 0]) {
-      translate(v=[0, 0, -ext.z / 2 + t_wall])
-        chamfer_edge_mask(l=int.y - 2 * chamfer_int, chamfer=chamfer_foldover, orient=FRONT, excess=0);
-
-      for (i = [-1, 1])
-        translate(v=[0, i * (ext.y / 2 - t_side), 0])
-          chamfer_edge_mask(l=int.z - 2 * chamfer_int, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
-    }
-  }
-
   module mask_int() {
     translate(v=[0, 0, -int.z / 4])
       cuboid(
@@ -383,8 +391,6 @@ module shell_long(ext, int) {
 
     if (debug_int) #mask_int(); else mask_int();
 
-    if (debug_gaps) #mask_foldover(); else mask_foldover();
-
     mask_stitches();
   }
 }
@@ -406,49 +412,59 @@ module shell_main() {
     if (debug_gaps) #mask_half_gap(ext=ext); else mask_half_gap(ext=ext);
 
     if (debug_holes) #mask_pins(ext=ext, int=int); else mask_pins(ext=ext, int=int);
+
+    if (debug_gaps) #mask_foldover(ext=ext, int=int); else mask_foldover(ext=ext, int=int);
   }
 }
 
-module leather_wall_lid(cp) {
-  mirror(v=[1, 0, 0]) {
-    leather_wall_end(cp=cp, wide_stitches=false);
-    mirror(v=[0, 0, 1])
-      leather_wall_end(cp=cp, wide_stitches=false);
+module shell_lid() {
+  ext = ext_lid;
+  int = int_lid;
+
+  difference() {
+    union() {
+      if (show_lid_end)
+        shell_end(ext=ext, int=int);
+      if (show_lid_long)
+        shell_long(ext=ext, int=int);
+    }
+
+    if (debug_gaps) #mask_foldover(ext=ext, int=int); else mask_foldover(ext=ext, int=int);
   }
 }
 
-module lid(c) {
-  color(c) {
+module lid() {
+  translate(v=[(ext_main.x + ext_lid.x) / 2 + t_leather * 2, 0, 0]) {
     mirror(v=[1, 0, 0]) {
-      shell_end();
-      mirror(v=[0, 0, 1])
-        shell_end();
+      difference() {
+        union() {
+          shell_lid();
+          mirror(v=[0, 0, 1])
+            shell_lid();
+        }
+
+        if (debug_magnet) #mask_magnet(ext=ext_lid); else mask_magnet(ext=ext_lid);
+
+        if (debug_hinge) #mask_hinge(ext=ext_lid); else mask_hinge(ext=ext_lid);
+      }
     }
   }
 }
 
-module front(c) {
-  ext = ext_main;
-
-  color(c) {
-    difference() {
-      mirror(v=[0, 0, 1])
-        shell_main();
-
-      if (debug_magnet) #mask_magnet(ext=ext); else mask_magnet(ext=ext);
-    }
-  }
-}
-
-module back(c) {
-  ext = ext_main;
-
-  color(c) {
-    difference() {
+module front() {
+  difference() {
+    mirror(v=[0, 0, 1])
       shell_main();
 
-      if (debug_hinge) #mask_hinge(ext=ext); else mask_hinge(ext=ext);
-    }
+    if (debug_magnet) #mask_magnet(ext=ext_main); else mask_magnet(ext=ext_main);
+  }
+}
+
+module back() {
+  difference() {
+    shell_main();
+
+    if (debug_hinge) #mask_hinge(ext=ext_main); else mask_hinge(ext=ext_main);
   }
 }
 
@@ -770,20 +786,17 @@ module liner_template(int, cp) {
 }
 
 render() {
-
-  translate(v=[40, 0, 0]) {
-    if (show_lid)
-      lid(c="slateblue");
-
-    if (show_leather_wall_lid)
-      leather_wall_lid(cp=brown_pair(5));
-  }
+  if (show_lid)
+    color(c="slateblue")
+      lid();
 
   if (show_back)
-    back(c="lightskyblue");
+    color(c="lightskyblue")
+      back();
 
   if (show_front)
-    front(c="royalblue");
+    color(c="royalblue")
+      front();
 
   if (show_leather_wall_back)
     leather_wall_back(cp=brown_pair(1));
