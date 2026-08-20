@@ -4,7 +4,6 @@ include <lib/colours.scad>
 
 // TODO 
 // lid
-// side deep stitch angle
 
 /* [Show] */
 show_back = true;
@@ -156,7 +155,7 @@ module mask_stitches_wide(az, dx, dz, az) {
       mask_stitch(ax=0, ay=0, az=az);
 }
 
-module mask_stitches_foldover_deep(ay, dy) {
+module mask_stitches_deep(ay, dy) {
   z = ext.z / 2 - hole_stitch_inset;
 
   spacing = z / round_nearest(z, hole_stitch_spacing) * hole_stitch_spacing;
@@ -304,7 +303,7 @@ module shell_long() {
       translate(v=[0, i * dy, dz])
         mask_stitches_long(ax=i * -45, az=0, x0=-ext.x / 2, x1=ext.x / 2);
 
-      mask_stitches_foldover_deep(ay=90, dy=i * (ext.y - t_side + t_foldover) / 2);
+      mask_stitches_deep(ay=90, dy=i * (ext.y - t_side + t_foldover) / 2);
     }
 
     mask_stitches_wide(az=90, dx=ext.x / 2 - hole_stitch_inset, dz=( -ext.z + t_wall - t_foldover) / 2);
@@ -630,7 +629,7 @@ module leather_side(cp) {
         mask_stitches_quartercircle(ax=90, ay=-a_stitch, az=0, dy=ext.y / 2, dz=dz_stitch);
     }
 
-    mask_stitches_foldover_deep(ay=a_stitch, dy=ext.y / 2);
+    mask_stitches_deep(ay=a_stitch, dy=ext.y / 2);
   }
 
   module foldover_edge() {
@@ -666,7 +665,7 @@ module leather_side(cp) {
       0,
     ];
     shifted = [
-      (ext.x + b_finner.x) / 2 + +t_wall - t_foldover + t_leather * 2,
+      (ext.x + b_finner.x) / 2 + t_wall - t_foldover + t_leather * 2,
       (ext.y + t_leather) / 2,
       0,
     ];
@@ -677,7 +676,7 @@ module leather_side(cp) {
           difference() {
             translate(v=folded)
               cube(b_finner, center=true);
-            mask_stitches_foldover_deep(ay=a_stitch, dy=(ext.y - t_side) / 2);
+            mask_stitches_deep(ay=fold ? -a_stitch : a_stitch, dy=(ext.y - t_side) / 2);
           }
   }
 
