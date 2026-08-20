@@ -13,8 +13,6 @@ show_leather_wall_front = true;
 show_leather_side_left = true;
 show_leather_side_right = false;
 show_lid = false;
-show_lid_end = false;
-show_lid_long = false;
 show_leather_wall_lid = false;
 show_liner_template = false;
 fold = true;
@@ -25,6 +23,7 @@ debug_holes = false;
 debug_int = false;
 debug_magnet = false;
 debug_hinge = false;
+debug_lid_long = false;
 
 /* [Dimensions] */
 
@@ -423,10 +422,8 @@ module shell_lid() {
 
   difference() {
     union() {
-      if (show_lid_end)
-        shell_end(ext=ext, int=int);
-      if (show_lid_long)
-        shell_long(ext=ext, int=int);
+      shell_end(ext=ext, int=int);
+      if (debug_lid_long) #shell_long(ext=ext, int=int); else shell_long(ext=ext, int=int);
     }
 
     if (debug_gaps) #mask_foldover(ext=ext, int=int); else mask_foldover(ext=ext, int=int);
@@ -434,20 +431,29 @@ module shell_lid() {
 }
 
 module lid() {
-  translate(v=[(ext_main.x + ext_lid.x) / 2 + t_leather * 2, 0, 0]) {
-    mirror(v=[1, 0, 0]) {
-      difference() {
-        union() {
-          shell_lid();
-          mirror(v=[0, 0, 1])
-            shell_lid();
-        }
-
-        if (debug_magnet) #mask_magnet(ext=ext_lid); else mask_magnet(ext=ext_lid);
-
-        if (debug_hinge) #mask_hinge(ext=ext_lid); else mask_hinge(ext=ext_lid);
-      }
+  difference() {
+    union() {
+      shell_lid();
+      mirror(v=[0, 0, 1])
+        shell_lid();
     }
+
+    if (debug_magnet) #mask_magnet(ext=ext_lid); else mask_magnet(ext=ext_lid);
+
+    if (debug_hinge) #mask_hinge(ext=ext_lid); else mask_hinge(ext=ext_lid);
+  }
+}
+
+module lid_leather_wall(cp) {
+  ext = ext_lid;
+  int = int_lid;
+
+  leather_wall_end(ext=ext, cp=cp, wide_stitches=false);
+  leather_wall_long(ext=ext, int=int, cp=cp, front=false);
+
+  mirror(v=[0, 0, 1]) {
+    leather_wall_end(ext=ext, cp=cp, wide_stitches=false);
+    leather_wall_long(ext=ext, int=int, cp=cp, front=true);
   }
 }
 
@@ -786,10 +792,6 @@ module liner_template(int, cp) {
 }
 
 render() {
-  if (show_lid)
-    color(c="slateblue")
-      lid();
-
   if (show_back)
     color(c="lightskyblue")
       back();
@@ -806,11 +808,21 @@ render() {
 
   if (show_leather_side_left)
     mirror(v=[0, 1, 0])
-      leather_side(ext=ext_main, int=int_main, cp=brown_pair(3));
+      leather_side(ext=ext_main, int=int_main, cp=brown_pair(2));
 
   if (show_leather_side_right)
-    leather_side(ext=ext_main, int=int_main, cp=brown_pair(2));
+    leather_side(ext=ext_main, int=int_main, cp=brown_pair(3));
+
+  mirror(v=[1, 0, 0])
+    translate(v=[( -ext_main.x - ext_lid.x) / 2 - t_leather * 2, 0, 0]) {
+      if (show_lid)
+        color(c="slateblue")
+          lid();
+
+      if (show_leather_wall_lid)
+        lid_leather_wall(cp=brown_pair(4));
+    }
 
   if (show_liner_template)
-    liner_template(int=int_main, cp=brown_pair(6));
+    liner_template(int=int_main, cp=brown_pair(11));
 }
