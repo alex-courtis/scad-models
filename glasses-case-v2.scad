@@ -26,10 +26,8 @@ debug_dx_lid = 0; // [0:0.1:180]
 debug_lid_angle = 90; // [0:1:180]
 debug_gaps = false;
 debug_holes = false;
-debug_int = false;
 debug_magnet = false;
 debug_hinge = true;
-debug_lid_long = false;
 
 /* [Dimensions] */
 
@@ -81,8 +79,11 @@ t_magnet = 4.05; // [0:0.05:10]
 /* [Hinges] */
 d_hinge = 4; // [0:0.05:10]
 l_hinge = 30; // [0:0.05:100]
-// added to d_hinge/2 + t_leather
-clearance_hinge = 2; // [-5:0.05:5]
+
+// in addition to t_leather
+clearance_lid = 0.4; // [0:0.05:5]
+
+chamfer_hinge = 4.0; // [0:0.05:2]
 
 /* [Liner] */
 t_liner = 0.6; // [0:0.05:10]
@@ -124,7 +125,7 @@ echo(ext_lid=ext_lid);
 int_lid = ext_lid - [0, 2 * t_side, 2 * t_wall];
 echo(int_lid=int_lid);
 
-dx_hinge = d_hinge / 2 + t_leather + clearance_hinge;
+dx_hinge = t_leather + clearance_lid / 2;
 echo(dx_hinge=dx_hinge);
 
 dz_hinge = (t_wall + chamfer_int) / 2;
@@ -142,6 +143,11 @@ function poly_foldover_edge(b) =
     [-b.x / 2 + t_leather, -b.y / 2],
   ];
 
+module dbg_holes() { if (debug_holes) #children(); else children(); }
+module dbg_gaps() { if (debug_gaps) #children(); else children(); }
+module dbg_hinge() { if (debug_hinge) #children(); else children(); }
+module dbg_magnet() { if (debug_magnet) #children(); else children(); }
+
 module mask_stitch(ax, ay, az) {
 
   module mask() {
@@ -153,10 +159,7 @@ module mask_stitch(ax, ay, az) {
           cube(size=[hole_stitch_l, hole_stitch_w, z_hole], center=true);
   }
 
-  if (debug_holes)
-    #mask();
-  else
-    mask();
+  dbg_holes() mask();
 }
 
 // x0 -> x1
@@ -267,7 +270,7 @@ module mask_magnet(ext) {
         teardrop(h=t_magnet, d=d_magnet, orient=DOWN, ang=45);
 }
 
-module mask_hinge(ext) {
+module mask_hinge_pin(ext) {
   tr = [
     ext.x / 2 + dx_hinge,
     (ext.y - t_side - chamfer_int) / 2,
@@ -282,6 +285,13 @@ module mask_hinge(ext) {
       sphere(d=d_hinge);
     }
   }
+}
+
+module mask_hinge_chamfer(ext) {
+  chamfer = t_wall * 3;
+  translate(v=[ext.x / 2, 0, -ext.z / 2])
+    rotate(a=90, v=[1, 0, 0])
+      chamfer_edge_mask(l=ext.y, chamfer=chamfer, excess=0);
 }
 
 module mask_pins(ext, int) {
@@ -361,7 +371,7 @@ module shell_end(ext, int) {
   difference() {
     body();
 
-    if (debug_int) #mask_int(); else mask_int();
+    mask_int();
 
     mask_stitches();
   }
@@ -410,7 +420,7 @@ module shell_long(ext, int) {
   difference() {
     body();
 
-    if (debug_int) #mask_int(); else mask_int();
+    mask_int();
 
     mask_stitches();
   }
@@ -426,15 +436,15 @@ module shell_main() {
       shell_long(ext=ext_main, int=int);
     }
 
-    if (debug_holes) #mask_liner_holes_long(ext=ext, int=int); else mask_liner_holes_long(ext=ext, int=int);
+    dbg_holes() mask_liner_holes_long(ext=ext, int=int);
 
-    if (debug_holes) #mask_liner_holes_quartercircle(ext=ext, int=int); else mask_liner_holes_quartercircle(ext=ext, int=int);
+    dbg_holes() mask_liner_holes_quartercircle(ext=ext, int=int);
 
-    if (debug_gaps) #mask_half_gap(ext=ext); else mask_half_gap(ext=ext);
+    dbg_gaps() mask_half_gap(ext=ext);
 
-    if (debug_holes) #mask_pins(ext=ext, int=int); else mask_pins(ext=ext, int=int);
+    dbg_holes() mask_pins(ext=ext, int=int);
 
-    if (debug_gaps) #mask_foldover(ext=ext, int=int, w_foldover=w_foldover, t_foldover=t_foldover); else mask_foldover(ext=ext, int=int, w_foldover=w_foldover, t_foldover=t_foldover);
+    dbg_gaps() mask_foldover(ext=ext, int=int, w_foldover=w_foldover, t_foldover=t_foldover);
   }
 }
 
@@ -445,10 +455,10 @@ module shell_lid() {
   difference() {
     union() {
       shell_end(ext=ext, int=int);
-      if (debug_lid_long) #shell_long(ext=ext, int=int); else shell_long(ext=ext, int=int);
+      shell_long(ext=ext, int=int);
     }
 
-    if (debug_gaps) #mask_foldover(ext=ext, int=int, w_foldover=0, t_foldover=0); else mask_foldover(ext=ext, int=int, w_foldover=0, t_foldover=0);
+    dbg_gaps() mask_foldover(ext=ext, int=int, w_foldover=0, t_foldover=0);
   }
 }
 
@@ -460,9 +470,11 @@ module lid() {
         shell_lid();
     }
 
-    if (debug_magnet) #mask_magnet(ext=ext_lid); else mask_magnet(ext=ext_lid);
+    dbg_magnet() mask_magnet(ext=ext_lid);
 
-    if (debug_hinge) #mask_hinge(ext=ext_lid); else mask_hinge(ext=ext_lid);
+    dbg_hinge() mask_hinge_pin(ext=ext_lid);
+
+    dbg_hinge() mask_hinge_chamfer(ext_lid);
   }
 }
 
@@ -498,7 +510,7 @@ module front() {
     mirror(v=[0, 0, 1])
       shell_main();
 
-    if (debug_magnet) #mask_magnet(ext=ext_main); else mask_magnet(ext=ext_main);
+    dbg_magnet() mask_magnet(ext=ext_main);
   }
 }
 
@@ -506,7 +518,9 @@ module back() {
   difference() {
     shell_main();
 
-    if (debug_hinge) #mask_hinge(ext=ext_main); else mask_hinge(ext=ext_main);
+    dbg_hinge() mask_hinge_pin(ext=ext_main);
+
+    dbg_hinge() mask_hinge_chamfer(ext_main);
   }
 }
 
@@ -601,7 +615,7 @@ module leather_wall_foldover_edge(ext, hinge) {
               linear_extrude(h=t_leather, center=true)
                 polygon(p_fedge);
           if (hinge)
-            mask_hinge(ext=ext);
+            mask_hinge_pin(ext=ext);
         }
 }
 
@@ -710,7 +724,7 @@ module foldover_edge(ext) {
               rotate(a=90, v=[1, 0, 0])
                 linear_extrude(h=t_leather, center=true)
                   polygon(p_fedge);
-          mask_hinge(ext=ext);
+          mask_hinge_pin(ext=ext);
         }
 }
 
