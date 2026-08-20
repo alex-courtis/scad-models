@@ -4,20 +4,24 @@ include <lib/colours.scad>
 
 // TODO 
 // lid
+// hinge clearance
 
 /* [Show] */
 show_back = true;
-show_front = true;
-show_leather_wall_back = false;
-show_leather_wall_front = true;
-show_leather_side_left = true;
-show_leather_side_right = false;
-show_lid = false;
-show_leather_wall_lid = false;
+show_front = false;
+show_leather_main_back = true;
+show_leather_main_front = false;
+show_leather_main_left = true;
+show_leather_main_right = false;
+show_lid = true;
+show_leather_lid_wall = true;
+show_leather_lid_left = true;
+show_leather_lid_right = false;
 show_liner_template = false;
 fold = true;
 
 /* [Debug] */
+lid_angle = 45; // [0:1:180]
 debug_gaps = false;
 debug_holes = false;
 debug_int = false;
@@ -74,7 +78,7 @@ t_magnet = 4.05; // [0:0.05:10]
 
 /* [Hinges] */
 d_hinge = 4; // [0:0.05:10]
-l_hinge = 20; // [0:0.05:10]
+l_hinge = 30; // [0:0.05:10]
 
 /* [Liner] */
 t_liner = 0.6; // [0:0.05:10]
@@ -115,6 +119,9 @@ echo(ext_lid=ext_lid);
 
 int_lid = ext_lid - [0, 2 * t_side, 2 * t_wall];
 echo(int_lid=int_lid);
+
+dz_hinge = (t_wall + chamfer_int) / 2;
+echo(dz_hinge=dz_hinge);
 
 $fn = 120;
 
@@ -254,7 +261,7 @@ module mask_magnet(ext) {
 }
 
 module mask_hinge(ext) {
-  inset = [ext.x / 2, (ext.y - t_side - chamfer_int) / 2, ( -ext.z + t_wall + chamfer_int) / 2];
+  inset = [ext.x / 2, (ext.y - t_side - chamfer_int) / 2, -ext_main.z / 2 + dz_hinge];
 
   for (i = [-1, 1])
     translate(v=vector_multiply_vector(inset, [1, i, 1]))
@@ -442,6 +449,16 @@ module lid() {
 
     if (debug_hinge) #mask_hinge(ext=ext_lid); else mask_hinge(ext=ext_lid);
   }
+}
+
+module lid_position() {
+  tr = [-ext_lid.x / 2 - t_leather, 0, ext_lid.z / 2 - dz_hinge];
+
+  mirror(v=[1, 0, 0])
+    translate(v=[( -ext_main.x + ext_lid.x) / 2 + tr.x, tr.y, -tr.z])
+      rotate(a=-lid_angle, v=[0, 1, 0])
+        translate(v=tr)
+          children();
 }
 
 module lid_leather_wall(cp) {
@@ -800,28 +817,27 @@ render() {
     color(c="royalblue")
       front();
 
-  if (show_leather_wall_back)
+  if (show_leather_main_back)
     leather_wall_back(cp=brown_pair(1));
 
-  if (show_leather_wall_front)
+  if (show_leather_main_front)
     leather_wall_front(cp=brown_pair(0));
 
-  if (show_leather_side_left)
+  if (show_leather_main_left)
     mirror(v=[0, 1, 0])
       leather_side(ext=ext_main, int=int_main, cp=brown_pair(2));
 
-  if (show_leather_side_right)
+  if (show_leather_main_right)
     leather_side(ext=ext_main, int=int_main, cp=brown_pair(3));
 
-  mirror(v=[1, 0, 0])
-    translate(v=[( -ext_main.x - ext_lid.x) / 2 - t_leather * 2, 0, 0]) {
-      if (show_lid)
-        color(c="slateblue")
-          lid();
+  lid_position() {
+    if (show_lid)
+      color(c="slateblue")
+        lid();
 
-      if (show_leather_wall_lid)
-        lid_leather_wall(cp=brown_pair(4));
-    }
+    if (show_leather_lid_wall)
+      lid_leather_wall(cp=brown_pair(4));
+  }
 
   if (show_liner_template)
     liner_template(int=int_main, cp=brown_pair(11));
