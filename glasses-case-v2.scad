@@ -3,7 +3,7 @@ include <lib/geom.scad>
 include <lib/colours.scad>
 
 // TODO 
-// hinge clearance
+// hinge clearance - shift foldover cutout down to match
 // lid liner
 // shorten lid
 
@@ -23,7 +23,7 @@ fold = true;
 
 /* [Debug] */
 debug_dx_lid = 0; // [0:0.1:180]
-debug_lid_angle = 90; // [0:1:180]
+debug_lid_angle = 100; // [0:1:180]
 debug_gaps = false;
 debug_holes = false;
 debug_magnet = false;
@@ -80,14 +80,14 @@ t_magnet = 4.05; // [0:0.05:10]
 d_hinge = 4; // [0:0.05:10]
 l_hinge = 30; // [0:0.05:100]
 
-// in addition to t_leather
-clearance_lid = 0.4; // [-1.6:0.05:5]
+// shell to shell
+clearance_lid = 2.0; // [-1.6:0.05:5]
 
-// in addition to t_leather
-clearance_hinge = 0.4; // [-1.6:0.05:5]
+// shell to shell
+clearance_hinge = 2.2; // [-1.6:0.05:5]
 
 // maximum angle lid can open
-a_open = 120; // [0:1:180]
+a_open = 100; // [0:1:180]
 
 /* [Liner] */
 t_liner = 0.6; // [0:0.05:10]
@@ -132,7 +132,7 @@ echo(int_lid=int_lid);
 // relative to +ext.x, -ext.z
 // TODO absolute
 // TODO put y in here
-pivot_hinge = [t_leather + clearance_lid / 2, 0, (t_wall + chamfer_int) / 2];
+pivot_hinge = [clearance_lid / 2, 0, (t_wall + chamfer_int) / 2];
 echo(pivot_hinge=pivot_hinge);
 
 $fn = 100;
@@ -292,27 +292,17 @@ module mask_hinge_pin(ext) {
 }
 
 module mask_hinge_chamfer(ext) {
-  c = clearance_hinge;
-
-  dz = c / sin(a_open / 2);
-  echo(dz=dz);
-
-  z = pivot_hinge.z + dz;
+  z = pivot_hinge.z + clearance_hinge / 2 / sin(a_open / 2);
   x = z * tan(a_open / 2);
 
-  O = [pivot_hinge.x, pivot_hinge.z + dz];
-
-  echo(x=x);
-  echo(z=z);
-
-  translate(v=[ext.x / 2, 0, -ext.z / 2])
+  translate(v=[ext.x / 2 + pivot_hinge.x, 0, -ext.z / 2])
     rotate(a=90, v=[1, 0, 0])
       linear_extrude(h=ext.y, center=true)
         polygon(
           [
-            O,
-            O + [0, -z],
-            O + [-x, -z],
+            [0, z],
+            [0, 0],
+            [0 - x, 0],
           ]
         );
 }
