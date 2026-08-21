@@ -10,13 +10,13 @@ include <lib/colours.scad>
 /* [Show] */
 show_back = true;
 show_front = false;
-show_leather_main_back = true;
+show_leather_main_back = false;
 show_leather_main_front = false;
-show_leather_main_left = true;
+show_leather_main_left = false;
 show_leather_main_right = false;
 show_lid = true;
-show_leather_lid_wall = true;
-show_leather_lid_left = true;
+show_leather_lid_wall = false;
+show_leather_lid_left = false;
 show_leather_lid_right = false;
 show_liner_template = false;
 fold = true;
@@ -81,9 +81,13 @@ d_hinge = 4; // [0:0.05:10]
 l_hinge = 30; // [0:0.05:100]
 
 // in addition to t_leather
-clearance_lid = 0.4; // [0:0.05:5]
+clearance_lid = 0.4; // [-1.6:0.05:5]
 
-chamfer_hinge = 4.0; // [0:0.05:2]
+// in addition to t_leather
+clearance_hinge = 0.4; // [-1.6:0.05:5]
+
+// maximum angle lid can open
+a_open = 120; // [0:1:180]
 
 /* [Liner] */
 t_liner = 0.6; // [0:0.05:10]
@@ -125,11 +129,11 @@ echo(ext_lid=ext_lid);
 int_lid = ext_lid - [0, 2 * t_side, 2 * t_wall];
 echo(int_lid=int_lid);
 
-dx_hinge = t_leather + clearance_lid / 2;
-echo(dx_hinge=dx_hinge);
-
-dz_hinge = (t_wall + chamfer_int) / 2;
-echo(dz_hinge=dz_hinge);
+// relative to +ext.x, -ext.z
+// TODO absolute
+// TODO put y in here
+pivot_hinge = [t_leather + clearance_lid / 2, 0, (t_wall + chamfer_int) / 2];
+echo(pivot_hinge=pivot_hinge);
 
 $fn = 100;
 
@@ -272,9 +276,9 @@ module mask_magnet(ext) {
 
 module mask_hinge_pin(ext) {
   tr = [
-    ext.x / 2 + dx_hinge,
+    ext.x / 2 + pivot_hinge.x,
     (ext.y - t_side - chamfer_int) / 2,
-    -ext_main.z / 2 + dz_hinge,
+    -ext_main.z / 2 + pivot_hinge.z,
   ];
 
   for (i = [-1, 1]) {
@@ -288,10 +292,29 @@ module mask_hinge_pin(ext) {
 }
 
 module mask_hinge_chamfer(ext) {
-  chamfer = t_wall * 3;
+  c = clearance_hinge;
+
+  dz = c / sin(a_open / 2);
+  echo(dz=dz);
+
+  z = pivot_hinge.z + dz;
+  x = z * tan(a_open / 2);
+
+  O = [pivot_hinge.x, pivot_hinge.z + dz];
+
+  echo(x=x);
+  echo(z=z);
+
   translate(v=[ext.x / 2, 0, -ext.z / 2])
     rotate(a=90, v=[1, 0, 0])
-      chamfer_edge_mask(l=ext.y, chamfer=chamfer, excess=0);
+      linear_extrude(h=ext.y, center=true)
+        polygon(
+          [
+            O,
+            O + [0, -z],
+            O + [-x, -z],
+          ]
+        );
 }
 
 module mask_pins(ext, int) {
@@ -479,7 +502,7 @@ module lid() {
 }
 
 module lid_position() {
-  tr = [-ext_lid.x / 2 - dx_hinge, 0, ext_lid.z / 2 - dz_hinge];
+  tr = [-ext_lid.x / 2 - pivot_hinge.x, 0, ext_lid.z / 2 - pivot_hinge.z];
 
   mirror(v=[1, 0, 0])
     translate(v=[-debug_dx_lid + ( -ext_main.x + ext_lid.x) / 2 + tr.x, tr.y, -tr.z])
