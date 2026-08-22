@@ -142,6 +142,15 @@ echo(hinge_chamfer_dz=hinge_chamfer_dz);
 hinge_chamfer_dx = hinge_chamfer_dz * tan(a_open / 2);
 echo(hinge_chamfer_dx=hinge_chamfer_dx);
 
+// relative to +ext.x
+hinge_inset_dx = hinge_chamfer_dx - pivot_hinge.x;
+echo(hinge_inset_dx=hinge_inset_dx);
+hinge_inset_stitches = round_nearest(hinge_inset_dx, hole_stitch_spacing);
+echo(hinge_inset_stitches=hinge_inset_stitches);
+
+w_foldover_hinge = w_foldover - hinge_inset_dx + hinge_inset_stitches;
+echo(w_foldover_hinge);
+
 $fn = 100;
 
 function poly_foldover_edge(b) =
@@ -299,11 +308,17 @@ module mask_hinge_pin(ext) {
 }
 
 module mask_hinge_chamfer(ext, int) {
+
+  mask = [
+    hinge_inset_dx,
+    int.y - chamfer_int * 2,
+    t_wall,
+  ];
+
+  translate(v=[(ext.x - mask.x) / 2, 0, ( -ext.z + mask.z) / 2])
+    cube(size=mask, center=true);
+
   translate(v=[ext.x / 2 + pivot_hinge.x, 0, -ext.z / 2]) {
-
-    translate(v=[-hinge_chamfer_dx / 2, 0, hinge_chamfer_dz / 2])
-      cube(size=[hinge_chamfer_dx, int.y - chamfer_int * 2, hinge_chamfer_dz], center=true);
-
     rotate(a=90, v=[1, 0, 0])
       linear_extrude(h=ext.y, center=true)
         polygon(
@@ -412,8 +427,8 @@ module shell_long(ext, int) {
       mask_stitches_deep(ext=ext, ay=90, dy=i * (ext.y - t_side + t_foldover) / 2);
     }
 
-    // TODO inset back
-    mask_stitches_wide(ext=ext, az=90, dx=ext.x / 2 - hole_stitch_inset, dz=( -ext.z + t_wall - t_foldover) / 2);
+    dx = ext.x / 2 - hole_stitch_inset - hinge_inset_stitches;
+    mask_stitches_wide(ext=ext, az=90, dx=dx, dz=( -ext.z + t_wall - t_foldover) / 2);
   }
 
   module mask_int() {
@@ -476,6 +491,7 @@ module shell_lid() {
       shell_long(ext=ext_lid, int=int_lid);
     }
 
+    // TODO chamfer these individually
     dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=0);
 
     dbg_foldover() mask_foldover_deep(ext=ext_lid, int=int_lid, w=0, t=0);
@@ -545,9 +561,10 @@ module back() {
 
     dbg_hinge() mask_hinge_chamfer(ext=ext_main, int=int_main);
 
-    // TODO widen
-    dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
+    translate(v=[-hinge_inset_dx, 0, 0])
+      dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover_hinge, t=t_foldover);
 
+    
     dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
   }
 }
