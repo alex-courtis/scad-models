@@ -3,9 +3,10 @@ include <lib/geom.scad>
 include <lib/colours.scad>
 
 // TODO 
-// hinge clearance - shift foldover cutout down to match
 // lid liner
-// shorten lid
+// lid side leather internal
+// one piece lid leather wall
+// move long foldover over hinge gap
 
 /* [Show] */
 show_back = true;
@@ -91,6 +92,9 @@ clearance_hinge = 2.2; // [-1.6:0.05:5]
 // maximum angle lid can open
 a_open = 100; // [0:1:180]
 
+a_hinge_main = 6; // [0:1:50]
+a_hinge_lid = 13; // [0:1:50]
+
 /* [Liner] */
 t_liner = 0.6; // [0:0.05:10]
 
@@ -125,7 +129,7 @@ int_main = ext_main - [0, 2 * t_side, 2 * t_wall];
 echo(int_main_target=int_main_target);
 echo(int_main=int_main);
 
-ext_lid = [hole_stitch_inset + hole_stitch_spacing, ext_main.y, ext_main.z];
+ext_lid = [hole_stitch_inset, ext_main.y, ext_main.z];
 echo(ext_lid=ext_lid);
 
 int_lid = ext_lid - [0, 2 * t_side, 2 * t_wall];
@@ -185,7 +189,7 @@ module mask_stitch(ax, ay, az) {
 
 // x0 -> x1
 module mask_stitches_long(ax, az, x0, x1) {
-  for (dx = [x0:hole_stitch_spacing:x1]) {
+  for (dx = [x0:(x0 < x1 ? hole_stitch_spacing : -hole_stitch_spacing):x1]) {
     translate(v=[dx, 0, 0]) {
       mask_stitch(ax=ax, ay=0, az=az);
     }
@@ -290,18 +294,19 @@ module mask_magnet(ext) {
         teardrop(h=t_magnet, d=d_magnet, orient=DOWN, ang=45);
 }
 
-module mask_hinge_pin(ext) {
+module mask_hinge_pin(ext, ay) {
   tr = [
     ext.x / 2 + pivot_hinge.x,
     (ext.y - t_side - chamfer_int) / 2,
     -ext_main.z / 2 + pivot_hinge.z,
   ];
 
-  for (i = [-1, 1]) {
+  #for(i=[-1, 1]) {
     translate(v=vector_multiply_vector(tr, [1, i, 1])) {
-      translate(v=[-l_hinge / 4 + 0, 0, 0])
-        rotate(a=90, v=[0, 0, 1])
-          teardrop(h=l_hinge / 2, d=d_hinge, ang=60);
+      rotate(a=ay, v=[0, 1, 0])
+        translate(v=[-l_hinge / 4 + 0, 0, 0])
+          rotate(a=90, v=[0, 0, 1])
+            teardrop(h=l_hinge / 2, d=d_hinge, ang=60);
       sphere(d=d_hinge);
     }
   }
@@ -422,7 +427,7 @@ module shell_long(ext, int) {
 
     for (i = [-1, 1]) {
       translate(v=[0, i * dy, dz])
-        mask_stitches_long(ax=i * -45, az=0, x0=-ext.x / 2, x1=ext.x / 2);
+        mask_stitches_long(ax=i * -45, az=0, x0=ext.x / 2 - hole_stitch_inset, x1=-ext.x / 2);
 
       mask_stitches_deep(ext=ext, ay=90, dy=i * (ext.y - t_side + t_foldover) / 2);
     }
@@ -432,9 +437,10 @@ module shell_long(ext, int) {
   }
 
   module mask_int() {
-    translate(v=[0, 0, -int.z / 4])
+    mask = [int.x, int.y, int.z / 2 + 0.0001];
+    translate(v=[0, 0, -mask.z / 2 + 0.0001])
       cuboid(
-        size=[int.x, int.y, int.z / 2],
+        size=mask,
         chamfer=chamfer_int,
         edges=[
           BOTTOM + FRONT,
@@ -520,7 +526,7 @@ module lid() {
 
     dbg_magnet() mask_magnet(ext=ext_lid);
 
-    dbg_hinge() mask_hinge_pin(ext=ext_lid);
+    dbg_hinge() mask_hinge_pin(ext=ext_lid, ay=a_hinge_lid);
 
     dbg_hinge() mask_hinge_chamfer(ext=ext_lid, int=int_lid);
   }
@@ -540,13 +546,13 @@ module lid_leather_wall(cp) {
   leather_wall_end(ext=ext_lid, cp=cp, wide_stitches=false);
   leather_wall_long(ext=ext_lid, int=int_lid, cp=cp);
   color(c=cp[1])
-    leather_wall_foldover_edge(ext=ext_lid, hinge=true);
+    leather_wall_foldover_edge(ext=ext_lid, hinge=true, ay_hinge=a_hinge_lid);
 
   mirror(v=[0, 0, 1]) {
     leather_wall_end(ext=ext_lid, cp=cp, wide_stitches=false);
     leather_wall_long(ext=ext_lid, int=int_lid, cp=cp);
     color(c=cp[0])
-      leather_wall_foldover_edge(ext=ext_lid, hinge=false);
+      leather_wall_foldover_edge(ext=ext_lid, hinge=false, ay_hinge=a_hinge_lid);
   }
 }
 
@@ -569,7 +575,7 @@ module back() {
   difference() {
     shell_main();
 
-    dbg_hinge() mask_hinge_pin(ext=ext_main);
+    dbg_hinge() mask_hinge_pin(ext=ext_main, ay=a_hinge_main);
 
     dbg_hinge() mask_hinge_chamfer(ext=ext_main, int=int_main);
 
@@ -648,7 +654,7 @@ module leather_wall_end(ext, cp, wide_stitches) {
   }
 }
 
-module leather_wall_foldover_edge(ext, hinge) {
+module leather_wall_foldover_edge(ext, hinge, ay_hinge) {
   b_fedge = [t_wall + t_leather, ext.y + t_leather_overhang * 2];
   p_fedge = poly_foldover_edge(b_fedge);
 
@@ -673,7 +679,7 @@ module leather_wall_foldover_edge(ext, hinge) {
               linear_extrude(h=t_leather, center=true)
                 polygon(p_fedge);
           if (hinge)
-            mask_hinge_pin(ext=ext);
+            mask_hinge_pin(ext=ext, ay=ay_hinge);
         }
 }
 
@@ -733,7 +739,7 @@ module leather_wall_front(cp) {
     leather_wall_long(ext=ext_main, int=int_main, cp=cp);
 
     color(c=cp[0])
-      leather_wall_foldover_edge(ext=ext_main, hinge=false);
+      leather_wall_foldover_edge(ext=ext_main, hinge=false, ay_hinge=a_hinge_main);
 
     color(c=cp[1])
       leather_wall_foldover_inner(ext=ext_main, int=int_main);
@@ -745,13 +751,13 @@ module leather_wall_back(cp) {
   leather_wall_long(ext=ext_main, int=int_main, cp=cp);
 
   color(c=cp[0])
-    leather_wall_foldover_edge(ext=ext_main, hinge=true);
+    leather_wall_foldover_edge(ext=ext_main, hinge=true, ay_hinge=a_hinge_main);
 
   color(c=cp[1])
     leather_wall_foldover_inner(ext=ext_main, int=int_main);
 }
 
-module foldover_edge(ext) {
+module foldover_edge(ext, ay_hinge) {
   b_fedge = [t_side + t_leather, ext.z + t_leather_overhang * 2];
   p_fedge = poly_foldover_edge(b_fedge);
 
@@ -776,7 +782,7 @@ module foldover_edge(ext) {
               rotate(a=90, v=[1, 0, 0])
                 linear_extrude(h=t_leather, center=true)
                   polygon(p_fedge);
-          mask_hinge_pin(ext=ext);
+          mask_hinge_pin(ext=ext, ay=ay_hinge);
         }
 }
 
@@ -850,7 +856,7 @@ module leather_side_main(cp) {
   leather_side(ext=ext_main, int=int_main, cp=cp);
 
   color(c=cp[0])
-    foldover_edge(ext=ext_main);
+    foldover_edge(ext=ext_main, ay_hinge=a_hinge_main);
 
   color(c=cp[1])
     foldover_inner(ext=ext_main, int=int_main);
@@ -860,7 +866,7 @@ module leather_side_lid(cp) {
   leather_side(ext=ext_lid, int=int_lid, cp=cp);
 
   color(c=cp[0])
-    foldover_edge(ext=ext_lid);
+    foldover_edge(ext=ext_lid, ay_hinge=a_hinge_main);
 }
 
 module liner_template(int, cp) {
