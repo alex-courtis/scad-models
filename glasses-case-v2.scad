@@ -19,6 +19,7 @@ show_leather_lid_wall = false;
 show_leather_lid_left = false;
 show_leather_lid_right = false;
 show_liner_template = false;
+show_hinges = false;
 fold = true;
 
 /* [Debug] */
@@ -882,6 +883,94 @@ module liner_template(int, cp) {
   }
 }
 
+module hinges() {
+
+  dz_third = 0.05;
+  z_third = d_hinge / 3 + dz_third;
+
+  dz_half = 0.05;
+
+  d_core = 2.1;
+  l_core = 8.5;
+
+  module pin() {
+    difference() {
+      union() {
+        translate(v=[l_hinge / 4, 0, 0])
+          rotate(a=90, v=[0, 1, 0])
+            cylinder(h=l_hinge / 2, d=d_hinge, center=true);
+
+        sphere(d=d_hinge);
+      }
+
+      cylinder(h=d_hinge, d=d_core, center=true);
+
+      translate(v=[(d_hinge * 3 / 4 + l_hinge / 2) / 2, 0, 0])
+        chamfer_edge_mask(l=l_core, chamfer=sqrt(2) * d_core / 2, orient=LEFT, anchor=CENTER, excess=0);
+    }
+  }
+
+  module male() {
+    difference() {
+      pin();
+
+      translate(v=[0, 0, d_hinge - z_third])
+        cube(size=[d_hinge * 1.5, d_hinge, d_hinge], center=true);
+
+      translate(v=[0, 0, -d_hinge + z_third])
+        cube(size=[d_hinge * 1.5, d_hinge, d_hinge], center=true);
+    }
+  }
+
+  module female() {
+    difference() {
+      pin();
+
+      cube(size=[d_hinge * 1.5, d_hinge, z_third], center=true);
+    }
+  }
+
+  module half() {
+    difference() {
+      pin();
+
+      translate(v=[0, 0, -d_hinge + d_hinge / 2 + dz_half])
+        cube(size=[d_hinge * 1.5, d_hinge, d_hinge], center=true);
+    }
+  }
+
+  top_half(z=dz_half)
+    half();
+
+  translate(v=[0, d_hinge * 1.5, 0])
+    mirror(v=[0, 0, 1])
+      bottom_half(z=dz_half)
+        half();
+
+  mirror(v=[1, 0, 0]) {
+    translate(v=[0, d_hinge * 3, 0])
+      top_half(z=-d_hinge / 2 + z_third)
+        male();
+
+    translate(v=[0, d_hinge * 4.5, 0])
+      bottom_half(z=-d_hinge / 2 + z_third - 0.00001)
+        male();
+  }
+
+  translate(v=[0, d_hinge * 6.0, 0])
+    bottom_half(z=-z_third / 2 + dz_third)
+      female();
+
+  translate(v=[0, d_hinge * 7.5, 0])
+    top_half(z=z_third / 2 - dz_third)
+      female();
+
+  translate(v=[0, d_hinge * 9.0, 0])
+    top_half(z=-z_third / 2 + 0.00001)
+      bottom_half(z=z_third / 2 - 0.00001)
+    female();
+}
+
 render() {
   if (show_back)
     color(c="lightskyblue")
@@ -922,4 +1011,7 @@ render() {
 
   if (show_liner_template)
     liner_template(int=int_main, cp=brown_pair(11));
+
+  if (show_hinges)
+    hinges();
 }
