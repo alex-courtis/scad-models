@@ -9,15 +9,15 @@ include <lib/colours.scad>
 // shift corner holes in to hit twine in middle
 
 /* [Show] */
-show_back = true;
+show_back = false;
 show_front = false;
 show_leather_main_back = false;
 show_leather_main_front = false;
 show_leather_main_left = false;
 show_leather_main_right = false;
 show_lid = true;
-show_leather_lid_wall = false;
-show_leather_lid_left = false;
+show_leather_lid_wall = true;
+show_leather_lid_left = true;
 show_leather_lid_right = false;
 show_liner_template = false;
 show_hinges = false;
@@ -25,12 +25,12 @@ fold = true;
 
 /* [Debug] */
 debug_dx_lid = 0; // [0:0.1:180]
-debug_lid_angle = 100; // [0:1:180]
+debug_lid_angle = 0; // [0:1:180]
 debug_gaps = false;
 debug_foldover = false;
 debug_holes = false;
 debug_magnet = false;
-debug_hinge = true;
+debug_hinge = false;
 
 /* [Dimensions] */
 
@@ -140,7 +140,6 @@ pivot_hinge = [clearance_lid / 2, 0, (t_wall + chamfer_int) / 2];
 echo(pivot_hinge=pivot_hinge);
 
 // relative to pivot_hinge
-// TODO maybe relative to ext
 hinge_chamfer_dz = a_open > 0 ? pivot_hinge.z + clearance_hinge / 2 / sin(a_open / 2) : 0;
 echo(hinge_chamfer_dz=hinge_chamfer_dz);
 hinge_chamfer_dx = hinge_chamfer_dz * tan(a_open / 2);
@@ -319,7 +318,7 @@ module mask_hinge_chamfer(ext, int) {
   mask = [
     hinge_inset_dx,
     int.y - chamfer_int * 2,
-    t_wall,
+    ext.z / 2,
   ];
 
   translate(v=[(ext.x - mask.x) / 2, 0, ( -ext.z + mask.z) / 2])
@@ -500,6 +499,8 @@ module shell_lid_front() {
     }
 
     dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall);
+
+    mask_stitches_wide(ext=ext_lid, az=90, dx=ext_lid.x / 2 - hole_stitch_inset, dz=( -ext_lid.z + t_wall - t_foldover) / 2);
   }
 }
 
@@ -512,6 +513,8 @@ module shell_lid_back() {
 
     translate(v=[-hinge_inset_dx, 0, 0])
       dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall);
+
+    mask_stitches_wide(ext=ext_lid, az=90, dx=ext_lid.x / 2 - hole_stitch_inset - hinge_inset_stitches, dz=( -ext_lid.z + t_wall - t_foldover) / 2);
   }
 }
 
@@ -555,7 +558,7 @@ module lid_leather_wall(cp) {
     // leather_wall_long(ext=ext_lid, int=int_lid, cp=cp);
     color(c=cp[0])
       leather_wall_foldover_edge(ext=ext_lid, hinge=false);
-      leather_wall_foldover_inner(ext=ext_lid, int=int_lid, hinge=false);
+    leather_wall_foldover_inner(ext=ext_lid, int=int_lid, hinge=false);
   }
 }
 
@@ -767,7 +770,7 @@ module leather_wall_back(cp) {
     leather_wall_foldover_inner(ext=ext_main, int=int_main, hinge=true);
 }
 
-module foldover_edge(ext) {
+module foldover_edge(ext, ay_hinge) {
   b_fedge = [t_side + t_leather, ext.z + t_leather_overhang * 2];
   p_fedge = poly_foldover_edge(b_fedge);
 
@@ -866,7 +869,7 @@ module leather_side_main(cp) {
   leather_side(ext=ext_main, int=int_main, cp=cp);
 
   color(c=cp[0])
-    foldover_edge(ext=ext_main);
+    foldover_edge(ext=ext_main, ay_hinge=a_hinge_main);
 
   color(c=cp[1])
     foldover_inner(ext=ext_main, int=int_main);
@@ -876,7 +879,7 @@ module leather_side_lid(cp) {
   leather_side(ext=ext_lid, int=int_lid, cp=cp);
 
   color(c=cp[0])
-    foldover_edge(ext=ext_lid);
+    foldover_edge(ext=ext_lid, ay_hinge=a_hinge_lid);
 }
 
 module liner_template(int, cp) {
