@@ -484,27 +484,39 @@ module shell_main() {
   }
 }
 
-module shell_lid() {
+module shell_lid_front() {
   difference() {
     union() {
       shell_end(ext=ext_lid, int=int_lid);
       shell_long(ext=ext_lid, int=int_lid);
     }
 
-    // TODO chamfer these individually
-    dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=0);
+    dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall);
+  }
+}
 
-    dbg_foldover() mask_foldover_deep(ext=ext_lid, int=int_lid, w=0, t=0);
+module shell_lid_back() {
+  difference() {
+    union() {
+      shell_end(ext=ext_lid, int=int_lid);
+      shell_long(ext=ext_lid, int=int_lid);
+    }
+
+    translate(v=[-hinge_inset_dx, 0, 0])
+      dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall);
   }
 }
 
 module lid() {
   difference() {
     union() {
-      shell_lid();
-      mirror(v=[0, 0, 1])
-        shell_lid();
+      mirror(v=[0, 0, 1]) {
+        shell_lid_front();
+      }
+      shell_lid_back();
     }
+
+    dbg_foldover() mask_foldover_deep(ext=ext_lid, int=int_lid, w=0, t=0);
 
     dbg_magnet() mask_magnet(ext=ext_lid);
 
@@ -561,10 +573,11 @@ module back() {
 
     dbg_hinge() mask_hinge_chamfer(ext=ext_main, int=int_main);
 
-    translate(v=[-hinge_inset_dx, 0, 0])
+    translate(v=[-hinge_inset_dx, 0, 0]) {
       dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover_hinge, t=t_foldover);
+      dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=0, t=t_wall);
+    }
 
-    
     dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
   }
 }
