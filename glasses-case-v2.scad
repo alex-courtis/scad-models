@@ -6,7 +6,6 @@ include <lib/colours.scad>
 // lid liner
 // lid side leather internal
 // one piece lid leather wall
-// move long foldover over hinge gap
 // shift corner holes in to hit twine in middle
 
 /* [Show] */
@@ -547,15 +546,16 @@ module lid_position() {
 
 module lid_leather_wall(cp) {
   leather_wall_end(ext=ext_lid, cp=cp, wide_stitches=false);
-  leather_wall_long(ext=ext_lid, int=int_lid, cp=cp);
+  // leather_wall_long(ext=ext_lid, int=int_lid, cp=cp);
   color(c=cp[1])
-    leather_wall_foldover_edge(ext=ext_lid, hinge=true, ay_hinge=a_hinge_lid);
+    leather_wall_foldover_edge(ext=ext_lid, hinge=true);
 
   mirror(v=[0, 0, 1]) {
     leather_wall_end(ext=ext_lid, cp=cp, wide_stitches=false);
-    leather_wall_long(ext=ext_lid, int=int_lid, cp=cp);
+    // leather_wall_long(ext=ext_lid, int=int_lid, cp=cp);
     color(c=cp[0])
-      leather_wall_foldover_edge(ext=ext_lid, hinge=false, ay_hinge=a_hinge_lid);
+      leather_wall_foldover_edge(ext=ext_lid, hinge=false);
+      leather_wall_foldover_inner(ext=ext_lid, int=int_lid, hinge=false);
   }
 }
 
@@ -657,7 +657,7 @@ module leather_wall_end(ext, cp, wide_stitches) {
   }
 }
 
-module leather_wall_foldover_edge(ext, hinge, ay_hinge) {
+module leather_wall_foldover_edge(ext, hinge) {
   x = hinge ? t_wall - t_foldover + 2 * t_leather : t_wall + t_leather;
   dy = hinge ? -2 * (t_side + chamfer_int) : t_leather_overhang * 2;
 
@@ -749,7 +749,7 @@ module leather_wall_front(cp) {
     leather_wall_long(ext=ext_main, int=int_main, cp=cp, hinge=false);
 
     color(c=cp[0])
-      leather_wall_foldover_edge(ext=ext_main, hinge=false, ay_hinge=a_hinge_main);
+      leather_wall_foldover_edge(ext=ext_main, hinge=false);
 
     color(c=cp[1])
       leather_wall_foldover_inner(ext=ext_main, int=int_main, hinge=false);
@@ -761,13 +761,13 @@ module leather_wall_back(cp) {
   leather_wall_long(ext=ext_main, int=int_main, cp=cp, hinge=true);
 
   color(c=cp[0])
-    leather_wall_foldover_edge(ext=ext_main, hinge=true, ay_hinge=a_hinge_main);
+    leather_wall_foldover_edge(ext=ext_main, hinge=true);
 
   color(c=cp[1])
     leather_wall_foldover_inner(ext=ext_main, int=int_main, hinge=true);
 }
 
-module foldover_edge(ext, ay_hinge) {
+module foldover_edge(ext) {
   b_fedge = [t_side + t_leather, ext.z + t_leather_overhang * 2];
   p_fedge = poly_foldover_edge(b_fedge);
 
@@ -866,7 +866,7 @@ module leather_side_main(cp) {
   leather_side(ext=ext_main, int=int_main, cp=cp);
 
   color(c=cp[0])
-    foldover_edge(ext=ext_main, ay_hinge=a_hinge_main);
+    foldover_edge(ext=ext_main);
 
   color(c=cp[1])
     foldover_inner(ext=ext_main, int=int_main);
@@ -876,7 +876,7 @@ module leather_side_lid(cp) {
   leather_side(ext=ext_lid, int=int_lid, cp=cp);
 
   color(c=cp[0])
-    foldover_edge(ext=ext_lid, ay_hinge=a_hinge_main);
+    foldover_edge(ext=ext_lid);
 }
 
 module liner_template(int, cp) {
