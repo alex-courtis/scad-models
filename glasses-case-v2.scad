@@ -36,7 +36,7 @@ debug_hinge = false;
 // x excludes the rounded ends
 // x, y quantized for linear hole spacing
 // z quantized for curved hole spacing, arc outside of leather
-int_main_target = [132, 70, 35];
+int_main_target = [132, 70, 36];
 
 t_side = 4.5; // [0:0.05:10]
 t_wall = 4.5; // [0:0.05:10]
@@ -354,11 +354,9 @@ module mask_liner_holes_long(ext, int) {
     translate(v=[0, i * dy, 0]) {
 
       // long channels
-      for (zc = [-ext.z / 2, -ext.z / 2 + t_wall]) {
-        translate(v=[-ext.x / 2 + (x1 - x0) / 2, 0, zc])
-          rotate(a=45, v=[1, 0, 0])
-            cube(size=[x1 - x0, channel_liner_xy, channel_liner_xy], center=true);
-      }
+      translate(v=[-ext.x / 2 + (x1 - x0) / 2, 0, -ext.z / 2])
+        rotate(a=45, v=[1, 0, 0])
+          cube(size=[x1 - x0, channel_liner_xy, channel_liner_xy], center=true);
 
       // long holes
       for (dx = [x0:hole_stitch_spacing:x1]) {
