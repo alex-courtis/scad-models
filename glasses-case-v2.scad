@@ -3,8 +3,9 @@ include <lib/geom.scad>
 include <lib/colours.scad>
 
 // TODO 
-// shift corner holes in to hit twine in middle
 // hinge magnets
+// chamfer side leather corners around hinge
+// remove stitches around magnets/hinge holse
 
 /* [Show] */
 show_back = true;
@@ -555,6 +556,8 @@ module leather_lid_wall(cp) {
   ext = ext_lid;
   int = int_lid;
 
+  w_interior = int.y - t_leather;
+
   module exterior_back() {
     tr_back =
       fold ? [0, 0, 0]
@@ -602,7 +605,7 @@ module leather_lid_wall(cp) {
         translate(v=fold ? [0, 0, 0] : -folded)
           difference() {
             translate(v=folded)
-              cube(size=[int.x, int.y, t_leather], center=true);
+              cube(size=[int.x, w_interior, t_leather], center=true);
 
             mask_stitches_wide(ext=ext, az=a_stitch, dx=ext.x / 2 - hole_stitch_inset, dz=(ext.z - t_wall) / 2);
           }
@@ -614,8 +617,8 @@ module leather_lid_wall(cp) {
         rotate(a=90, v=[1, 0, 0])
           left_half() {
             difference() {
-              cylinder(h=int.y, d=int.z, center=true);
-              cylinder(h=int.y * 2, d=int.z - t_leather * 2, center=true);
+              cylinder(h=w_interior, d=int.z, center=true);
+              cylinder(h=int.y, d=int.z - t_leather * 2, center=true);
             }
           }
       mask_stitches_wide(ext=ext, az=a_stitch, dx=ext.x / 2 - hole_stitch_inset, dz=(ext.z - t_wall) / 2);
@@ -624,7 +627,7 @@ module leather_lid_wall(cp) {
   }
 
   module interior_unfolded() {
-    s = [int.z * PI / 2, int.y, t_leather];
+    s = [int.z * PI / 2, w_interior, t_leather];
 
     difference() {
       translate(v=[s.x / 2, 0, (ext.z + s.z) / 2]) {
