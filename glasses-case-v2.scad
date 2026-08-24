@@ -5,7 +5,6 @@ include <lib/colours.scad>
 // TODO 
 // hinge magnets
 // chamfer side leather corners around hinge
-// remove stitches around magnets/hinge holse
 
 /* [Show] */
 show_back = true;
@@ -42,7 +41,7 @@ int_main_target = [132, 70, 36];
 t_side = 4.5; // [0:0.05:10]
 t_wall = 4.5; // [0:0.05:10]
 
-chamfer_outer = 0.6; // [0:0.05:2]
+chamfer_ext = 0.6; // [0:0.05:2]
 chamfer_int = 2; // [0:0.05:5]
 
 t_leather = 0.8; // [0.05:0.05:5]
@@ -75,8 +74,8 @@ d_pin = 2.3; // [0:0.05:5]
 l_pin = 16; // [0:0.1:50]
 
 /* [Magnets] */
-d_magnet = 6.1; // [0:0.05:10]
-t_magnet = 4.05; // [0:0.05:10]
+d_magnet_front = 6.2; // [0:0.05:10]
+t_magnet_front = 4.15; // [0:0.05:10]
 
 /* [Hinges] */
 d_hinge = 4; // [0:0.05:10]
@@ -286,12 +285,12 @@ module mask_half_gap(ext) {
 }
 
 module mask_magnet(ext) {
-  inset = [(ext.x - t_magnet) / 2, (ext.y - t_side - chamfer_int) / 2, -( -ext.z + t_wall + chamfer_int) / 2];
+  inset = [(ext.x - t_magnet_front) / 2, (ext.y - t_side - chamfer_int) / 2, -( -ext.z + t_wall + chamfer_int) / 2];
 
   for (i = [-1, 1])
     translate(v=vector_multiply_vector(inset, [1, i, 1]))
       rotate(a=90, v=[0, 0, 1])
-        teardrop(h=t_magnet, d=d_magnet, orient=DOWN, ang=45);
+        teardrop(h=t_magnet_front, d=d_magnet_front, orient=DOWN, ang=55);
 }
 
 module mask_hinge_pin(ext, ay) {
@@ -306,7 +305,7 @@ module mask_hinge_pin(ext, ay) {
       rotate(a=ay, v=[0, 1, 0])
         translate(v=[-l_hinge / 4 + 0, 0, 0])
           rotate(a=90, v=[0, 0, 1])
-            teardrop(h=l_hinge / 2, d=d_hinge, ang=60);
+            teardrop(h=l_hinge / 2, d=d_hinge, ang=45);
       sphere(d=d_hinge);
     }
   }
@@ -405,7 +404,7 @@ module shell_end(ext, int) {
       rotate(a=90, v=[1, 0, 0])
         front_half()
           left_half()
-            cyl(d=ext.z, h=ext.y, chamfer=chamfer_outer);
+            cyl(d=ext.z, h=ext.y, chamfer=chamfer_ext);
   }
 
   difference() {
@@ -420,12 +419,19 @@ module shell_end(ext, int) {
 module shell_long(ext, int, hinge) {
 
   module mask_stitches() {
-    dy = (ext.y - hole_stitch_inset + t_leather) / 2;
-    dz = -(ext.z - hole_stitch_inset + t_leather) / 2;
+    dyz_long = ( -hole_stitch_inset + t_leather) / 2;
+    dyz_end = (hole_stitch_w / 2) / sqrt(2);
+    x0 = ext.x / 2 - hole_stitch_inset;
+    x1 = -ext.x / 2;
 
     for (i = [-1, 1]) {
-      translate(v=[0, i * dy, dz])
-        mask_stitches_long(ax=i * -45, az=0, x0=ext.x / 2 - hole_stitch_inset, x1=-ext.x / 2);
+      translate(v=[0, i * ext.y / 2, -ext.z / 2]) {
+        translate(v=[0, i * dyz_long, -dyz_long])
+          mask_stitches_long(ax=i * -45, az=0, x0=x0 - hole_stitch_spacing, x1=x1);
+
+        translate(v=[x0, dyz_end, dyz_end])
+          mask_stitch(ax=i * -45, ay=0, az=0);
+      }
 
       mask_stitches_deep(ext=ext, ay=90, dy=i * (ext.y - t_side + t_foldover) / 2);
     }
@@ -451,7 +457,7 @@ module shell_long(ext, int, hinge) {
     translate(v=[0, 0, -ext.z / 4])
       cuboid(
         size=[ext.x, ext.y, ext.z / 2],
-        chamfer=chamfer_outer,
+        chamfer=chamfer_ext,
         edges=[
           BOTTOM + FRONT,
           BOTTOM + BACK,
