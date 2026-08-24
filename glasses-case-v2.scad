@@ -54,8 +54,8 @@ chamfer_foldover = 0.8; // [0:0.05:2]
 gap_half = 1; // [0:0.05:5]
 
 /* [Leather Stitch Holes] */
-hole_stitch_l = 3.5; // [0:0.1:5]
-hole_stitch_w = 1.5; // [0:0.1:5]
+hole_stitch_l = 3.7; // [0:0.1:5]
+hole_stitch_w = 1.7; // [0:0.1:5]
 
 // centre of hole to edge
 hole_stitch_inset = 4; // [0:0.1:10]
