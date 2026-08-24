@@ -14,5 +14,6 @@ for p in $(echo "${params_off}" | sed -E 's/ =.*;$//g'); do
 		-o "${dir}/${prefix}.${rev}.${p}.stl" \
 		-D "${params_off}" \
 		-D "fold=false" \
+		-D "show_magnet_back_bar=true" \
 		-D "${p}=true"
 	done
