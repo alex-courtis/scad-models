@@ -14,10 +14,16 @@ text_depth = 0.6;
 // n_holes = 4;
 // magnets = [2, 3, 4, 5, 6, 6, 8, 10, 10, 12, 12];
 
+// l = 75;
+// h = 15;
+// n_holes = 5;
+// magnets = [12, 10, 10, [10, 5], 8, 8, 6, 5, 4, 3, 2];
+
 l = 75;
 h = 15;
 n_holes = 5;
-magnets = [12, 10, 10, [10, 5], 8, 8, 6, 5, 4, 3, 2];
+magnets = [2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6];
+rat_slot = 1.1;
 
 // l = 75;
 // h = 27.5;
@@ -35,9 +41,9 @@ magnets = [12, 10, 10, [10, 5], 8, 8, 6, 5, 4, 3, 2];
 // n_holes = 5;
 // magnets = [[15, 25], [10, 20], [10, 30], [10, 20], [15, 25]];
 
-d_hole = 2.25;
-// t_base_hole = 1.2;
-t_base_hole = 0;
+d_hole = 2.35;
+t_base_hole = 1.2;
+// t_base_hole = 0;
 
 // shift circular slot up by d * rat_up
 rat_up = 0.25;
@@ -47,7 +53,7 @@ lip_w = 3;
 lip_h = 3;
 
 // enlarge: slots / magnets
-rat_slot = 1.03;
+// rat_slot = 1.03;
 
 echo(magnets=magnets);
 slots = magnets * rat_slot;
