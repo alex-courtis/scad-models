@@ -106,7 +106,7 @@ a_hinge_main = 6; // [0:1:50]
 a_hinge_lid = 13; // [0:1:50]
 
 /* [Liner] */
-t_liner = 0.6; // [0:0.05:10]
+t_liner = 0.8; // [0:0.05:10]
 
 // quantize external x - linear
 x_quant = round_nearest(int_main_target.x, stitch_spacing) - stitch_spacing + stitch_inset;
@@ -1051,7 +1051,7 @@ module leather_lid_side(cp) {
   interior();
 }
 
-module liner_template(int, cp) {
+module liner_template(ext, int, cp) {
 
   module straight() {
     translate(v=[0, 0, -(int.z - t_liner) / 2])
@@ -1093,6 +1093,26 @@ module liner_template(int, cp) {
     }
   }
 
+  module gap_end() {
+    b = [t_wall + t_liner, ext.y - 3 * t_side, t_liner];
+    if (fold)
+      translate(v=[( -int.x - int.z - b.x) / 2 + t_liner, 0, -b.z / 2])
+        cube(size=b, center=true);
+    else
+      translate(v=[( -int.x - b.x - int.z * PI / 2) / 2, 0, ( -int.z + b.z) / 2])
+        cube(size=b, center=true);
+  }
+
+  module gap_side() {
+    b = [ext.x + ext.z / 2 - 3 * t_wall, t_side + t_liner, t_liner];
+    if (fold)
+      translate(v=[-ext.z / 4, (ext.y - b.y) / 2, -b.z / 2])
+        cube(size=b, center=true);
+    else
+      translate(v=[-ext.z / 4, (int.y + int.z + b.y) / 2, ( -int.z + b.z) / 2])
+        cube(size=b, center=true);
+  }
+
   color(c=cp[0])
     straight();
 
@@ -1100,6 +1120,16 @@ module liner_template(int, cp) {
     side();
     mirror(v=[0, 1, 0])
       side();
+  }
+
+  color(c=cp[1]) {
+    gap_end();
+  }
+
+  color(c=cp[0]) {
+    gap_side();
+    mirror(v=[0, 1, 0])
+      gap_side();
   }
 }
 
@@ -1229,8 +1259,7 @@ render() {
   }
 
   if (show_liner_template)
-    translate(v=[-ext_main.x * 2, 0, 0])
-      liner_template(int=int_main, cp=brown_pair(11));
+    liner_template(ext=ext_main, int=int_main, cp=brown_pair(11));
 
   if (show_hinges)
     hinges();
