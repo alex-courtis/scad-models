@@ -2,6 +2,12 @@ include <BOSL2/std.scad>
 include <lib/geom.scad>
 include <lib/colours.scad>
 
+// TODO
+// solid hinge wall on lid
+// deeper hinge stitch inset
+// deeper lid front magnet
+// calculate rect lid dxz
+
 /* [Show] */
 show_back = true;
 show_front = false;
@@ -70,7 +76,7 @@ sew_channel_xy = 0.4;
 
 /* [Pins] */
 d_pin = 2.3; // [0:0.05:5]
-l_pin = 16; // [0:0.1:50]
+l_pin = 27; // [0:0.1:50]
 
 /* [Magnets] */
 d_magnet_front = 6.2; // [0:0.05:10]
