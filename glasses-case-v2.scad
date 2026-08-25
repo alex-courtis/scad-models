@@ -3,10 +3,8 @@ include <lib/geom.scad>
 include <lib/colours.scad>
 
 // TODO
-// solid hinge wall on lid
-// deeper hinge stitch inset
 // deeper lid front magnet
-// calculate rect lid dxz
+// calculate rect lid magnet dxz
 
 /* [Show] */
 show_back = true;
@@ -232,7 +230,7 @@ module mask_stitches_deep(ext, ay, dy) {
 }
 
 module mask_stitches_quartercircle(ax, ay, az, dy, dz) {
-  for (a = [-180:a_end_quant:-90]) {
+  for (a = [-180 + a_end_quant:a_end_quant:-90]) {
     rotate(a=a, v=[0, 1, 0]) {
       translate(v=[0, dy, dz])
         mask_stitch(ax=ax, ay=(a == -90 ? 0 : ay), az=(a == -90 ? 0 : -az));
@@ -473,10 +471,11 @@ module shell_long(ext, int, hinge) {
 
     for (i = [-1, 1]) {
       translate(v=[0, i * ext.y / 2, -ext.z / 2]) {
-        translate(v=[0, i * dyz_long, -dyz_long])
-          mask_stitches_long(ax=i * -45, az=0, x0=x0 - stitch_spacing, x1=x1);
+        if (x0 > x1)
+          translate(v=[0, i * dyz_long, -dyz_long])
+            mask_stitches_long(ax=i * -45, az=0, x0=x0 - stitch_spacing, x1=x1);
 
-        translate(v=[x0, dyz_end, dyz_end])
+        translate(v=[x0, -i * dyz_end, dyz_end])
           mask_stitch(ax=i * -45, ay=0, az=0);
       }
 
