@@ -2,10 +2,6 @@ include <BOSL2/std.scad>
 include <lib/geom.scad>
 include <lib/colours.scad>
 
-// TODO
-// deeper lid front magnet
-// calculate rect lid magnet dxz
-
 /* [Show] */
 show_back = true;
 show_front = false;
@@ -80,6 +76,8 @@ l_pin = 27; // [0:0.1:50]
 d_magnet_front = 6.2; // [0:0.05:10]
 t_magnet_front = 4.15; // [0:0.05:10]
 
+n_magnets_back = 3; // [0:1:5]
+
 d_magnet_back_disc = 5.2; // [0:0.05:10]
 t_magnet_back_disc = 3; // [0:0.05:10]
 
@@ -102,7 +100,7 @@ clearance_lid = 2.4; // [-1.6:0.05:5]
 clearance_hinge = 2.2; // [-1.6:0.05:5]
 
 // maximum angle lid can open
-a_open = 100; // [0:1:180]
+a_open = 110; // [0:1:180]
 
 a_hinge_main = 6; // [0:1:50]
 a_hinge_lid = 13; // [0:1:50]
@@ -309,32 +307,25 @@ module mask_magnets_front(ext) {
 }
 
 module mask_magnets_back(ext, int) {
+  translate(v=[ext.x / 2 - hinge_inset_dx - stitch_inset / 2, 0, -ext.z / 2]) {
+    dy = int.y / (n_magnets_back);
+    for (y = [-int.y / 2 + dy / 2:dy:int.y / 2 - dy / 2]) {
+      translate(v=[0, y, 0]) {
+        rotate(a=a_open / 2, v=[0, 1, 0]) {
 
-  if (show_magnet_back_disc) {
-    for (dy = [-ext.y / 3, 0, ext.y / 3])
-      translate(
-        v=[
-          (ext.x) / 2 - hinge_inset_dx - t_magnet_back_disc / 2,
-          dy,
-          ( -ext.z + t_wall - t_foldover) / 2 + 0,
-        ]
-      )
-        rotate(a=a_open / 2, v=[0, 1, 0])
-          rotate(a=90, v=[0, 0, 1])
-            teardrop(h=t_magnet_back_disc, d=d_magnet_back_disc, orient=UP, ang=90);
-  }
+          if (show_magnet_back_disc) {
+            translate(v=[-b_magnet_back_bar.x / 2, 0, b_magnet_back_bar.z / 2])
+              rotate(a=90, v=[0, 0, 1])
+                teardrop(h=t_magnet_back_disc, d=d_magnet_back_disc, orient=UP, ang=90);
+          }
 
-  if (show_magnet_back_bar) {
-    for (dy = [-ext.y / 3, 0, ext.y / 3])
-      translate(
-        v=[
-          ext.x / 2 + dx_magnet_back_bar,
-          dy,
-          -ext.z / 2 + dz_magnet_back_bar,
-        ]
-      )
-        rotate(a=a_open / 2, v=[0, 1, 0])
-          cube(size=b_magnet_back_bar, center=true);
+          if (show_magnet_back_bar) {
+            translate(v=[-b_magnet_back_bar.x / 2, 0, b_magnet_back_bar.z / 2])
+              cube(size=b_magnet_back_bar, center=true);
+          }
+        }
+      }
+    }
   }
 }
 
