@@ -2,9 +2,6 @@ include <BOSL2/std.scad>
 include <lib/geom.scad>
 include <lib/colours.scad>
 
-// TODO
-// extra overhang on lid back ext
-
 /* [Show] */
 show_back = true;
 show_front = false;
@@ -634,7 +631,7 @@ module leather_lid_wall(cp) {
           leather_wall_end(ext=ext, cp=cp, wide_stitches=true);
           mask_stitches_wide(ext=ext, az=-a_stitch, dx=ext.x / 2 - stitch_inset - hinge_inset_stitches, dz=-ext.z / 2);
           translate(v=[ext.x - hinge_inset_dx, 0, 0])
-            cube(size=[ext.x, ext.y, ext.z + t_leather * 2], center=true);
+            cube(size=[ext.x, ext.y + t_leather_overhang * 2, ext.z + t_leather * 2], center=true);
 
           if (!fold)
             translate(v=[-ext.z / 2, 0, 0])
