@@ -8,6 +8,7 @@ rm -f "${dir}/${prefix}"*stl
 
 openscad \
 	"${prefix}.scad" \
+	--enable textmetrics \
 	-o "${dir}/${prefix}.${rev}.straight.body.stl" \
 	-D "a_awl=[45, -45, 0, 90]" \
 	-D "show_awl_guide_circle=false" \
@@ -16,6 +17,7 @@ openscad \
 
 openscad \
 	"${prefix}.scad" \
+	--enable textmetrics \
 	-o "${dir}/${prefix}.${rev}.straight.text.stl" \
 	-D "a_awl=[45, -45, 0, 90]" \
 	-D "show_awl_guide_circle=false" \
@@ -26,6 +28,7 @@ openscad \
 for d in 20 22.5 25 27.5 30 35 40 45 50 55 60 70 80 90 100; do
 	openscad \
 		"${prefix}.scad" \
+		--enable textmetrics \
 		-o "${dir}/${prefix}.${rev}.${d}-body.stl" \
 		-D "d_circle_hole=${d}" \
 		-D "show_awl_guide_circle=true" \
@@ -34,6 +37,7 @@ for d in 20 22.5 25 27.5 30 35 40 45 50 55 60 70 80 90 100; do
 
 	openscad \
 		"${prefix}.scad" \
+		--enable textmetrics \
 		-o "${dir}/${prefix}.${rev}.${d}-text.stl" \
 		-D "d_circle_hole=${d}" \
 		-D "show_awl_guide_circle=true" \
