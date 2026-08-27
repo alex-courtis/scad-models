@@ -11,7 +11,7 @@ show_test_piece = false;
 d_filament = 0.4;
 t_layer = 0.2;
 
-l1_awl = 3.25;
+l1_awl = 3.5;
 l2_awl = 1.95;
 s_awl = 5;
 
