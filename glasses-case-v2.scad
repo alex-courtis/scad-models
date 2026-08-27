@@ -35,10 +35,10 @@ debug_foldover = false;
 // x excludes the rounded ends
 // x, y quantized for linear hole spacing
 // z quantized for curved hole spacing, arc outside of leather
-int_main_target = [132, 70, 36];
+int_main_target = [115, 55, 25];
 
-t_side = 4.5; // [0:0.05:10]
-t_wall = 4.5; // [0:0.05:10]
+t_side = 4.0; // [0:0.05:10]
+t_wall = 3.5; // [0:0.05:10]
 
 chamfer_ext = 0.6; // [0:0.05:2]
 chamfer_int = 2; // [0:0.05:5]
@@ -52,6 +52,9 @@ w_foldover = 6.5; // [0:0.05:15]
 chamfer_foldover = 0.8; // [0:0.05:2]
 
 gap_half = 1; // [0:0.05:5]
+gap_inset_w = t_side + chamfer_int;
+gap_inset_l_end = t_wall + chamfer_int;
+gap_inset_l_open = w_foldover;
 
 /* [Leather Stitch Holes] */
 stitch_l = 3.7; // [0:0.1:5]
@@ -90,8 +93,8 @@ dx_magnet_back_bar = -5.25; // [-20:0.05:20]
 dz_magnet_back_bar = 1.35; // [-20:0.05:20]
 
 /* [Hinges] */
-d_hinge = 4; // [0:0.05:10]
-l_hinge = 30; // [0:0.05:100]
+d_hinge = 3.1; // [0:0.05:10]
+l_hinge = 32; // [0:0.05:100]
 
 // shell to shell
 clearance_lid = 2.4; // [-1.6:0.05:5]
@@ -104,9 +107,6 @@ a_open = 110; // [0:1:180]
 
 a_hinge_main = 6; // [0:1:50]
 a_hinge_lid = 13; // [0:1:50]
-
-/* [Liner] */
-t_liner = 0.8; // [0:0.05:10]
 
 /* [Template Text] */
 font = "Inter";
@@ -292,12 +292,11 @@ module mask_half_gap(ext) {
   ];
 
   translate(v=[-ext.z / 4, 0, -gap.z / 2]) {
-    dy = 3 * t_side;
+    dy = gap_inset_w * 2;
     cube(size=gap - [0, dy, 0], center=true);
 
-    dx = (3 * t_wall);
-    translate(v=[0, 0, 0])
-      cube(size=gap - [dx + 0, 0, 0], center=true);
+    translate(v=[-gap_inset_l_open / 2 + gap_inset_l_end / 2, 0, 0])
+      cube(size=gap - [gap_inset_l_open + gap_inset_l_end + 0, 0, 0], center=true);
   }
 }
 
@@ -1130,10 +1129,9 @@ module leather_lid_side_right(cp) {
 }
 
 module liner_template(ext, int, cp) {
-
   module straight() {
-    translate(v=[0, 0, -(int.z - t_liner) / 2])
-      cube(size=[int.x, int.y, t_liner], center=true);
+    translate(v=[0, 0, -(int.z - t_leather) / 2])
+      cube(size=[int.x, int.y, t_leather], center=true);
 
     if (fold) {
       translate(v=[-int.x / 2, 0, 0])
@@ -1142,39 +1140,39 @@ module liner_template(ext, int, cp) {
             front_half()
               difference() {
                 cylinder(d=int.z, h=int.y, center=true);
-                cylinder(d=int.z - 2 * t_liner, h=int.y, center=true);
+                cylinder(d=int.z - 2 * t_leather, h=int.y, center=true);
               }
     } else {
       x = int.z * PI / 4;
-      translate(v=[-(int.x + x) / 2, 0, -(int.z - t_liner) / 2])
-        cube(size=[x, int.y, t_liner], center=true);
+      translate(v=[-(int.x + x) / 2, 0, -(int.z - t_leather) / 2])
+        cube(size=[x, int.y, t_leather], center=true);
     }
   }
 
   module side() {
     module body() {
-      cube(size=[int.x, int.z / 2, t_liner], center=true);
+      cube(size=[int.x, int.z / 2, t_leather], center=true);
       translate(v=[-int.x / 2, -int.z / 4, 0])
         left_half()
           back_half()
-            cylinder(d=int.z, h=t_liner, center=true);
+            cylinder(d=int.z, h=t_leather, center=true);
     }
 
     if (fold) {
-      translate(v=[0, (int.y - t_liner) / 2, -int.z / 4])
+      translate(v=[0, (int.y - t_leather) / 2, -int.z / 4])
         rotate(a=-90, v=[1, 0, 0])
           body();
     } else {
-      translate(v=[0, -int.y / 2 - int.z / 4, -(int.z - t_liner) / 2]) {
+      translate(v=[0, -int.y / 2 - int.z / 4, -(int.z - t_leather) / 2]) {
         body();
       }
     }
   }
 
   module gap_end() {
-    b = [t_wall + t_liner, ext.y - 3 * t_side, t_liner];
+    b = [t_wall + t_leather, ext.y - gap_inset_w * 2, t_leather];
     if (fold)
-      translate(v=[( -int.x - int.z - b.x) / 2 + t_liner, 0, -b.z / 2])
+      translate(v=[( -int.x - int.z - b.x) / 2 + t_leather, 0, -b.z / 2])
         cube(size=b, center=true);
     else
       translate(v=[( -int.x - b.x - int.z * PI / 2) / 2, 0, ( -int.z + b.z) / 2])
@@ -1182,9 +1180,9 @@ module liner_template(ext, int, cp) {
   }
 
   module gap_side() {
-    b = [ext.x + ext.z / 2 - 3 * t_wall, t_side + t_liner, t_liner];
+    b = [ext.x + ext.z / 2 - gap_inset_l_end - gap_inset_l_open, t_side + t_leather, t_leather];
     if (fold)
-      translate(v=[-ext.z / 4, (ext.y - b.y) / 2, -b.z / 2])
+      translate(v=[-ext.z / 4 - gap_inset_l_open / 2 + gap_inset_l_end / 2, (ext.y - b.y) / 2, -b.z / 2])
         cube(size=b, center=true);
     else
       translate(v=[-ext.z / 4, (int.y + int.z + b.y) / 2, ( -int.z + b.z) / 2])
