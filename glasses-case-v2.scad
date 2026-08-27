@@ -110,7 +110,7 @@ a_hinge_lid = 13; // [0:1:50]
 
 /* [Template Text] */
 font = "Inter";
-font_size = 9;
+font_size = 6;
 
 // quantize external x - linear
 x_quant = round_nearest(int_main_target.x, stitch_spacing) - stitch_spacing + stitch_inset;
@@ -225,7 +225,7 @@ module mask_stitches_deep(ext, ay, dy) {
 
   spacing = z / round_nearest(z, stitch_spacing) * stitch_spacing;
 
-  for (dz = [-z + spacing:spacing:z - spacing]) {
+  for (dz = [-z + spacing:spacing:z - spacing / 2]) {
     translate(v=[ext.x / 2 - stitch_inset, dy, dz])
       mask_stitch(ax=90, ay=ay, az=0);
   }
@@ -600,8 +600,8 @@ module lid_position() {
           children();
 }
 
-module mask_leather_text(t, z) {
-  linear_extrude(h=ext_main.x * 2, center=true) {
+module mask_leather_text(t) {
+  linear_extrude(h=t_leather, center=true) {
     rotate(a=-90, v=[0, 0, 1])
       text(
         font=font,
@@ -635,7 +635,8 @@ module leather_lid_wall(cp) {
           if (!fold)
             translate(v=[-ext.z / 2, 0, 0])
               mirror(v=[1, 0, 0])
-                mask_leather_text(t="B");
+                translate(v=[0, 0, -ext.z / 2])
+                  mask_leather_text(t="B");
         }
 
         color(c=cp[1])
@@ -657,7 +658,8 @@ module leather_lid_wall(cp) {
           if (!fold)
             translate(v=[-int.z / 2, 0, 0])
               mirror(v=[1, 0, 0])
-                mask_leather_text(t="F");
+                translate(v=[0, 0, -ext.z / 2 - t_leather])
+                  mask_leather_text(t="F");
         }
         leather_wall_long(ext=ext, int=int, cp=cp, a_wide=-a_stitch);
 
@@ -925,7 +927,8 @@ module leather_wall_front(cp) {
         leather_wall_foldover_inner(ext=ext_main, int=int_main, hinge=false);
     }
 
-    mask_leather_text(t="F");
+    translate(v=[0, 0, ext_main.z / 2 + t_leather])
+      mask_leather_text(t="F");
   }
 }
 
@@ -942,8 +945,9 @@ module leather_wall_back(cp) {
         leather_wall_foldover_inner(ext=ext_main, int=int_main, hinge=true);
     }
 
-    mirror(v=[0, 1, 0])
-      mask_leather_text(t="B");
+    translate(v=[0, 0, -ext_main.z / 2 - t_leather])
+      mirror(v=[0, 1, 0])
+        mask_leather_text(t="B");
   }
 }
 
@@ -1055,8 +1059,9 @@ module leather_main_side(cp) {
 module leather_main_side_left(cp) {
   difference() {
     leather_main_side(cp);
-    rotate(a=-90, v=[1, 0, 0])
-      mask_leather_text(t="L");
+    translate(v=[0, ext_main.y / 2 + t_leather, 0])
+      rotate(a=-90, v=[1, 0, 0])
+        mask_leather_text(t="L");
   }
 }
 
@@ -1064,8 +1069,9 @@ module leather_main_side_right(cp) {
   difference() {
     mirror(v=[0, 1, 0])
       leather_main_side(cp);
-    rotate(a=90, v=[1, 0, 0])
-      mask_leather_text(t="R");
+    translate(v=[0, -ext_main.y / 2 - t_leather, 0])
+      rotate(a=90, v=[1, 0, 0])
+        mask_leather_text(t="R");
   }
 }
 
@@ -1111,8 +1117,9 @@ module leather_lid_side_left(cp) {
 
     translate(v=[-ext_lid.z / 4, 0, 0])
       mirror(v=[1, 0, 0])
-        rotate(a=-90, v=[1, 0, 0])
-          mask_leather_text(t="L");
+        translate(v=[0, ext_main.y / 2 + t_leather, 0])
+          rotate(a=-90, v=[1, 0, 0])
+            mask_leather_text(t="L");
   }
 }
 
@@ -1123,8 +1130,9 @@ module leather_lid_side_right(cp) {
 
       translate(v=[-ext_lid.z / 4, 0, 0])
         mirror(v=[1, 0, 0])
-          rotate(a=90, v=[1, 0, 0])
-            mask_leather_text(t="R");
+          translate(v=[0, ext_main.y / 2 + t_leather, 0])
+            rotate(a=90, v=[1, 0, 0])
+              mask_leather_text(t="R");
     }
 }
 
