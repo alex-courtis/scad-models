@@ -13,9 +13,10 @@ t_layer = 0.2;
 
 l1_awl = 3.25;
 l2_awl = 1.95;
-a_awl = 45;
 s_awl = 5;
-// s_awl = 5.47644;
+
+// right to left, first is for circle
+a_awl = [45, -45, 0, 90];
 
 // keep this even to line up the long windows
 n_awl_straight = 18; // [6:2:50]
@@ -37,14 +38,11 @@ w_window_top = 2.75;
 d_circle_holes = [20, 22.5, 25, 27.5, 30, 35, 40, 45, 50, 55, 60, 70, 80, 90, 100];
 
 // set to produce just one
-// d_circle_hole = 27.5;
-d_circle_hole = 31.9623;
+d_circle_hole = 30;
 
 font = "Space Mono:style=Regular";
 font_size = 6;
 h_text = t_layer * 2;
-text_extra = undef;
-// text_extra = "ø35mm";
 
 function poly_awl(l1, l2) =
   [
@@ -111,8 +109,9 @@ module awl_guide_straight() {
   }
 
   module txt() {
+    font_metrics = fontmetrics(font=font, size=font_size);
 
-    translate([0, w1 + s_awl, (h_guide - h_text) / 2]) {
+    translate([0, w2 - s_awl, (h_guide - h_text) / 2]) {
 
       rotate(a=-90) {
         translate(v=[0, l / 2 - s_awl, 0])
@@ -122,32 +121,23 @@ module awl_guide_straight() {
               size=font_size,
               text=str(round(s_awl * 100) / 100, "mm"),
               valign="top",
-              halign="right",
+              halign="left",
             );
           }
 
-        if (text_extra) {
-          linear_extrude(h=h_text, center=true) {
-            text(
-              font=font,
-              size=font_size,
-              text=str(text_extra),
-              valign="top",
-              halign="right",
-            );
+        for (col = [0:1:len(a_awl) - 1]) {
+          translate(v=[0, -l / 2 + s_awl + col * font_metrics.interline, 0]) {
+            linear_extrude(h=h_text, center=true) {
+              text(
+                font=font,
+                size=font_size,
+                text=str(a_awl[col], "°"),
+                valign="bottom",
+                halign="left",
+              );
+            }
           }
         }
-
-        translate(v=[0, -l / 2 + s_awl, 0])
-          linear_extrude(h=h_text, center=true) {
-            text(
-              font=font,
-              size=font_size,
-              text=str(a_awl, "°"),
-              valign="bottom",
-              halign="right",
-            );
-          }
       }
     }
   }
@@ -161,28 +151,36 @@ module awl_guide_straight() {
             chamfer=chamfer_guide,
           );
 
-        // awl
-        for (i = [-l / 2 + s_awl:s_awl:l / 2 - s_awl]) {
-          translate(v=[i, 0, 0])
-            rotate(a=a_awl)
-              awl_mask();
+        for (col = [0:1:len(a_awl) - 1]) {
+          translate(v=[0, col * s_awl, 0]) {
+
+            // awl
+            for (dx = [-l / 2 + s_awl:s_awl:l / 2 - s_awl]) {
+              translate(v=[dx, 0, 0])
+                rotate(a=a_awl[col])
+                  awl_mask();
+            }
+
+            // end cutouts
+            translate(v=[-l / 2, 0, 0])
+              window_mask(l=s_awl / 2);
+            translate(v=[l / 2, 0, 0])
+              window_mask(l=s_awl / 2);
+          }
         }
 
-        // end cutouts
-        translate(v=[-l / 2, 0, 0])
-          window_mask(l=s_awl / 2);
-        translate(v=[l / 2, 0, 0])
-          window_mask(l=s_awl / 2);
+        // right windows
+        for (dy = [-s_awl, -s_awl * 2]) {
+          translate(v=[0, dy, 0]) {
 
-        // 1x windows
-        translate(v=[0, s_awl, 0])
-          window_mask_long();
-        translate(v=[0, -s_awl, 0])
-          window_mask_long();
+            window_mask_long();
 
-        // 2x window
-        translate(v=[0, s_awl * 2, 0])
-          window_mask_long();
+            translate(v=[-l / 2, 0, 0])
+              window_mask(l=s_awl / 2);
+            translate(v=[l / 2, 0, 0])
+              window_mask(l=s_awl / 2);
+          }
+        }
       }
     }
 
@@ -261,7 +259,7 @@ module awl_guide_circle(d) {
             text(
               font=font,
               size=font_size,
-              text=str(a_awl, "°"),
+              text=str(a_awl[0], "°"),
               valign="center",
               halign="center",
             );
@@ -279,7 +277,7 @@ module awl_guide_circle(d) {
       for (i = [0:a:360 - a]) {
         rotate(a=i)
           translate(v=[d / 2, 0, 0])
-            rotate(a=-a_awl)
+            rotate(a=-a_awl[0])
               awl_mask();
       }
 
@@ -380,44 +378,6 @@ module holder() {
   }
 }
 
-// double sized for testing stitching
-module test_piece() {
-  l = s_awl * n_awl_straight;
-
-  w1 = s_awl * 2;
-  w2 = s_awl * 5;
-
-  module body() {
-    difference() {
-      translate(v=[0, (w2 - w1) / 2, 0])
-        cuboid(
-          [l, w1 + w2, h_guide * 2],
-          chamfer=h_guide * 2,
-          edges=[TOP + FRONT],
-        );
-
-      // awl
-      for (i = [-l / 2:s_awl * 2:l / 2]) {
-        for (j = [-1, 1]) {
-          translate(v=[i, 0, j * h_guide / 2])
-            rotate(a=a_awl)
-              awl_mask(s=1, l1=l1_awl * 3, l2=l2_awl * 2);
-        }
-      }
-    }
-  }
-
-  body();
-
-  translate(v=[0, -(w2 + w2), 0])
-    body();
-
-  translate(v=[l * 1.5, 0, 0])
-    rotate(a=180, v=[0, 1, 0])
-      mirror(v=[0, 0, 1])
-        body();
-}
-
 render() {
 
   // flip for print
@@ -445,7 +405,4 @@ render() {
       rotate(a=-90, v=[0, 1, 0])
         translate(v=[0, 120, 0])
           holder();
-
-  if (show_test_piece)
-    test_piece();
 }
