@@ -2,24 +2,31 @@ include <BOSL2/std.scad>
 include <lib/geom.scad>
 include <lib/colours.scad>
 
-/* [Show] */
+/* [Show Shell] */
 show_back = true;
 show_front = false;
+show_lid = true;
+
+/* [Show Leather Main] */
 show_leather_main_back = true;
 show_leather_main_front = false;
 show_leather_main_left = true;
 show_leather_main_right = false;
-show_lid = true;
+
+/* [Show Leather Lid] */
 show_leather_lid_wall = true;
 show_leather_lid_left = true;
 show_leather_lid_right = false;
+
+/* [Show] */
 show_liner_template = false;
-show_hinges = false;
 show_magnet_back_bar = false;
 show_magnet_back_disc = false;
 fold = true;
 
 /* [Debug] */
+debug_dy_slice = 0; // [-50:0.1:0]
+debug_dz_slice = 0; // [-50:0.1:0]
 debug_dx_lid = 0; // [0:0.1:180]
 debug_lid_angle = 0; // [0:1:180]
 debug_stitches = false;
@@ -73,7 +80,7 @@ sew_channel_xy = 0.4;
 
 /* [Pins] */
 d_pin = 2.3; // [0:0.05:5]
-l_pin = 27; // [0:0.1:50]
+l_pin = 22; // [0:0.1:50]
 
 /* [Magnets] */
 d_magnet_front = 6.2; // [0:0.05:10]
@@ -93,8 +100,8 @@ dx_magnet_back_bar = -5.25; // [-20:0.05:20]
 dz_magnet_back_bar = 1.35; // [-20:0.05:20]
 
 /* [Hinges] */
-d_hinge = 3.1; // [0:0.05:10]
-l_hinge = 32; // [0:0.05:100]
+d_hinge = 3.6; // [0:0.05:10]
+l_hinge = 22; // [0:0.05:100]
 
 // shell to shell
 clearance_lid = 2.4; // [-1.6:0.05:5]
@@ -111,6 +118,8 @@ a_hinge_lid = 13; // [0:1:50]
 /* [Template Text] */
 font = "Inter";
 font_size = 6;
+
+$fn = 200;
 
 // quantize external x - linear
 x_quant = round_nearest(int_main_target.x, stitch_spacing) - stitch_spacing + stitch_inset;
@@ -169,8 +178,6 @@ echo(hinge_inset_stitches=hinge_inset_stitches);
 
 w_foldover_hinge = w_foldover - hinge_inset_dx + hinge_inset_stitches;
 echo(w_foldover_hinge=w_foldover_hinge);
-
-$fn = 100;
 
 function poly_foldover_edge(b) =
   [
@@ -1217,132 +1224,49 @@ module liner_template(ext, int, cp) {
   }
 }
 
-module hinges() {
-
-  dz_third = 0.05;
-  z_third = d_hinge / 3 + dz_third;
-
-  dz_half = 0.05;
-
-  d_core = 2.1;
-  l_core = 8.5;
-
-  module pin() {
-    difference() {
-      union() {
-        translate(v=[l_hinge / 4, 0, 0])
-          rotate(a=90, v=[0, 1, 0])
-            cylinder(h=l_hinge / 2, d=d_hinge, center=true);
-
-        sphere(d=d_hinge);
-      }
-
-      cylinder(h=d_hinge, d=d_core, center=true);
-
-      translate(v=[(d_hinge * 3 / 4 + l_hinge / 2) / 2, 0, 0])
-        chamfer_edge_mask(l=l_core, chamfer=sqrt(2) * d_core / 2, orient=LEFT, anchor=CENTER, excess=0);
-    }
-  }
-
-  module male() {
-    difference() {
-      pin();
-
-      translate(v=[0, 0, d_hinge - z_third])
-        cube(size=[d_hinge * 1.5, d_hinge, d_hinge], center=true);
-
-      translate(v=[0, 0, -d_hinge + z_third])
-        cube(size=[d_hinge * 1.5, d_hinge, d_hinge], center=true);
-    }
-  }
-
-  module female() {
-    difference() {
-      pin();
-
-      cube(size=[d_hinge * 1.5, d_hinge, z_third], center=true);
-    }
-  }
-
-  module half() {
-    difference() {
-      pin();
-
-      translate(v=[0, 0, -d_hinge + d_hinge / 2 + dz_half])
-        cube(size=[d_hinge * 1.5, d_hinge, d_hinge], center=true);
-    }
-  }
-
-  top_half(z=dz_half)
-    half();
-
-  translate(v=[0, d_hinge * 1.5, 0])
-    mirror(v=[0, 0, 1])
-      bottom_half(z=dz_half)
-        half();
-
-  mirror(v=[1, 0, 0]) {
-    translate(v=[0, d_hinge * 3, 0])
-      top_half(z=-d_hinge / 2 + z_third)
-        male();
-
-    translate(v=[0, d_hinge * 4.5, 0])
-      bottom_half(z=-d_hinge / 2 + z_third - 0.00001)
-        male();
-  }
-
-  translate(v=[0, d_hinge * 6.0, 0])
-    bottom_half(z=-z_third / 2 + dz_third)
-      female();
-
-  translate(v=[0, d_hinge * 7.5, 0])
-    top_half(z=z_third / 2 - dz_third)
-      female();
-
-  translate(v=[0, d_hinge * 9.0, 0])
-    top_half(z=-z_third / 2 + 0.00001)
-      bottom_half(z=z_third / 2 - 0.00001)
-        female();
+module slice() {
+  bottom_half(z=ext_main.z / 2 + t_leather + debug_dz_slice, s=ext_main.x * 5)
+    back_half(y=-ext_main.y / 2 - t_leather_overhang - debug_dy_slice, s=ext_main.x * 5)
+      children();
 }
 
 render() {
-  if (show_back)
-    color(c="lightskyblue")
-      back();
+  slice() {
+    if (show_back)
+      color(c="lightskyblue")
+        back();
 
-  if (show_front)
-    color(c="royalblue")
-      front();
+    if (show_front)
+      color(c="royalblue")
+        front();
 
-  if (show_leather_main_back)
-    leather_wall_back(cp=brown_pair(1));
+    if (show_leather_main_back)
+      leather_wall_back(cp=brown_pair(1));
 
-  if (show_leather_main_front)
-    leather_wall_front(cp=brown_pair(0));
+    if (show_leather_main_front)
+      leather_wall_front(cp=brown_pair(0));
 
-  if (show_leather_main_left)
-    leather_main_side_left(cp=brown_pair(2));
+    if (show_leather_main_left)
+      leather_main_side_left(cp=brown_pair(2));
 
-  if (show_leather_main_right)
-    leather_main_side_right(cp=brown_pair(3));
+    if (show_leather_main_right)
+      leather_main_side_right(cp=brown_pair(3));
 
-  lid_position() {
-    if (show_lid)
-      lid(cp=["mediumvioletred", "darkviolet"]);
+    lid_position() {
+      if (show_lid)
+        lid(cp=["mediumvioletred", "darkviolet"]);
 
-    if (show_leather_lid_wall)
-      leather_lid_wall(cp=brown_pair(4));
+      if (show_leather_lid_wall)
+        leather_lid_wall(cp=brown_pair(4));
 
-    if (show_leather_lid_left)
-      leather_lid_side_left(cp=brown_pair(5));
+      if (show_leather_lid_left)
+        leather_lid_side_left(cp=brown_pair(5));
 
-    if (show_leather_lid_right)
-      leather_lid_side_right(cp=brown_pair(6));
+      if (show_leather_lid_right)
+        leather_lid_side_right(cp=brown_pair(6));
+    }
+
+    if (show_liner_template)
+      liner_template(ext=ext_main, int=int_main, cp=brown_pair(11));
   }
-
-  if (show_liner_template)
-    liner_template(ext=ext_main, int=int_main, cp=brown_pair(11));
-
-  if (show_hinges)
-    hinges();
 }
