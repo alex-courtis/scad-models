@@ -20,8 +20,6 @@ show_leather_lid_right = false;
 
 /* [Show] */
 show_liner_template = false;
-show_magnet_back_bar = false;
-show_magnet_back_disc = false;
 fold = true;
 
 /* [Debug] */
@@ -88,9 +86,11 @@ t_magnet_front = 4.15; // [0:0.05:10]
 
 n_magnets_back = 5; // [0:1:5]
 
+magnet_back_disc = false;
 d_magnet_back_disc = 4.2; // [0:0.05:10]
 t_magnet_back_disc = 3; // [0:0.05:10]
 
+magnet_back_bar = false;
 b_magnet_back_bar = [2.2, 10.5, 5];
 
 /* [Hinges] */
@@ -333,10 +333,10 @@ module mask_magnets_back_disc(ext, int, dz) {
 }
 
 module mask_magnets_back(ext, int, dz) {
-  if (show_magnet_back_bar)
+  if (magnet_back_bar)
     mask_magnets_back_bar(ext, int);
 
-  if (show_magnet_back_disc)
+  if (magnet_back_disc)
     mask_magnets_back_disc(ext, int, dz);
 }
 
