@@ -477,6 +477,9 @@ module shell_long(ext, int, hinge) {
 
         translate(v=[x0, -i * dyz_end, dyz_end])
           mask_stitch(ax=i * -45, ay=0, az=0);
+
+        translate(v=[x0 + stitch_l, -i * dyz_end, dyz_end])
+          mask_stitch(ax=i * -45, ay=0, az=0);
       }
 
       mask_stitches_deep(ext=ext, ay=90, dy=i * (ext.y - t_side + t_foldover) / 2);
