@@ -297,7 +297,7 @@ module mask_half_gap(ext) {
     cube(size=gap - [0, dy, 0], center=true);
 
     translate(v=[-gap_inset_l_open / 2 + gap_inset_l_end / 2, 0, 0])
-      cube(size=gap - [gap_inset_l_open + gap_inset_l_end + 0, 0, 0], center=true);
+      cube(size=gap - [gap_inset_l_open + gap_inset_l_end + 0.005, 0, 0], center=true);
   }
 }
 
