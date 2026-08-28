@@ -2,6 +2,9 @@ include <BOSL2/std.scad>
 include <lib/geom.scad>
 include <lib/colours.scad>
 
+// TODO
+// hinge setting jig
+
 /* [Show Shell] */
 show_back = true;
 show_front = false;
@@ -172,6 +175,9 @@ echo(hinge_inset_stitches=hinge_inset_stitches);
 
 w_foldover_hinge = w_foldover - hinge_inset_dx + hinge_inset_stitches;
 echo(w_foldover_hinge=w_foldover_hinge);
+
+dx_magnet_back_disc = magnet_back_disc ? t_magnet_back_disc / 4 / cos(a_open / 2) : 0;
+dy_magnet_back_disc = magnet_back_disc ? t_magnet_back_disc / 2 / sin(a_open / 2) : 0;
 
 function poly_foldover_edge(b) =
   [
@@ -632,7 +638,7 @@ module leather_lid_wall(cp) {
   module exterior_back() {
     tr_back =
       fold ? [0, 0, 0]
-      : [hinge_inset_dx - int.z * PI / 2 - ext.x / 2 - t_wall - t_leather * 2, 0, ext.z + t_leather];
+      : [hinge_inset_dx - int.z * PI / 2 - ext.x / 2 - t_wall - t_leather * 2 - dx_magnet_back_disc, 0, ext.z + t_leather];
 
     rotate(a=fold ? 0 : 180, v=[0, 0, 1])
       translate(v=tr_back) {
@@ -650,7 +656,7 @@ module leather_lid_wall(cp) {
         }
 
         color(c=cp[1])
-          leather_wall_foldover_edge(ext=ext, hinge=true, w=t_wall + 2 * t_leather);
+          leather_wall_foldover_edge(ext=ext, hinge=true, w=t_wall + 2 * t_leather, dz_magnet=0);
       }
   }
 
@@ -674,7 +680,7 @@ module leather_lid_wall(cp) {
         leather_wall_long(ext=ext, int=int, cp=cp, a_wide=-a_stitch);
 
         color(c=cp[0])
-          leather_wall_foldover_edge(ext=ext, hinge=false, w=t_wall + 2 * t_leather);
+          leather_wall_foldover_edge(ext=ext, hinge=false, w=t_wall + 2 * t_leather, dz_magnet=0);
       }
     }
   }
@@ -839,18 +845,18 @@ module leather_wall_end(ext, cp, wide_stitches) {
   }
 }
 
-module leather_wall_foldover_edge(ext, hinge, w) {
+module leather_wall_foldover_edge(ext, hinge, w, dz_magnet) {
   dy = hinge ? -2 * (t_side + chamfer_int) : t_leather_overhang * 2;
 
-  b_fedge = [w, ext.y + dy, t_leather];
+  b_fedge = [w + (hinge ? dx_magnet_back_disc + dz_magnet : 0), ext.y + dy, t_leather];
   p_fedge = poly_foldover_edge(b_fedge);
 
   dx_hinge = hinge ? -hinge_inset_dx : 0;
 
   folded = [
-    (ext.x + t_leather) / 2 + dx_hinge,
+    (ext.x + t_leather) / 2 + dx_hinge + (hinge ? dx_magnet_back_disc : 0),
     0,
-    ( -ext.z + b_fedge.x) / 2 - t_leather,
+    ( -ext.z + b_fedge.x) / 2 - t_leather - (hinge ? dx_magnet_back_disc : 0),
   ];
   shifted = [
     (ext.x + b_fedge.x) / 2 + dx_hinge,
@@ -873,9 +879,9 @@ module leather_wall_foldover_edge(ext, hinge, w) {
 }
 
 module leather_wall_foldover_inner(ext, int, hinge) {
-  dx = hinge ? -hinge_inset_dx : 0;
+  dx = hinge ? -hinge_inset_dx + dx_magnet_back_disc : 0;
 
-  b_finner = [hinge ? w_foldover_hinge : w_foldover, int.y, t_leather];
+  b_finner = [hinge ? w_foldover_hinge + dx_magnet_back_disc : w_foldover, int.y, t_leather];
 
   folded = [
     (ext.x + b_finner.x) / 2 - b_finner.x + dx,
@@ -883,7 +889,7 @@ module leather_wall_foldover_inner(ext, int, hinge) {
     ( -ext.z + b_finner.z) / 2 + t_wall - t_foldover,
   ];
   shifted = [
-    (ext.x + b_finner.x) / 2 + t_wall - t_foldover + t_leather * 2 + dx,
+    (ext.x + b_finner.x) / 2 + t_wall - t_foldover + t_leather * 2 + dx + (hinge ? dy_magnet_back_disc : 0),
     0,
     ( -ext.z - b_finner.z) / 2,
   ];
@@ -931,7 +937,7 @@ module leather_wall_front(cp) {
       leather_wall_long(ext=ext_main, int=int_main, cp=cp, hinge=false, a_wide=a_stitch);
 
       color(c=cp[0])
-        leather_wall_foldover_edge(ext=ext_main, hinge=false, w=t_wall + t_leather);
+        leather_wall_foldover_edge(ext=ext_main, hinge=false, w=t_wall + t_leather, dz_magnet=0);
 
       color(c=cp[1])
         leather_wall_foldover_inner(ext=ext_main, int=int_main, hinge=false);
@@ -949,7 +955,7 @@ module leather_wall_back(cp) {
       leather_wall_long(ext=ext_main, int=int_main, cp=cp, hinge=true, a_wide=a_stitch);
 
       color(c=cp[0])
-        leather_wall_foldover_edge(ext=ext_main, hinge=true, w=t_wall - t_foldover + 2 * t_leather);
+        leather_wall_foldover_edge(ext=ext_main, hinge=true, w=t_wall - t_foldover + 2 * t_leather, dz_magnet=dy_magnet_back_disc);
 
       color(c=cp[1])
         leather_wall_foldover_inner(ext=ext_main, int=int_main, hinge=true);
