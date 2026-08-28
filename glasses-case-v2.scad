@@ -86,18 +86,12 @@ l_pin = 22; // [0:0.1:50]
 d_magnet_front = 6.2; // [0:0.05:10]
 t_magnet_front = 4.15; // [0:0.05:10]
 
-n_magnets_back = 3; // [0:1:5]
+n_magnets_back = 5; // [0:1:5]
 
-d_magnet_back_disc = 5.2; // [0:0.05:10]
+d_magnet_back_disc = 4.2; // [0:0.05:10]
 t_magnet_back_disc = 3; // [0:0.05:10]
 
 b_magnet_back_bar = [2.2, 10.5, 5];
-
-// centre relative to ext.x
-dx_magnet_back_bar = -5.25; // [-20:0.05:20]
-
-// centre relative to -ext.z
-dz_magnet_back_bar = 1.35; // [-20:0.05:20]
 
 /* [Hinges] */
 d_hinge = 3.6; // [0:0.05:10]
@@ -316,27 +310,34 @@ module mask_magnets_front(ext) {
         teardrop(h=t_magnet_front, d=d_magnet_front, orient=DOWN, ang=55);
 }
 
-module mask_magnets_back(ext, int) {
-  translate(v=[ext.x / 2 - hinge_inset_dx - stitch_inset / 2, 0, -ext.z / 2]) {
-    dy = int.y / (n_magnets_back);
-    for (y = [-int.y / 2 + dy / 2:dy:int.y / 2 - dy / 2]) {
-      translate(v=[0, y, 0]) {
-        rotate(a=a_open / 2, v=[0, 1, 0]) {
+module mask_magnets_back_bar(ext, int) {
+  dy = int.y / (n_magnets_back);
 
-          if (show_magnet_back_disc) {
-            translate(v=[-b_magnet_back_bar.x / 2, 0, b_magnet_back_bar.z / 2])
-              rotate(a=90, v=[0, 0, 1])
-                teardrop(h=t_magnet_back_disc, d=d_magnet_back_disc, orient=UP, ang=90);
-          }
+  for (y = [-int.y / 2 + dy / 2:dy:int.y / 2 - dy / 2])
+    translate(v=[ext.x / 2 - hinge_inset_dx - stitch_inset / 2, 0, -ext.z / 2])
+      translate(v=[0, y, 0])
+        rotate(a=a_open / 2, v=[0, 1, 0])
+          translate(v=[-b_magnet_back_bar.x / 2, 0, b_magnet_back_bar.z / 2])
+            cube(size=b_magnet_back_bar, center=true);
+}
 
-          if (show_magnet_back_bar) {
-            translate(v=[-b_magnet_back_bar.x / 2, 0, b_magnet_back_bar.z / 2])
-              cube(size=b_magnet_back_bar, center=true);
-          }
-        }
-      }
-    }
-  }
+module mask_magnets_back_disc(ext, int, dz) {
+  dx = -t_magnet_back_disc / 4 / cos(a_open / 2);
+  dy = int.y / (n_magnets_back);
+
+  for (y = [-int.y / 2 + dy / 2:dy:int.y / 2 - dy / 2])
+    translate(v=[ext.x / 2 - hinge_inset_dx + dx, y, -ext.z / 2 + dz])
+      rotate(a=a_open / 2, v=[0, 1, 0])
+        rotate(a=90, v=[0, 0, 1])
+          teardrop(h=t_magnet_back_disc, d=d_magnet_back_disc, orient=UP, ang=90);
+}
+
+module mask_magnets_back(ext, int, dz) {
+  if (show_magnet_back_bar)
+    mask_magnets_back_bar(ext, int);
+
+  if (show_magnet_back_disc)
+    mask_magnets_back_disc(ext, int, dz);
 }
 
 module mask_hinge_pin(ext, ay) {
@@ -588,7 +589,7 @@ module lid(cp) {
 
     dbg_magnets() mask_magnets_front(ext=ext_lid);
 
-    dbg_magnets() mask_magnets_back(ext=ext_lid, int=int_lid);
+    dbg_magnets() mask_magnets_back(ext=ext_lid, int=int_lid, dz=t_wall / 2);
 
     dbg_hinges() mask_hinge_pin(ext=ext_lid, ay=a_hinge_lid);
 
@@ -761,7 +762,7 @@ module back() {
 
     dbg_gaps() mask_hinge_chamfer(ext=ext_main, int=int_main);
 
-    dbg_magnets() mask_magnets_back(ext=ext_main, int=int_main);
+    dbg_magnets() mask_magnets_back(ext=ext_main, int=int_main, dz=t_foldover / 2);
 
     translate(v=[-hinge_inset_dx, 0, 0]) {
       dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover_hinge, t=t_foldover);
