@@ -26,8 +26,6 @@ show_liner_template = false;
 fold = true;
 
 /* [Debug] */
-debug_dy_slice = 0; // [-50:0.1:0]
-debug_dz_slice = 0; // [-50:0.1:0]
 debug_dx_lid = 0; // [0:0.1:180]
 debug_lid_angle = 0; // [0:1:180]
 debug_stitches = false;
@@ -36,6 +34,9 @@ debug_magnets = false;
 debug_pins = false;
 debug_gaps = false;
 debug_foldover = false;
+debug_slice = false;
+debug_dy_slice = 0; // [-50:0.1:0]
+debug_dz_slice = 0; // [-50:0.1:0]
 
 /* [Dimensions] */
 
@@ -43,7 +44,7 @@ debug_foldover = false;
 // x excludes the rounded ends
 // x, y quantized for linear hole spacing
 // z quantized for curved hole spacing, arc outside of leather
-int_main_target = [115, 55, 25];
+int_main_target = [125, 55, 36];
 
 t_side = 4.0; // [0:0.05:10]
 t_wall = 3.5; // [0:0.05:10]
@@ -89,7 +90,7 @@ t_magnet_front = 4.15; // [0:0.05:10]
 
 n_magnets_back = 5; // [0:1:5]
 
-magnet_back_disc = false;
+magnet_back_disc = true;
 d_magnet_back_disc = 4.2; // [0:0.05:10]
 t_magnet_back_disc = 3; // [0:0.05:10]
 
@@ -97,8 +98,8 @@ magnet_back_bar = false;
 b_magnet_back_bar = [2.2, 10.5, 5];
 
 /* [Hinges] */
-d_hinge = 3.6; // [0:0.05:10]
-l_hinge = 22; // [0:0.05:100]
+d_hinge = 3.55; // [0:0.05:10]
+l_hinge = 22.5; // [0:0.05:100]
 
 // shell to shell
 clearance_lid = 2.4; // [-1.6:0.05:5]
@@ -1234,9 +1235,13 @@ module liner_template(ext, int, cp) {
 }
 
 module slice() {
-  bottom_half(z=ext_main.z / 2 + t_leather + debug_dz_slice, s=ext_main.x * 5)
-    back_half(y=-ext_main.y / 2 - t_leather_overhang - debug_dy_slice, s=ext_main.x * 5)
-      children();
+  if (debug_slice) {
+    bottom_half(z=ext_main.z / 2 + t_leather + debug_dz_slice, s=ext_main.x * 5)
+      back_half(y=-ext_main.y / 2 - t_leather_overhang - debug_dy_slice, s=ext_main.x * 5)
+        children();
+  } else {
+    children();
+  }
 }
 
 render() {

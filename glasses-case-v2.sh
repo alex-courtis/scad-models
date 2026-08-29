@@ -15,6 +15,5 @@ for p in $(echo "${params_off}" | sed -E 's/ =.*;$//g'); do
 		-o "${dir}/${prefix}.${rev}.${n}.stl" \
 		-D "${params_off}" \
 		-D "fold=false" \
-		-D "magnet_back_disc=true" \
 		-D "${p}=true"
 	done
