@@ -82,7 +82,7 @@ sew_channel_xy = 0.4;
 
 /* [Pins] */
 d_pin = 2.3; // [0:0.05:5]
-l_pin = 22; // [0:0.1:50]
+l_pin = 27; // [0:0.1:50]
 
 /* [Magnets] */
 d_magnet_front = 6.2; // [0:0.05:10]
@@ -347,7 +347,7 @@ module mask_magnets_back(ext, int, dz) {
     mask_magnets_back_disc(ext, int, dz);
 }
 
-module mask_hinge_pin(ext, ay) {
+module mask_hinge_pin(ext, ay, teardrop) {
   tr = [
     ext.x / 2 + pivot_hinge.x,
     (ext.y - t_side - chamfer_int) / 2,
@@ -359,7 +359,7 @@ module mask_hinge_pin(ext, ay) {
       rotate(a=ay, v=[0, 1, 0])
         translate(v=[-l_hinge / 4 + 0, 0, 0])
           rotate(a=90, v=[0, 0, 1])
-            teardrop(h=l_hinge / 2, d=d_hinge, ang=45);
+            teardrop(h=l_hinge / 2, d=d_hinge, ang=(teardrop ? 45 : 90));
       sphere(d=d_hinge);
     }
   }
@@ -598,7 +598,7 @@ module lid(cp) {
 
     dbg_magnets() mask_magnets_back(ext=ext_lid, int=int_lid, dz=t_wall / 2);
 
-    dbg_hinges() mask_hinge_pin(ext=ext_lid, ay=a_hinge_lid);
+    dbg_hinges() mask_hinge_pin(ext=ext_lid, ay=a_hinge_lid, teardrop=false);
 
     dbg_gaps() mask_hinge_chamfer(ext=ext_lid, int=int_lid);
 
@@ -765,7 +765,7 @@ module back() {
   difference() {
     shell_main(hinge=true);
 
-    dbg_hinges() mask_hinge_pin(ext=ext_main, ay=a_hinge_main);
+    dbg_hinges() mask_hinge_pin(ext=ext_main, ay=a_hinge_main, teardrop=true);
 
     dbg_gaps() mask_hinge_chamfer(ext=ext_main, int=int_main);
 
@@ -993,7 +993,7 @@ module foldover_edge(ext, ay_hinge) {
               rotate(a=90, v=[1, 0, 0])
                 linear_extrude(h=t_leather, center=true)
                   polygon(p_fedge);
-          mask_hinge_pin(ext=ext, ay=ay_hinge);
+          mask_hinge_pin(ext=ext, ay=ay_hinge, teardrop=false);
         }
 }
 
