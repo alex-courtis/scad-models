@@ -4,7 +4,6 @@ include <lib/colours.scad>
 
 // TODO
 // lid back foldover does not meet body
-// fill in hole nearest lid hinge
 
 /* [Show Shell] */
 show_back = true;
@@ -66,7 +65,7 @@ chamfer_foldover = 0.8; // [0:0.05:2]
 gap_half = 1; // [0:0.05:5]
 gap_inset_w = t_side + chamfer_int_main;
 gap_inset_l_end = t_wall + chamfer_int_main;
-gap_inset_l_open = w_foldover + chamfer_foldover;
+gap_inset_l_open = w_foldover + chamfer_foldover * 2;
 
 /* [Leather Stitch Holes] */
 stitch_l = 3.7; // [0:0.1:5]
@@ -412,6 +411,8 @@ module mask_pins(ext, int) {
     for (x = [-ext.x / 2 + d_pin / 2, 0, ext.x / 2 - w_foldover * 2]) {
       translate(v=[x, i * (ext.y + int.y) / 4, -l_pin / 4])
         cylinder(d=d_pin, h=l_pin / 2, center=true);
+      translate(v=[x, i * ext.y / 2 + t_side / 4, -d_pin * 1.5])
+          cube(size=[d_pin, t_side / 2, d_pin], center=true);
     }
   }
 }
