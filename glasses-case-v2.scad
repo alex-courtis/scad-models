@@ -2,6 +2,10 @@ include <BOSL2/std.scad>
 include <lib/geom.scad>
 include <lib/colours.scad>
 
+// TODO
+// lid back foldover does not meet body
+// fill in hole nearest lid hinge
+
 /* [Show Shell] */
 show_back = true;
 show_front = false;
@@ -108,10 +112,16 @@ clearance_hinge = 2.2; // [-1.6:0.05:5]
 // maximum angle lid can open
 a_open = 110; // [0:1:180]
 
-a_hinge_main = 6; // [0:1:50]
-a_hinge_lid = 13; // [0:1:50]
+a_hinge_main = 2; // [0:1:50]
+a_hinge_lid = 14; // [0:1:50]
 
 gap_hinge_jig = 0.3; // [0:0.01:1]
+
+// relative to ext.y/2
+y_pivot_hinge = -3; // [0:0.01:5]
+
+// relative to -ext.z/2
+z_pivot_hinge = 2.75; // [0:0.01:5]
 
 /* [Template Text] */
 font = "Inter";
@@ -157,7 +167,7 @@ int_lid = ext_lid - [0, 2 * t_side, 2 * t_wall];
 echo(int_lid=int_lid);
 
 // relative to +ext.x, -ext.z
-pivot_hinge = [clearance_lid / 2, 0, (t_wall + chamfer_int_main) / 2];
+pivot_hinge = [clearance_lid / 2, y_pivot_hinge, z_pivot_hinge];
 echo(pivot_hinge=pivot_hinge);
 
 // relative to pivot_hinge
@@ -248,10 +258,10 @@ module mask_stitches_quartercircle(ax, ay, az, dy, dz) {
   }
 }
 
-module mask_foldover_wide(ext, int, w, t, chamfer_int) {
+module mask_foldover_wide(ext, int, w, t) {
   mask = [
     w,
-    int.y - chamfer_int * 2,
+    int.y - chamfer_int_main * 2,
     int.z / 2 + t,
   ];
 
@@ -260,20 +270,20 @@ module mask_foldover_wide(ext, int, w, t, chamfer_int) {
 
   translate(v=[ext.x / 2, 0, -ext.z / 2]) {
     translate(v=[0, 0, t_wall - t])
-      chamfer_edge_mask(l=int.y - chamfer_int * 2, chamfer=chamfer_foldover, orient=FRONT, excess=0);
+      chamfer_edge_mask(l=int.y - chamfer_int_main * 2, chamfer=chamfer_foldover, orient=FRONT, excess=0);
 
     translate(v=[-w, 0, 0]) {
       translate(v=[0, 0, t_wall])
-        chamfer_edge_mask(l=int.y - 2 * chamfer_int, chamfer=chamfer_foldover, orient=FRONT, excess=0);
+        chamfer_edge_mask(l=int.y - 2 * chamfer_int_main, chamfer=chamfer_foldover, orient=FRONT, excess=0);
     }
   }
 }
 
-module mask_foldover_deep(ext, int, w, t, chamfer_int) {
+module mask_foldover_deep(ext, int, w, t) {
   mask = [
     w,
     int.y + t * 2,
-    int.z / 2 - chamfer_int,
+    int.z / 2 - chamfer_int_main,
   ];
 
   translate(v=[(ext.x - mask.x) / 2, 0, -mask.z / 2])
@@ -282,11 +292,11 @@ module mask_foldover_deep(ext, int, w, t, chamfer_int) {
   translate(v=[ext.x / 2, 0, 0]) {
     for (i = [-1, 1]) {
       translate(v=[0, i * (ext.y / 2 - t_side + t), 0])
-        chamfer_edge_mask(l=int.z - chamfer_int * 2, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
+        chamfer_edge_mask(l=int.z - chamfer_int_main * 2, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
 
       translate(v=[-w, 0, 0]) {
         translate(v=[0, i * (ext.y / 2 - t_side), 0])
-          chamfer_edge_mask(l=int.z - 2 * chamfer_int, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
+          chamfer_edge_mask(l=int.z - 2 * chamfer_int_main, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
       }
     }
   }
@@ -350,8 +360,8 @@ module mask_magnets_back(ext, int, dz) {
 module mask_hinge_pin(ext, d = d_hinge, ay, teardrop, channel) {
   tr = [
     ext.x / 2 + pivot_hinge.x,
-    (ext.y - t_side - chamfer_int_main) / 2,
-    -ext_main.z / 2 + pivot_hinge.z,
+    ext.y / 2 + pivot_hinge.y,
+    -ext.z / 2 + pivot_hinge.z,
   ];
 
   for (i = [-1, 1]) {
@@ -469,12 +479,12 @@ module shell_end(ext, int, chamfer_int) {
   }
 }
 
-module shell_long(ext, int, hinge, chamfer_int) {
+module shell_long(ext, int, hinge, chamfer_int, stitches) {
 
   module mask_stitches() {
     dyz_long = ( -stitch_inset + t_leather) / 2;
     dyz_end = (stitch_w / 2) / sqrt(2);
-    x0 = ext.x / 2 - stitch_inset;
+    x0 = ext.x / 2 - stitch_inset - stitch_spacing;
     x1 = -ext.x / 2;
 
     for (i = [-1, 1]) {
@@ -482,10 +492,14 @@ module shell_long(ext, int, hinge, chamfer_int) {
         translate(v=[0, i * dyz_long, -dyz_long])
           mask_stitches_long(ax=i * -45, az=0, x0=x0 - stitch_spacing, x1=x1);
 
+        // last two are partial with the end shaved off
         translate(v=[x0, -i * dyz_end, dyz_end])
           mask_stitch(ax=i * -45, ay=0, az=0);
 
-        translate(v=[x0 + stitch_l, -i * dyz_end, dyz_end])
+        translate(v=[x0 + stitch_spacing, -i * dyz_end, dyz_end])
+          mask_stitch(ax=i * -45, ay=0, az=0);
+
+        translate(v=[x0 + stitch_spacing + stitch_l, -i * dyz_end, dyz_end])
           mask_stitch(ax=i * -45, ay=0, az=0);
       }
 
@@ -529,7 +543,8 @@ module shell_long(ext, int, hinge, chamfer_int) {
 
     mask_int();
 
-    mask_stitches();
+    if (stitches)
+      mask_stitches();
   }
 }
 
@@ -537,7 +552,7 @@ module shell_main(hinge) {
   difference() {
     union() {
       shell_end(ext=ext_main, int=int_main, chamfer_int=chamfer_int_main);
-      shell_long(ext=ext_main, int=int_main, hinge=hinge, chamfer_int=chamfer_int_main);
+      shell_long(ext=ext_main, int=int_main, hinge=hinge, chamfer_int=chamfer_int_main, stitches=true);
     }
 
     mask_liner_holes_long(ext=ext_main, int=int_main);
@@ -556,10 +571,10 @@ module shell_lid_front(cp) {
       color(c=cp[0])
         shell_end(ext=ext_lid, int=int_lid, chamfer_int=chamfer_int_lid);
       color(c=cp[1])
-        shell_long(ext=ext_lid, int=int_lid, hinge=false, chamfer_int=chamfer_int_lid);
+        shell_long(ext=ext_lid, int=int_lid, hinge=false, chamfer_int=chamfer_int_lid, stitches=false);
     }
 
-    dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall, chamfer_int = chamfer_int_lid);
+    dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall);
 
     mask_stitches_wide(ext=ext_lid, az=90, dx=ext_lid.x / 2 - stitch_inset, dz=( -ext_lid.z + t_wall - t_foldover) / 2);
   }
@@ -571,11 +586,23 @@ module shell_lid_back(cp) {
       color(c=cp[1])
         shell_end(ext=ext_lid, int=int_lid, chamfer_int=chamfer_int_lid);
       color(c=cp[0])
-        shell_long(ext=ext_lid, int=int_lid, hinge=true, chamfer_int=chamfer_int_lid);
+        shell_long(ext=ext_lid, int=int_lid, hinge=true, chamfer_int=chamfer_int_lid, stitches=false);
+
+      for (i = [-1, 1])
+        intersection() {
+          translate(v=[-int_lid.z / 2 + int_lid.x / 2, 0, 0])
+            cube(size=[int_lid.z, int_lid.y, int_lid.z], center=true);
+
+          l_sheath = l_hinge * 1.4;
+          translate(v=[ext_lid.x / 2 + pivot_hinge.x, i * (ext_lid.y / 2 + pivot_hinge.y), -ext_lid.z / 2 + pivot_hinge.z])
+            rotate(a=a_hinge_lid - 90, v=[0, 1, 0])
+              translate(v=[0, 0, l_sheath / 2])
+                cyl(d1=t_side + chamfer_int_main, d2=0, l=l_sheath);
+        }
     }
 
     translate(v=[-hinge_inset_dx, 0, 0])
-      dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall, chamfer_int = chamfer_int_lid);
+      dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall);
 
     
     mask_stitches_wide(ext=ext_lid, az=90, dx=ext_lid.x / 2 - stitch_inset - hinge_inset_stitches, dz=( -ext_lid.z + t_wall - t_foldover) / 2);
@@ -591,7 +618,7 @@ module lid(cp) {
       shell_lid_back(cp);
     }
 
-    dbg_foldover() mask_foldover_deep(ext=ext_lid, int=int_lid, w=0, t=0, chamfer_int = chamfer_int_lid);
+    dbg_foldover() mask_foldover_deep(ext=ext_lid, int=int_lid, w=0, t=0);
 
     dbg_magnets() mask_magnets_front(ext=ext_lid);
 
@@ -753,9 +780,9 @@ module front() {
     dbg_magnets() mask_magnets_front(ext=ext_main);
 
     mirror(v=[0, 0, 1]) {
-      dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover, chamfer_int = chamfer_int_main);
+      dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
 
-      dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover, chamfer_int = chamfer_int_main);
+      dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
     }
   }
 }
@@ -771,11 +798,11 @@ module back() {
     dbg_magnets() mask_magnets_back(ext=ext_main, int=int_main, dz=t_foldover / 2);
 
     translate(v=[-hinge_inset_dx, 0, 0]) {
-      dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover_hinge, t=t_foldover, chamfer_int = chamfer_int_main);
-      dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=0, t=t_wall, chamfer_int = chamfer_int_main);
+      dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover_hinge, t=t_foldover);
+      dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=0, t=t_wall);
     }
 
-    dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover, chamfer_int = chamfer_int_main);
+    dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
   }
 }
 
