@@ -249,8 +249,8 @@ module mask_stitches_deep(ext, ay, dy) {
   }
 }
 
-module mask_stitches_quartercircle(ax, ay, az, dy, dz) {
-  for (a = [-180:a_end_quant:-90]) {
+module mask_stitches_quartercircle(ax, ay, az, dy, dz, da_start = 0) {
+  for (a = [-180 + da_start:a_end_quant:-90]) {
     rotate(a=a, v=[0, 1, 0]) {
       translate(v=[0, dy, dz])
         mask_stitch(ax=ax, ay=(a == -90 ? 0 : ay), az=(a == -90 ? 0 : -az));
@@ -443,7 +443,7 @@ module mask_liner_holes_quartercircle(ext, int) {
             cylinder(d=sew_d, h=t_wall * 2, center=true);
 }
 
-module shell_end(ext, int, chamfer_int) {
+module shell_end(ext, int, chamfer_int, da_stitches_start = 0) {
 
   module mask_stitches() {
     dx = -ext.x / 2;
@@ -452,7 +452,7 @@ module shell_end(ext, int, chamfer_int) {
 
     for (i = [-1, 1]) {
       translate(v=[dx, 0, 0])
-        mask_stitches_quartercircle(ax=i * 45, ay=0, az=0, dy=i * dy, dz=dz);
+        mask_stitches_quartercircle(ax=i * 45, ay=0, az=0, dy=i * dy, dz=dz, da_start=da_stitches_start);
     }
   }
 
@@ -584,7 +584,7 @@ module shell_lid_back(cp) {
   difference() {
     union() {
       color(c=cp[1])
-        shell_end(ext=ext_lid, int=int_lid, chamfer_int=chamfer_int_lid);
+        shell_end(ext=ext_lid, int=int_lid, chamfer_int=chamfer_int_lid, da_stitches_start=a_end_quant);
       color(c=cp[0])
         shell_long(ext=ext_lid, int=int_lid, hinge=true, chamfer_int=chamfer_int_lid, stitches=false);
 
