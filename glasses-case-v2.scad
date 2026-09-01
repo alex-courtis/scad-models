@@ -74,7 +74,7 @@ stitch_w = 1.7; // [0:0.1:5]
 
 // centre of hole to edge
 stitch_inset = 4; // [0:0.1:10]
-stitch_spacing = 5; // [0:0.1:10]
+stitch_spacing = 5.2; // [0:0.1:10]
 
 // sides and wall
 a_stitch = -45; // [0:1:90]
