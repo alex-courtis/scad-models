@@ -50,7 +50,7 @@ int_main_target = [125, 55, 36];
 t_side = 4.0; // [0:0.05:10]
 t_wall = 3.5; // [0:0.05:10]
 
-chamfer_ext = 0.6; // [0:0.05:2]
+chamfer_ext = 1; // [0:0.05:2]
 chamfer_int = 2; // [0:0.05:5]
 
 t_leather = 0.8; // [0.05:0.05:5]
