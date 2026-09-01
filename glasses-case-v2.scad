@@ -54,7 +54,7 @@ chamfer_ext = 1; // [0:0.05:2]
 chamfer_int = 2; // [0:0.05:5]
 
 t_leather = 0.8; // [0.05:0.05:5]
-t_leather_overhang = 0.4; // [0:0.05:5]
+t_leather_overhang = 0.0; // [0:0.05:5]
 
 t_foldover = 1.8; // [0:0.05:15]
 w_foldover = 6.5; // [0:0.05:15]
