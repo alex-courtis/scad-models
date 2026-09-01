@@ -79,7 +79,6 @@ a_stitch = -45; // [0:1:90]
 
 /* [Liner Holes] */
 sew_d = 1.8;
-sew_channel_xy = 0.4;
 
 /* [Pins] */
 d_pin = 2.3; // [0:0.05:5]
@@ -415,21 +414,12 @@ module mask_liner_holes_long(ext, int) {
   x0 = -ext.x / 2;
   x1 = ext.x / 2 - stitch_inset - stitch_spacing * 2;
 
-  for (i = [-1, 1]) {
-    translate(v=[0, i * dy, 0]) {
-
-      // long channels
-      translate(v=[-ext.x / 2 + (x1 - x0) / 2, 0, -ext.z / 2])
-        rotate(a=45, v=[1, 0, 0])
-          cube(size=[x1 - x0, sew_channel_xy, sew_channel_xy], center=true);
-
-      // long holes
-      for (dx = [x0:stitch_spacing:x1]) {
+  // long holes
+  for (i = [-1, 1])
+    for (dx = [x0:stitch_spacing:x1])
+      translate(v=[0, i * dy, 0])
         translate(v=[dx, 0, dz])
           cylinder(d=sew_d, h=t_wall, center=true);
-      }
-    }
-  }
 }
 
 module mask_liner_holes_quartercircle(ext, int) {
