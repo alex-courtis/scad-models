@@ -78,7 +78,8 @@ stitch_spacing = 5.2; // [0:0.1:10]
 // sides and wall
 a_stitch = -45; // [0:1:90]
 
-end_wide_stitches = false;
+// back and front split at end mid
+two_piece_wall = false;
 
 /* [Liner Holes] */
 sew_d = 1.8;
@@ -423,23 +424,23 @@ module mask_pins(ext, int) {
 }
 
 module mask_template_joiner_line(ext) {
-  if (!fold) {
+  if (!fold && !two_piece_wall)
     for (i = [-1, 1])
       translate(v=[i * b_template_joiner.x / 2, 0, -ext.z / 2 - t_leather / 4])
         cube(size=[t_leather / 2, ext.y - b_template_joiner.y * 2, t_leather / 2], center=true);
-  }
 }
 
 module mask_template_joiner_socket(ext) {
-  if (!fold)
+  if (!fold && !two_piece_wall)
     translate(v=[0, 0, -(ext.z + b_template_joiner.z) / 2])
       cube(size=b_template_joiner + [dxy_template_joiner * 2, dxy_template_joiner * 2, 0], center=true);
 }
 
-module template_joiner_tongue(ext) {
-  if (!fold)
-    translate(v=[0, 0, -(ext.z + b_template_joiner.z) / 2])
-      cube(size=b_template_joiner + [dxy_template_joiner, 0, 0], center=true);
+module template_joiner_tongue(ext, c) {
+  if (!fold && !two_piece_wall)
+    color(c=c)
+      translate(v=[0, 0, -(ext.z + b_template_joiner.z) / 2])
+        cube(size=b_template_joiner + [dxy_template_joiner, 0, 0], center=true);
 }
 
 module mask_liner_holes_long(ext, int) {
@@ -840,7 +841,7 @@ module leather_wall_end(ext, cp) {
       translate(v=[-ext.x / 2, 0, 0])
         mask_stitches_quartercircle(ax=0, ay=0, az=i * a_stitch, dy=i * (ext.y / 2 - stitch_inset), dz=ext.z / 2);
 
-    if (end_wide_stitches)
+    if (two_piece_wall)
       translate(v=[-ext.x / 2, 0, 0])
         rotate(a=-90 - a_end_quant / 2, v=[0, 1, 0])
           mask_stitches_wide(ext=ext, az=90, dx=0, dz=ext.z / 2);
@@ -854,7 +855,7 @@ module leather_wall_end(ext, cp) {
       translate(v=[0, i * ( (ext.y) / 2 - stitch_inset), -ext.z / 2])
         mask_stitches_long(ax=0, az=i * a_stitch, x0=x0, x1=x1);
 
-    if (end_wide_stitches)
+    if (two_piece_wall)
       mask_stitches_wide(ext=ext, az=90, dx=-ext.x / 2 - b_end.x + stitch_spacing / 2 + t_leather_overhang, dz=-ext.z / 2);
   }
 
@@ -866,15 +867,8 @@ module leather_wall_end(ext, cp) {
   }
 
   module end_unfolded() {
-    b_nick = [t_leather * 2, t_leather * 3, t_leather];
-
     translate(v=[-(ext.x + b_end.x) / 2, 0, 0])
-      difference() {
-        cube(b_end, center=true);
-        for (i = [-1, 1])
-          translate(v=[-b_end.x / 2, i * (ext.y - b_nick.y) / 2, 0])
-            cube(size=b_nick, center=true);
-      }
+      cube(b_end, center=true);
   }
 
   module end_folded() {
@@ -1020,17 +1014,16 @@ module leather_wall_front(cp) {
           translate(v=[-b_template_joiner.x / 2, i * ext.y / 4, 0])
             mask_template_joiner_socket(ext=ext);
 
-        translate(v=[0, 0, -(ext.z + b_template_joiner.z) / 2])
-          cube(size=[dxy_template_joiner, ext.y, b_template_joiner.z], center=true);
+        if (!fold && !two_piece_wall)
+          translate(v=[0, 0, -(ext.z + b_template_joiner.z) / 2])
+            cube(size=[dxy_template_joiner, ext.y, b_template_joiner.z], center=true);
       }
 
       translate(v=[(b_template_joiner.x - dxy_template_joiner) / 2, 0, 0])
-        color(c=cp[1])
-          template_joiner_tongue(ext);
+        template_joiner_tongue(ext, c=cp[1]);
     }
 
-    if (!fold)
-      mask_template_joiner_line(ext);
+    mask_template_joiner_line(ext);
   }
 }
 
@@ -1062,14 +1055,14 @@ module leather_wall_back(cp) {
         translate(v=[b_template_joiner.x / 2, 0, 0])
           mask_template_joiner_socket(ext=ext);
 
-        translate(v=[0, 0, -(ext.z + b_template_joiner.z) / 2])
-          cube(size=[dxy_template_joiner, ext.y, b_template_joiner.z], center=true);
+        if (!fold && !two_piece_wall)
+          translate(v=[0, 0, -(ext.z + b_template_joiner.z) / 2])
+            cube(size=[dxy_template_joiner, ext.y, b_template_joiner.z], center=true);
       }
 
       for (i = [-1, 1])
         translate(v=[( -b_template_joiner.x + dxy_template_joiner) / 2, i * ext.y / 4, 0])
-          color(c=cp[1])
-            template_joiner_tongue(ext);
+          template_joiner_tongue(ext, c=cp[1]);
     }
 
     mask_template_joiner_line(ext);
