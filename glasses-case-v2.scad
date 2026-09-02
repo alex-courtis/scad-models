@@ -130,6 +130,10 @@ z_pivot_hinge = 2.75; // [0:0.01:5]
 w_template_joiner = 0.4 * 40;
 l_template_joiner = 0.4 * 30;
 a_template_joiner = 12.5;
+g_pin_template_joiner = 0.18;  // [0:0.001:2]
+g_shoulder_template_joiner = 0.055; // [0:0.001:2]
+
+/* [Tuning] */
 
 $fn = 200;
 
@@ -431,29 +435,29 @@ module mask_template_joiner_line(ext) {
 
 module mask_template_joiner_socket(ext) {
   if (!fold && !two_piece_wall)
-    translate(v=[-l_template_joiner / 2, -ext.y / 4, ( -ext.z - t_leather) / 2]) {
+    translate(v=[-l_template_joiner / 2, -ext.y / 5, ( -ext.z - t_leather) / 2]) {
       rotate(a=90, v=[0, 0, 1])
-        dove_socket(a_tail=a_template_joiner, l=w_template_joiner, w=l_template_joiner, t=t_leather, l1=ext.y, l2=ext.y, ratio=0);
+        dove_socket(a_tail=a_template_joiner, g_pin=g_pin_template_joiner, l=w_template_joiner, w=l_template_joiner, t=t_leather, l1=ext.y, l2=ext.y, ratio=0);
       translate(v=[-ext.x - l_template_joiner / 2, 0, 0])
         cube(size=[ext.x * 2, ext.y * 2, t_leather], center=true);
     }
   else
-    cube(size=[ext.x * 2, ext.y * 2, ext.z * 2], center=true);
+    cube(size=[ext.x * 3, ext.y * 2, ext.z * 2], center=true);
 }
 
 module mask_template_joiner_tongue(ext) {
   if (!fold && !two_piece_wall)
-    translate(v=[l_template_joiner / 2, ext.y / 4, ( -ext.z - t_leather) / 2])
-      dove_tail(a_tail=a_template_joiner, l=l_template_joiner, w=w_template_joiner, w1=ext.y, w2=ext.y, t=t_leather, l1=ext.x * 2, ratio=0);
+    translate(v=[l_template_joiner / 2, ext.y / 5, ( -ext.z - t_leather) / 2])
+      dove_tail(a_tail=a_template_joiner, g_shoulder=g_shoulder_template_joiner, l=l_template_joiner, w=w_template_joiner, w1=ext.y, w2=ext.y, t=t_leather, l1=ext.x * 2, ratio=0);
   else
-    cube(size=[ext.x * 2, ext.y * 2, ext.z * 2], center=true);
+    cube(size=[ext.x * 3, ext.y * 2, ext.z * 2], center=true);
 }
 
 module template_joiner_tongue(ext, c) {
   if (!fold && !two_piece_wall)
     color(c=c)
-      translate(v=[l_template_joiner / 2, ext.y / 4, ( -ext.z - t_leather) / 2])
-        dove_tail(a_tail=a_template_joiner, l=l_template_joiner, w=w_template_joiner, w1=1, w2=1, t=t_leather, l1=1, ratio=0);
+      translate(v=[l_template_joiner / 2, ext.y / 5, ( -ext.z - t_leather) / 2])
+        #dove_tail(a_tail=a_template_joiner, g_shoulder=g_shoulder_template_joiner, l=l_template_joiner, w=w_template_joiner, w1=0, w2=0, t=t_leather, l1=2, ratio=0);
 }
 
 module mask_liner_holes_long(ext, int) {
