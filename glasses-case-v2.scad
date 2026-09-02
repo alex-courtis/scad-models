@@ -1,6 +1,7 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 include <lib/colours.scad>
+include <lib/joints.scad>
 
 // TODO
 // lid back foldover does not meet body
@@ -129,8 +130,9 @@ z_pivot_hinge = 2.75; // [0:0.01:5]
 font = "Inter";
 font_size = 6;
 
-b_template_joiner = [0.4 * 15, 0.4 * 20, t_leather];
-dxy_template_joiner = 0.2;
+w_template_joiner = 0.4 * 40;
+l_template_joiner = 0.4 * 30;
+a_template_joiner = 12.5;
 
 $fn = 200;
 
@@ -426,21 +428,31 @@ module mask_pins(ext, int) {
 module mask_template_joiner_line(ext) {
   if (!fold && !two_piece_wall)
     for (i = [-1, 1])
-      translate(v=[i * b_template_joiner.x / 2, 0, -ext.z / 2 - t_leather / 4])
-        cube(size=[t_leather / 2, ext.y - b_template_joiner.y * 2, t_leather / 2], center=true);
+      translate(v=[i * l_template_joiner * 2 / 3, 0, -ext.z / 2 - t_leather / 4])
+        cube(size=[t_leather / 2, ext.y - stitch_inset * 2, t_leather / 2], center=true);
 }
 
 module mask_template_joiner_socket(ext) {
   if (!fold && !two_piece_wall)
-    translate(v=[0, 0, -(ext.z + b_template_joiner.z) / 2])
-      cube(size=b_template_joiner + [dxy_template_joiner * 2, dxy_template_joiner * 2, 0], center=true);
+    translate(v=[-l_template_joiner / 2, -ext.y / 4, ( -ext.z - t_leather) / 2]) {
+      rotate(a=90, v=[0, 0, 1])
+        dove_socket(a_tail=a_template_joiner, l=w_template_joiner, w=l_template_joiner, t=t_leather, l1=ext.y, l2=ext.y, ratio=0);
+      translate(v=[-ext.x - l_template_joiner / 2, 0, 0])
+        cube(size=[ext.x * 2, ext.y * 2, t_leather], center=true);
+    }
+}
+
+module mask_template_joiner_tongue(ext) {
+  if (!fold && !two_piece_wall)
+    translate(v=[l_template_joiner / 2, ext.y / 4, ( -ext.z - t_leather) / 2])
+      dove_tail(a_tail=a_template_joiner, l=l_template_joiner, w=w_template_joiner, w1=ext.y, w2=ext.y, t=t_leather, l1=ext.x * 2, ratio=0);
 }
 
 module template_joiner_tongue(ext, c) {
   if (!fold && !two_piece_wall)
     color(c=c)
-      translate(v=[0, 0, -(ext.z + b_template_joiner.z) / 2])
-        cube(size=b_template_joiner + [dxy_template_joiner, 0, 0], center=true);
+      translate(v=[l_template_joiner / 2, ext.y / 4, ( -ext.z - t_leather) / 2])
+        dove_tail(a_tail=a_template_joiner, l=l_template_joiner, w=w_template_joiner, w1=1, w2=1, t=t_leather, l1=1, ratio=0);
 }
 
 module mask_liner_holes_long(ext, int) {
@@ -988,41 +1000,37 @@ module leather_wall_front(cp) {
   ext = ext_main;
   int = int_main;
 
-  difference() {
-    union() {
-      difference() {
-        rotate(a=fold ? 0 : 180, v=[1, 0, 0])
-          rotate(a=fold ? 0 : 180, v=[0, 0, 1])
-            translate(v=fold ? [0, 0, 0] : [ext.x / 2 + r_end_quant * PI / 2, 0, 0])
-              difference() {
-                mirror(v=[0, 0, 1]) {
-                  leather_wall_end(ext=ext_main, cp=cp);
-                  leather_wall_long(ext=ext_main, int=int, cp=cp, hinge=false, a_wide=a_stitch);
+  intersection() {
+    difference() {
+      rotate(a=fold ? 0 : 180, v=[1, 0, 0])
+        rotate(a=fold ? 0 : 180, v=[0, 0, 1])
+          translate(v=fold ? [0, 0, 0] : [ext.x / 2 + r_end_quant * PI / 2, 0, 0]) {
+            mirror(v=[0, 0, 1]) {
+              leather_wall_end(ext=ext_main, cp=cp);
+              leather_wall_long(ext=ext_main, int=int, cp=cp, hinge=false, a_wide=a_stitch);
 
-                  color(c=cp[0])
-                    leather_wall_foldover_edge(ext=ext_main, hinge=false, w=t_wall + t_leather, dz_magnet=0);
+              color(c=cp[0])
+                leather_wall_foldover_edge(ext=ext_main, hinge=false, w=t_wall + t_leather, dz_magnet=0);
 
-                  color(c=cp[1])
-                    leather_wall_foldover_inner(ext=ext_main, int=int, hinge=false);
-                }
+              color(c=cp[1])
+                leather_wall_foldover_inner(ext=ext_main, int=int, hinge=false);
+            }
+          }
 
-                translate(v=[0, 0, ext_main.z / 2 + t_leather])
-                  mask_leather_text(t="F");
-              }
+      translate(v=[-ext.z * 2, 0, -ext.z / 2 - t_leather])
+        mirror(v=[0, 1, 0])
+          mask_leather_text(t="F");
 
-        for (i = [-1, 1])
-          translate(v=[-b_template_joiner.x / 2, i * ext.y / 4, 0])
-            mask_template_joiner_socket(ext=ext);
-
-        if (!fold && !two_piece_wall)
-          translate(v=[0, 0, -(ext.z + b_template_joiner.z) / 2])
-            cube(size=[dxy_template_joiner, ext.y, b_template_joiner.z], center=true);
-      }
-
-      translate(v=[(b_template_joiner.x - dxy_template_joiner) / 2, 0, 0])
-        template_joiner_tongue(ext, c=cp[1]);
+      mask_template_joiner_line(ext);
     }
 
+    mask_template_joiner_tongue(ext);
+
+    mask_template_joiner_socket(ext);
+  }
+
+  difference() {
+    template_joiner_tongue(ext, c=cp[0]);
     mask_template_joiner_line(ext);
   }
 }
@@ -1031,42 +1039,38 @@ module leather_wall_back(cp) {
   ext = ext_main;
   int = int_main;
 
-  difference() {
-    union() {
-      difference() {
-        translate(v=fold ? [0, 0, 0] : [ext.x / 2 + r_end_quant * PI / 2, 0, 0])
-          difference() {
-            union() {
-              leather_wall_end(ext=ext, cp=cp);
-              leather_wall_long(ext=ext, int=int, cp=cp, hinge=true, a_wide=a_stitch);
+  intersection() {
+    difference() {
+      translate(v=fold ? [0, 0, 0] : [ext.x / 2 + r_end_quant * PI / 2, 0, 0]) {
+        leather_wall_end(ext=ext, cp=cp);
+        leather_wall_long(ext=ext, int=int, cp=cp, hinge=true, a_wide=a_stitch);
 
-              color(c=cp[0])
-                leather_wall_foldover_edge(ext=ext, hinge=true, w=t_wall - t_foldover + 2 * t_leather, dz_magnet=dy_magnet_back_disc);
+        color(c=cp[0])
+          leather_wall_foldover_edge(ext=ext, hinge=true, w=t_wall - t_foldover + 2 * t_leather, dz_magnet=dy_magnet_back_disc);
 
-              color(c=cp[1])
-                leather_wall_foldover_inner(ext=ext, int=int, hinge=true);
-            }
-
-            translate(v=[0, 0, -ext.z / 2 - t_leather])
-              mirror(v=[0, 1, 0])
-                mask_leather_text(t="B");
-          }
-
-        translate(v=[b_template_joiner.x / 2, 0, 0])
-          mask_template_joiner_socket(ext=ext);
-
-        if (!fold && !two_piece_wall)
-          translate(v=[0, 0, -(ext.z + b_template_joiner.z) / 2])
-            cube(size=[dxy_template_joiner, ext.y, b_template_joiner.z], center=true);
+        color(c=cp[1])
+          leather_wall_foldover_inner(ext=ext, int=int, hinge=true);
       }
 
-      for (i = [-1, 1])
-        translate(v=[( -b_template_joiner.x + dxy_template_joiner) / 2, i * ext.y / 4, 0])
-          template_joiner_tongue(ext, c=cp[1]);
+      translate(v=[ext.z * 2, 0, -ext.z / 2 - t_leather])
+        mirror(v=[0, 1, 0])
+          mask_leather_text(t="B");
+
+      mask_template_joiner_line(ext);
     }
 
-    mask_template_joiner_line(ext);
+    rotate(a=180, v=[0, 0, 1])
+      mask_template_joiner_tongue(ext);
+
+    rotate(a=180, v=[0, 0, 1])
+      mask_template_joiner_socket(ext);
   }
+
+  rotate(a=180, v=[0, 0, 1])
+    difference() {
+      template_joiner_tongue(ext, c=cp[1]);
+      mask_template_joiner_line(ext);
+    }
 }
 
 module foldover_edge(ext, ay_hinge) {
