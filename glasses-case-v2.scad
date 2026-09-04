@@ -6,6 +6,8 @@ include <lib/joints.scad>
 // TODO
 // chamfer final stitch on lid long, missing hole
 // smaller final stitch chamfers
+// ensure t_leather_overhang functions correctly on ends
+// leather lid side rewrite
 
 /* [Show Shell] */
 show_back = true;
@@ -680,10 +682,7 @@ module leather_lid_wall(cp) {
   ext = ext_lid;
   int = int_lid;
 
-  // same as foldover
-  w_interior = int.y - chamfer_int_lid;
-
-  module exterior_back() {
+  module back() {
     tr_back =
       fold ? [0, 0, 0]
       : [ext.x / 2 + r_end_quant * PI / 2, 0, ext.z + t_leather];
@@ -706,7 +705,7 @@ module leather_lid_wall(cp) {
       }
   }
 
-  module exterior_front() {
+  module front() {
     tr_front =
       fold ? [0, 0, 0]
       : [ext.x / 2 + r_end_quant * PI / 2, 0, 0];
@@ -724,35 +723,31 @@ module leather_lid_wall(cp) {
     }
   }
 
-  module interior_unfolded(cp) {
-    s = [int.z * PI / 2 - hinge_inset_stitches / 2, w_interior, t_leather];
+  // approximate, a bit long, needs manually marked holes
+  module interior(cp) {
+    s = [
+      int.z * PI / 2 - hinge_inset_stitches,
+      int.y - chamfer_int_lid,
+      t_leather,
+    ];
 
-    dx = s.x / 2 + r_end_quant * PI / 2 + int.x + t_wall + chamfer_int_lid / 2 + hinge_inset_dx * 3 / 4;
-
-    difference() {
-      translate(v=[dx, 0, (ext.z + s.z) / 2]) {
-        difference() {
-          union() {
-            color(c=cp[0])
-              cube(size=s, center=true);
-          }
-
-          mask_stitches_wide(ext=ext, az=a_stitch, dx=-s.x / 2, dz=0);
-
-          // we are already truncated half a stitch inset
-          mask_stitches_wide(ext=ext, az=a_stitch, dx=s.x / 2 - hinge_inset_stitches / 2, dz=0);
-        }
-      }
-    }
+    color(c=cp[0])
+      translate(
+        v=[
+          s.x / 2 + r_end_quant * PI / 2 + int.x + t_leather + t_wall + w_foldover + t_leather,
+          0,
+          (ext.z + s.z) / 2,
+        ]
+      )
+        cube(size=s, center=true);
   }
 
-  exterior_front();
+  front();
 
-  exterior_back();
+  back();
 
-  // TODO position, add as extra foldover inner width
   if (!fold)
-    interior_unfolded(cp=cp);
+    interior(cp=cp);
 }
 
 module front() {
