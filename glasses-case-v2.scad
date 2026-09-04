@@ -707,7 +707,7 @@ module leather_lid_wall(cp) {
             a_wide=-a_stitch
           );
 
-        leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=true, t_foldover=0, chamfer_int=chamfer_int_lid, a_hinge=a_hinge_lid);
+        leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=true, t_foldover=0, chamfer_int=chamfer_int_main, a_hinge=a_hinge_lid);
       }
   }
 
