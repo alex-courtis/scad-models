@@ -192,9 +192,8 @@ echo(hinge_inset_dz=hinge_inset_dz);
 hinge_inset_stitches = round_nearest(hinge_inset_dx, stitch_spacing);
 echo(hinge_inset_stitches=hinge_inset_stitches);
 
-// TODO remove
-dx_magnet_back_disc = magnet_back_disc ? t_magnet_back_disc / 4 / cos(a_open / 2) : 0;
-dy_magnet_back_disc = magnet_back_disc ? t_magnet_back_disc / 2 / sin(a_open / 2) : 0;
+w_foldover_hinge = w_foldover - hinge_inset_dx + hinge_inset_stitches;
+echo(w_foldover_hinge=w_foldover_hinge);
 
 module dbg_stiches() { if (debug_stitches) #children(); else children(); }
 module dbg_hinges() { if (debug_hinges) #children(); else children(); }
@@ -783,7 +782,7 @@ module back() {
     dbg_magnets() mask_magnets_back(ext=ext_main, int=int_main, dz=t_foldover / 2);
 
     translate(v=[-hinge_inset_dx, 0, 0]) {
-      dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
+      dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover_hinge, t=t_foldover);
       dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=0, t=t_wall);
     }
 
@@ -880,7 +879,7 @@ module leather_wall_foldover(cp, ext, int, hinge, t_foldover, chamfer_int, a_hin
   dw_inner = -chamfer_int / 2 - t_foldover;
 
   b_finner = [
-    w_foldover + t_leather + dw_inner,
+    (hinge ? w_foldover_hinge : w_foldover) + t_leather + dw_inner,
     y_edge_top,
     t_leather,
   ];
