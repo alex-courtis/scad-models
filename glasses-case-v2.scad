@@ -130,7 +130,7 @@ z_pivot_hinge = 2.75; // [0:0.01:5]
 w_template_joiner = 0.4 * 40;
 l_template_joiner = 0.4 * 30;
 a_template_joiner = 12.5;
-g_pin_template_joiner = 0.18; // [0:0.001:2]
+g_pin_template_joiner = 0.005; // [0:0.001:2]
 g_shoulder_template_joiner = 0.055; // [0:0.001:2]
 
 /* [Tuning] */
