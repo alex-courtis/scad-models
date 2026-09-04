@@ -7,7 +7,6 @@ include <lib/joints.scad>
 // chamfer final stitch on lid long, missing hole
 // smaller final stitch chamfers
 // ensure t_leather_overhang functions correctly on ends
-// leather lid side rewrite
 
 /* [Show Shell] */
 show_back = true;
@@ -1026,7 +1025,7 @@ module leather_wall_back(cp) {
     }
 }
 
-module leather_side_foldover(cp, ext, int, ay_hinge, chamfer_int) {
+module leather_side_foldover(cp, ext, int, t_foldover, ay_hinge, chamfer_int) {
   l_out = ext.z + t_leather_overhang * 2;
   l_in = l_out - 2 * t_wall - chamfer_int;
 
@@ -1147,7 +1146,7 @@ module leather_side(ext, int, cp) {
 module leather_main_side(cp) {
   leather_side(ext=ext_main, int=int_main, cp=cp);
 
-  leather_side_foldover(cp=cp, ext=ext_main, int=int_main, ay_hinge=a_hinge_main, chamfer_int=chamfer_int_main);
+  leather_side_foldover(cp=cp, ext=ext_main, int=int_main, t_foldover=t_foldover, ay_hinge=a_hinge_main, chamfer_int=chamfer_int_main);
 }
 
 module leather_main_side_left(cp) {
@@ -1172,26 +1171,31 @@ module leather_lid_side(cp) {
         translate(v=fold ? [0, 0, 0] : -folded)
           translate(v=folded)
             difference() {
-              union() {
-                color(c=cp[1])
-                  translate(v=[0, 0, 0])
-                    cube(size=[int.x, t_leather, int.z], center=true);
-
-                color(c=cp[0])
-                  translate(v=[-int.x / 2, 0, 0])
-                    rotate(a=90, v=[1, 0, 0])
-                      left_half()
-                        cylinder(h=t_leather, d=int.z, center=true);
-              }
+              color(c=cp[0])
+                translate(v=[-int.x / 2, 0, 0])
+                  rotate(a=90, v=[1, 0, 0])
+                    left_half()
+                      cylinder(h=t_leather, d=int.z - chamfer_int_lid, center=true);
               mask_stitches_deep(ext=ext, ay=-a_stitch, dy=0);
             }
   }
 
   leather_side(ext=ext, int=int, cp=cp);
 
-  // TODO use leather_side_foldover
-  color(c=cp[0])
-    foldover_edge(ext=ext, ay_hinge=a_hinge_lid, chamfer_int=chamfer_int_main);
+  intersection() {
+    leather_side_foldover(cp=cp, ext=ext, int=int, t_foldover=0, ay_hinge=a_hinge_lid, chamfer_int=chamfer_int_lid);
+    union() {
+      interior();
+      if (fold) {
+        translate(v=[t_leather / 2, 0, 0])
+          cube(size=ext + [t_leather, t_leather * 2, 0], center=true);
+      } else {
+        x = 2 * (ext.x + t_leather) + t_side;
+        translate(v=[(x - ext.x) / 2, 0, 0])
+          cube(size=[x, 2 * ext.y, 2 * ext.z], center=true);
+      }
+    }
+  }
 
   interior();
 }
