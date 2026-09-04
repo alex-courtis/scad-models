@@ -15,8 +15,8 @@ show_leather_main_left = true;
 show_leather_main_right = false;
 
 /* [Show Leather Lid] */
-show_leather_lid_wall = false;
-show_leather_lid_left = false;
+show_leather_lid_wall = true;
+show_leather_lid_left = true;
 show_leather_lid_right = false;
 
 /* [Show] */
@@ -96,8 +96,8 @@ t_magnet_front = 4.15; // [0:0.05:10]
 n_magnets_back = 5; // [0:1:5]
 
 magnet_back_disc = true;
-d_magnet_back_disc = 4.2; // [0:0.05:10]
-t_magnet_back_disc = 3; // [0:0.05:10]
+d_magnet_back_disc = 5.2; // [0:0.05:10]
+t_magnet_back_disc = 2; // [0:0.05:10]
 
 magnet_back_bar = false;
 b_magnet_back_bar = [2.2, 10.5, 5];
