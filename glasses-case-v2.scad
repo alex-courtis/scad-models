@@ -43,7 +43,7 @@ debug_dz_slice = 0; // [-50:0.1:0]
 // x excludes the rounded ends
 // x, y quantized for linear hole spacing
 // z quantized for curved hole spacing, arc outside of leather
-int_main_target = [125, 55, 36];
+int_main_target = [120, 55, 36];
 
 t_side = 4.0; // [0:0.05:10]
 t_wall = 3.5; // [0:0.05:10]
