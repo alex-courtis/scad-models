@@ -51,7 +51,7 @@ t_wall = 3.5; // [0:0.05:10]
 chamfer_ext = 1; // [0:0.05:5]
 chamfer_ext_magnet_hinge = 2.0; // [0:0.05:5]
 chamfer_int_main = 2.0; // [0:0.05:5]
-chamfer_int_lid = 0.4; // [0:0.05:5]
+chamfer_int_lid = 0.6; // [0:0.05:5]
 
 t_leather = 0.8; // [0.05:0.05:5]
 t_leather_overhang = 0.0; // [0:0.05:5]
@@ -522,7 +522,7 @@ module shell_long(ext, int, hinge, chamfer_int) {
 
     for (i = [-1, 1]) {
       translate(v=[0, i * ext.y / 2, -ext.z / 2]) {
-        if(x1 < x0 + stitch_spacing)
+        if (x1 < x0 + stitch_spacing)
           translate(v=[0, i * dyz_long, -dyz_long])
             mask_stitches_long(ax=i * -45, az=0, x0=x0, x1=x1);
 
@@ -622,20 +622,25 @@ module shell_lid_back(cp) {
 
       for (i = [-1, 1])
         intersection() {
-          translate(v=[-int_lid.z / 2 + int_lid.x / 2, 0, 0])
-            cube(size=[int_lid.z, int_lid.y, int_lid.z], center=true);
+          union() {
+            cube(size=int_lid, center=true);
+            translate(v=[-int_lid.x / 2, 0, 0])
+              rotate(a=90, v=[1, 0, 0])
+                left_half()
+                  cylinder(d=int_lid.z, h=int_lid.y, center=true);
+          }
 
-          l_sheath = l_hinge * 1.4;
-          translate(v=[ext_lid.x / 2 + pivot_hinge.x, i * (ext_lid.y / 2 + pivot_hinge.y), -ext_lid.z / 2 + pivot_hinge.z])
-            rotate(a=a_hinge_lid - 90, v=[0, 1, 0])
-              translate(v=[0, 0, l_sheath / 2])
-                cyl(d1=t_side + chamfer_int_main, d2=0, l=l_sheath);
+          translate(v=[int_lid.x / 2, i * int_lid.y / 2 + i * chamfer_int_main / 2, -int_lid.z / 2 - chamfer_int_main / 2])
+            rotate(a=a_hinge_lid, v=[0, 1, 0])
+              translate(v=[-l_hinge / 2, 0, 0])
+                rotate(a=45, v=[1, 0, 0])
+                  cube(size=[l_hinge, chamfer_int_main * sqrt(2) * 2, chamfer_int_main * sqrt(2) * 2], center=true);
         }
     }
 
     for (i = [-1, 1])
       translate(v=[-ext_lid.x / 2, i * ext_lid.y / 2 + i * chamfer_ext_magnet_hinge / 2, -ext_lid.z / 2 - chamfer_ext_magnet_hinge / 2])
-        rotate(a=a_hinge_lid / 3, v=[0, 1, 0])
+        rotate(a=a_hinge_lid / 2, v=[0, 1, 0])
           rotate(a=90, v=[0, 1, 0])
             chamfer_edge_mask(h=ext_lid.z, chamfer=chamfer_ext_magnet_hinge * 2, orient=BOTTOM, excess=0);
 
