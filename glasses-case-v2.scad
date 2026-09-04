@@ -3,11 +3,6 @@ include <lib/geom.scad>
 include <lib/colours.scad>
 include <lib/joints.scad>
 
-// TODO
-// chamfer final stitch on lid long, missing hole
-// smaller final stitch chamfers
-// ensure t_leather_overhang functions correctly on ends
-
 /* [Show Shell] */
 show_back = true;
 show_front = false;
@@ -53,7 +48,8 @@ int_main_target = [125, 55, 36];
 t_side = 4.0; // [0:0.05:10]
 t_wall = 3.5; // [0:0.05:10]
 
-chamfer_ext = 1; // [0:0.05:2]
+chamfer_ext = 1; // [0:0.05:5]
+chamfer_ext_magnet_hinge = 2.0; // [0:0.05:5]
 chamfer_int_main = 2.0; // [0:0.05:5]
 chamfer_int_lid = 0.4; // [0:0.05:5]
 
@@ -64,6 +60,8 @@ t_foldover = 1.8; // [0:0.05:15]
 w_foldover = 6.5; // [0:0.05:15]
 
 chamfer_foldover = 0.8; // [0:0.05:2]
+
+n_lid_holes = 1; // [1:1:10]
 
 gap_half = 1; // [0:0.05:5]
 gap_inset_w = t_side + chamfer_int_main;
@@ -170,7 +168,7 @@ int_main = ext_main - [0, 2 * t_side, 2 * t_wall];
 echo(int_main_target=int_main_target);
 echo(int_main=int_main);
 
-ext_lid = [stitch_inset + stitch_spacing * 0, ext_main.y, ext_main.z];
+ext_lid = [stitch_inset + stitch_spacing * (n_lid_holes - 1), ext_main.y, ext_main.z];
 echo(ext_lid=ext_lid);
 
 int_lid = ext_lid - [0, 2 * t_side, 2 * t_wall];
@@ -247,8 +245,8 @@ module mask_stitches_deep(ext, ay, dy) {
   }
 }
 
-module mask_stitches_quartercircle(ax, ay, az, dy, dz, da_start = 0) {
-  for (a = [-180 + da_start:a_end_quant:-90]) {
+module mask_stitches_quartercircle(ax, ay, az, dy, dz, da_start = 0, da_end = 0) {
+  for (a = [-180 + da_start:a_end_quant:-90 - da_end]) {
     rotate(a=a, v=[0, 1, 0]) {
       translate(v=[0, dy, dz])
         mask_stitch(ax=ax, ay=(a == -90 ? 0 : ay), az=(a == -90 ? 0 : -az));
@@ -477,7 +475,7 @@ module mask_liner_holes_quartercircle(ext, int) {
             cylinder(d=sew_d, h=t_wall * 2, center=true);
 }
 
-module shell_end(ext, int, chamfer_int, da_stitches_start = 0) {
+module shell_end(ext, int, chamfer_int, da_stitches_start = 0, da_stitches_end = 0) {
 
   module mask_stitches() {
     dx = -ext.x / 2;
@@ -486,7 +484,7 @@ module shell_end(ext, int, chamfer_int, da_stitches_start = 0) {
 
     for (i = [-1, 1]) {
       translate(v=[dx, 0, 0])
-        mask_stitches_quartercircle(ax=i * 45, ay=0, az=0, dy=i * dy, dz=dz, da_start=da_stitches_start);
+        mask_stitches_quartercircle(ax=i * 45, ay=0, az=0, dy=i * dy, dz=dz, da_start=da_stitches_start, da_end=da_stitches_end);
     }
   }
 
@@ -513,28 +511,24 @@ module shell_end(ext, int, chamfer_int, da_stitches_start = 0) {
   }
 }
 
-module shell_long(ext, int, hinge, chamfer_int, stitches) {
+module shell_long(ext, int, hinge, chamfer_int) {
 
   module mask_stitches() {
     dyz_long = ( -stitch_inset + t_leather) / 2;
     dyz_end = (stitch_w / 2) / sqrt(2);
-    x0 = ext.x / 2 - stitch_inset - stitch_spacing;
+    x0 = ext.x / 2 - stitch_inset - stitch_spacing - (hinge ? hinge_inset_stitches : 0);
     x1 = -ext.x / 2;
+    x_chamfer = ext.x / 2 - x0 - stitch_spacing + stitch_l / 2;
 
     for (i = [-1, 1]) {
       translate(v=[0, i * ext.y / 2, -ext.z / 2]) {
-        translate(v=[0, i * dyz_long, -dyz_long])
-          mask_stitches_long(ax=i * -45, az=0, x0=x0 - stitch_spacing, x1=x1);
+        if(x1 < x0 + stitch_spacing)
+          translate(v=[0, i * dyz_long, -dyz_long])
+            mask_stitches_long(ax=i * -45, az=0, x0=x0, x1=x1);
 
-        // last two are partial with the end shaved off
-        translate(v=[x0, -i * dyz_end, dyz_end])
-          mask_stitch(ax=i * -45, ay=0, az=0);
-
-        translate(v=[x0 + stitch_spacing, -i * dyz_end, dyz_end])
-          mask_stitch(ax=i * -45, ay=0, az=0);
-
-        translate(v=[x0 + stitch_spacing + stitch_l, -i * dyz_end, dyz_end])
-          mask_stitch(ax=i * -45, ay=0, az=0);
+        translate(v=[(ext.x - x_chamfer) / 2, 0, 0])
+          rotate(a=90, v=[0, 1, 0])
+            chamfer_edge_mask(l=x_chamfer, chamfer=chamfer_ext_magnet_hinge, orient=BOTTOM, excess=0);
       }
 
       mask_stitches_deep(ext=ext, ay=90, dy=i * (ext.y - t_side + t_foldover) / 2);
@@ -577,8 +571,7 @@ module shell_long(ext, int, hinge, chamfer_int, stitches) {
 
     mask_int();
 
-    if (stitches)
-      mask_stitches();
+    mask_stitches();
   }
 }
 
@@ -586,7 +579,7 @@ module shell_main(hinge) {
   difference() {
     union() {
       shell_end(ext=ext_main, int=int_main, chamfer_int=chamfer_int_main);
-      shell_long(ext=ext_main, int=int_main, hinge=hinge, chamfer_int=chamfer_int_main, stitches=true);
+      shell_long(ext=ext_main, int=int_main, hinge=hinge, chamfer_int=chamfer_int_main);
     }
 
     mask_liner_holes_long(ext=ext_main, int=int_main);
@@ -603,12 +596,17 @@ module shell_lid_front(cp) {
   difference() {
     union() {
       color(c=cp[0])
-        shell_end(ext=ext_lid, int=int_lid, chamfer_int=chamfer_int_lid);
+        shell_end(ext=ext_lid, int=int_lid, chamfer_int=chamfer_int_lid, da_stitches_start=a_end_quant);
       color(c=cp[1])
-        shell_long(ext=ext_lid, int=int_lid, hinge=false, chamfer_int=chamfer_int_lid, stitches=false);
+        shell_long(ext=ext_lid, int=int_lid, hinge=false, chamfer_int=chamfer_int_lid);
     }
 
     dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall);
+
+    for (i = [-1, 1])
+      translate(v=[-stitch_inset / 4, i * ext_lid.y / 2 + i * chamfer_ext_magnet_hinge / 2, -ext_lid.z / 2 - chamfer_ext_magnet_hinge / 2])
+        rotate(a=90, v=[0, 1, 0])
+          chamfer_edge_mask(h=ext_lid.x + stitch_inset / 2, chamfer=chamfer_ext_magnet_hinge * 2, orient=BOTTOM, excess=0);
 
     mask_stitches_wide(ext=ext_lid, az=90, dx=ext_lid.x / 2 - stitch_inset, dz=( -ext_lid.z + t_wall - t_foldover) / 2);
   }
@@ -618,9 +616,9 @@ module shell_lid_back(cp) {
   difference() {
     union() {
       color(c=cp[1])
-        shell_end(ext=ext_lid, int=int_lid, chamfer_int=chamfer_int_lid, da_stitches_start=a_end_quant);
+        shell_end(ext=ext_lid, int=int_lid, chamfer_int=chamfer_int_lid, da_stitches_start=a_end_quant * 2);
       color(c=cp[0])
-        shell_long(ext=ext_lid, int=int_lid, hinge=true, chamfer_int=chamfer_int_lid, stitches=false);
+        shell_long(ext=ext_lid, int=int_lid, hinge=true, chamfer_int=chamfer_int_lid);
 
       for (i = [-1, 1])
         intersection() {
@@ -635,6 +633,12 @@ module shell_lid_back(cp) {
         }
     }
 
+    for (i = [-1, 1])
+      translate(v=[-ext_lid.x / 2, i * ext_lid.y / 2 + i * chamfer_ext_magnet_hinge / 2, -ext_lid.z / 2 - chamfer_ext_magnet_hinge / 2])
+        rotate(a=a_hinge_lid / 3, v=[0, 1, 0])
+          rotate(a=90, v=[0, 1, 0])
+            chamfer_edge_mask(h=ext_lid.z, chamfer=chamfer_ext_magnet_hinge * 2, orient=BOTTOM, excess=0);
+
     translate(v=[-hinge_inset_dx, 0, 0])
       dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall);
 
@@ -646,9 +650,8 @@ module shell_lid_back(cp) {
 module lid(cp) {
   difference() {
     union() {
-      mirror(v=[0, 0, 1]) {
+      mirror(v=[0, 0, 1])
         shell_lid_front(cp);
-      }
       shell_lid_back(cp);
     }
 
