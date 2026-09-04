@@ -95,6 +95,8 @@ t_magnet_front = 4.15; // [0:0.05:10]
 
 n_magnets_back = 5; // [0:1:5]
 
+da_magnet_back = -10; // [-20:1:20]
+
 magnet_back_disc = true;
 d_magnet_back_disc = 5.2; // [0:0.05:10]
 t_magnet_back_disc = 2; // [0:0.05:10]
@@ -339,7 +341,7 @@ module mask_magnets_back_disc(ext, int, dz) {
 
   for (y = [-int.y / 2 + dy / 2:dy:int.y / 2 - dy / 2])
     translate(v=[ext.x / 2 - hinge_inset_dx + dx, y, -ext.z / 2 + dz])
-      rotate(a=a_open / 2, v=[0, 1, 0])
+      rotate(a=a_open / 2 + da_magnet_back, v=[0, 1, 0])
         rotate(a=90, v=[0, 0, 1])
           teardrop(h=t_magnet_back_disc, d=d_magnet_back_disc, orient=UP, ang=90);
 }
