@@ -409,7 +409,7 @@ module mask_pins(ext, int) {
     for (x = [-ext.x / 2 + d_pin / 2, 0, ext.x / 2 - w_foldover * 2]) {
       translate(v=[x, i * (ext.y + int.y) / 4, -l_pin / 4])
         cylinder(d=d_pin, h=l_pin / 2, center=true);
-      translate(v=[x, i * ext.y / 2 + t_side / 4, -d_pin * 1.5])
+      translate(v=[x, i * (ext.y / 2 - t_side / 4), -d_pin * 1.5])
         cube(size=[d_pin, t_side / 2, d_pin], center=true);
     }
   }
