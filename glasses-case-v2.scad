@@ -129,11 +129,14 @@ y_pivot_hinge = -3; // [0:0.01:5]
 z_pivot_hinge = 2.75; // [0:0.01:5]
 
 /* [Template] */
-w_template_joiner = 0.4 * 40;
-l_template_joiner = 0.4 * 30;
-a_template_joiner = 12.5;
-g_pin_template_joiner = 0.005; // [0:0.001:2]
-g_shoulder_template_joiner = 0.055; // [0:0.001:2]
+w_template_joiner = 12; // [0:1:20]
+l_template_joiner = 8; // [0:1:20]
+a_template_joiner = 12.5; // [1:0.5:40]
+g_pin_template_joiner = 0.010; // [0:0.001:0.2]
+g_shoulder_template_joiner = 0.040; // [0:0.001:0.2]
+r_edge_template_joiner = 0.5; // [0:0.001:2]
+
+l_template_joiner_tail = l_template_joiner - r_edge_template_joiner - g_shoulder_template_joiner / 2;
 
 /* [Tuning] */
 
@@ -423,30 +426,66 @@ module mask_template_joiner_line(ext) {
 }
 
 module mask_template_joiner_socket(ext) {
-  if (!fold && !two_piece_wall)
+  mirror(v=[1, 0, 0])
     translate(v=[-l_template_joiner / 2, -ext.y / 5, ( -ext.z - t_leather) / 2]) {
       rotate(a=90, v=[0, 0, 1])
-        dove_socket(a_tail=a_template_joiner, g_pin=g_pin_template_joiner, l=w_template_joiner, w=l_template_joiner, t=t_leather, l1=ext.y, l2=ext.y, ratio=0);
+        dove_socket(
+          l=w_template_joiner,
+          l_tail=l_template_joiner_tail,
+          l1=ext.y,
+          l2=ext.y,
+          w=l_template_joiner,
+          t=t_leather * 2,
+          a_tail=a_template_joiner,
+          ratio=0,
+          g_shoulder=g_shoulder_template_joiner,
+          g_pin=g_pin_template_joiner,
+          r_edge=r_edge_template_joiner,
+        );
       translate(v=[-ext.x - l_template_joiner / 2, 0, 0])
-        cube(size=[ext.x * 2, ext.y * 2, t_leather], center=true);
+        cube(size=[ext.x * 2, ext.y * 2 + w_template_joiner, t_leather], center=true);
     }
-  else
-    cube(size=[ext.x * 3, ext.y * 2, ext.z * 2], center=true);
 }
 
-module mask_template_joiner_tongue(ext) {
-  if (!fold && !two_piece_wall)
+module template_joiner_tongue(ext, mask) {
+  mirror(v=[1, 0, 0])
     translate(v=[l_template_joiner / 2, ext.y / 5, ( -ext.z - t_leather) / 2])
-      dove_tail(a_tail=a_template_joiner, g_shoulder=g_shoulder_template_joiner, l=l_template_joiner, w=w_template_joiner, w1=ext.y, w2=ext.y, t=t_leather, l1=ext.x * 2, ratio=0);
-  else
-    cube(size=[ext.x * 3, ext.y * 2, ext.z * 2], center=true);
+      dove_tail(
+        l=l_template_joiner,
+        l_tail=l_template_joiner_tail,
+        l1=mask ? ext.x * 2 : 2,
+        w=w_template_joiner,
+        w1=mask ? ext.y : 0,
+        w2=mask ? ext.y : 0,
+        t=mask ? t_leather * 2 : t_leather,
+        a_tail=a_template_joiner,
+        ratio=0,
+        g_shoulder=mask ? g_shoulder_template_joiner / 2 : g_shoulder_template_joiner, // only half to the edge as we only want g_shoulder_template_joiner between edges
+        r_edge=r_edge_template_joiner,
+      );
 }
 
-module template_joiner_tongue(ext, c) {
-  if (!fold && !two_piece_wall)
-    color(c=c)
-      translate(v=[l_template_joiner / 2, ext.y / 5, ( -ext.z - t_leather) / 2])
-        dove_tail(a_tail=a_template_joiner, g_shoulder=g_shoulder_template_joiner, l=l_template_joiner, w=w_template_joiner, w1=0, w2=0, t=t_leather, l1=2, ratio=0);
+module template_joiners(cp, ext) {
+  if (!fold && !two_piece_wall) {
+    difference() {
+      union() {
+        intersection() {
+          children();
+
+          template_joiner_tongue(ext=ext, mask=true);
+
+          mask_template_joiner_socket(ext=ext);
+        }
+
+        color(c=cp[1])
+          template_joiner_tongue(ext=ext);
+      }
+
+      mask_template_joiner_line(ext=ext);
+    }
+  } else {
+    children();
+  }
 }
 
 module mask_liner_holes_long(ext, int) {
@@ -977,60 +1016,27 @@ module leather_wall_front(cp) {
   ext = ext_main;
   int = int_main;
 
-  intersection() {
-    difference() {
-      rotate(a=fold ? 0 : 180, v=[1, 0, 0])
-        rotate(a=fold ? 0 : 180, v=[0, 0, 1])
-          translate(v=fold ? [0, 0, 0] : [ext.x / 2 + r_end_quant * PI / 2, 0, 0]) {
-            mirror(v=[0, 0, 1]) {
-              leather_wall_end(ext=ext_main, cp=cp);
-              leather_wall_long(ext=ext_main, cp=cp, hinge=false, a_wide=a_stitch);
+  rotate(a=fold ? 0 : 180, v=[0, 0, 1])
+    rotate(a=fold ? 180 : 0, v=[1, 0, 0])
+      template_joiners(cp=cp, ext)
+        translate(v=fold ? [0, 0, 0] : [ext.x / 2 + r_end_quant * PI / 2, 0, 0]) {
+          leather_wall_end(ext=ext_main, cp=cp);
+          leather_wall_long(ext=ext_main, cp=cp, hinge=false, a_wide=a_stitch);
 
-              leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=false, t_foldover=t_foldover, chamfer_int=chamfer_int_main, a_hinge=a_hinge_main);
-            }
-          }
-
-      mask_template_joiner_line(ext);
-    }
-
-    mask_template_joiner_tongue(ext);
-
-    mask_template_joiner_socket(ext);
-  }
-
-  difference() {
-    template_joiner_tongue(ext, c=cp[0]);
-    mask_template_joiner_line(ext);
-  }
+          leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=false, t_foldover=t_foldover, chamfer_int=chamfer_int_main, a_hinge=a_hinge_main);
+        }
 }
 
 module leather_wall_back(cp) {
   ext = ext_main;
   int = int_main;
 
-  intersection() {
-    difference() {
-      translate(v=fold ? [0, 0, 0] : [ext.x / 2 + r_end_quant * PI / 2, 0, 0]) {
-        leather_wall_end(ext=ext, cp=cp);
-        leather_wall_long(ext=ext, cp=cp, hinge=true, a_wide=a_stitch);
+  template_joiners(cp=cp, ext)
+    translate(v=fold ? [0, 0, 0] : [ext.x / 2 + r_end_quant * PI / 2, 0, 0]) {
+      leather_wall_end(ext=ext, cp=cp);
+      leather_wall_long(ext=ext, cp=cp, hinge=true, a_wide=a_stitch);
 
-        leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=true, t_foldover=t_foldover, chamfer_int=chamfer_int_main, a_hinge=a_hinge_main);
-      }
-
-      mask_template_joiner_line(ext);
-    }
-
-    rotate(a=180, v=[0, 0, 1])
-      mask_template_joiner_tongue(ext);
-
-    rotate(a=180, v=[0, 0, 1])
-      mask_template_joiner_socket(ext);
-  }
-
-  rotate(a=180, v=[0, 0, 1])
-    difference() {
-      template_joiner_tongue(ext, c=cp[1]);
-      mask_template_joiner_line(ext);
+      leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=true, t_foldover=t_foldover, chamfer_int=chamfer_int_main, a_hinge=a_hinge_main);
     }
 }
 
