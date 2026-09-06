@@ -3,6 +3,9 @@ include <lib/geom.scad>
 include <lib/colours.scad>
 include <lib/joints.scad>
 
+// TODO
+// if end leather is too long, subtract t_leather from r_end_quant when calculating end leather length - use ext.z
+
 /* [Show Shell] */
 show_back = true;
 show_front = false;
@@ -120,7 +123,7 @@ a_open = 110; // [0:1:180]
 a_hinge_main = 2; // [0:1:50]
 a_hinge_lid = 14; // [0:1:50]
 
-gap_hinge_jig = 0.3; // [0:0.01:1]
+gap_hinge_jig = 0.1; // [0:0.01:1]
 
 // relative to ext.y/2
 y_pivot_hinge = -3; // [0:0.01:5]
@@ -357,7 +360,7 @@ module mask_magnets_back(ext, int, dz) {
     mask_magnets_back_disc(ext, int, dz);
 }
 
-module mask_hinge_pin(ext, d = d_hinge, ay, teardrop, channel) {
+module mask_hinge_pin(ext, ay, teardrop, channel = false) {
   tr = [
     ext.x / 2 + pivot_hinge.x,
     ext.y / 2 + pivot_hinge.y,
@@ -366,19 +369,20 @@ module mask_hinge_pin(ext, d = d_hinge, ay, teardrop, channel) {
 
   for (i = [-1, 1]) {
     translate(v=vector_multiply_vector(tr, [1, i, 1])) {
-      if (channel) {
-        color(c="yellow")
-          cube(size=[d, d, ext.z * 2], center=true);
-      } else {
-        color(c="limegreen")
-          rotate(a=ay, v=[0, 1, 0])
+      rotate(a=ay, v=[0, 1, 0]) {
+        if (channel) {
+          color(c="yellow")
+            cube(size=[l_hinge, d_hinge, d_hinge], center=true);
+        } else {
+          color(c="limegreen")
             translate(v=[-l_hinge / 4 + 0, 0, 0])
               rotate(a=90, v=[0, 0, 1])
-                teardrop(h=l_hinge / 2, d=d, ang=(teardrop ? 45 : 90));
+                teardrop(h=l_hinge / 2, d=d_hinge, ang=(teardrop ? 45 : 90));
+        }
       }
 
       color(c="red")
-        sphere(d=d);
+        sphere(d=d_hinge);
     }
   }
 }
@@ -706,7 +710,7 @@ module lid(cp) {
 
     dbg_magnets() mask_magnets_back(ext=ext_lid, int=int_lid, dz=t_wall / 2);
 
-    dbg_hinges() mask_hinge_pin(ext=ext_lid, d=d_hinge, ay=a_hinge_lid, teardrop=false);
+    dbg_hinges() mask_hinge_pin(ext=ext_lid, ay=a_hinge_lid, teardrop=false);
 
     dbg_gaps() mask_hinge_chamfer(ext=ext_lid, int=int_lid);
 
@@ -816,7 +820,7 @@ module back() {
   difference() {
     shell_main(hinge=true);
 
-    dbg_hinges() mask_hinge_pin(ext=ext_main, d=d_hinge, ay=a_hinge_main, teardrop=true);
+    dbg_hinges() mask_hinge_pin(ext=ext_main, ay=a_hinge_main, teardrop=true);
 
     dbg_gaps() mask_hinge_chamfer(ext=ext_main, int=int_main);
 
@@ -951,7 +955,7 @@ module leather_wall_foldover(cp, ext, int, hinge, t_foldover, chamfer_int, a_hin
               }
             }
             if (hinge)
-              mask_hinge_pin(ext=ext, d=d_hinge, ay=a_hinge, teardrop=false);
+              mask_hinge_pin(ext=ext, ay=a_hinge, teardrop=false);
           }
   }
 
@@ -1085,7 +1089,7 @@ module leather_side_foldover(cp, ext, int, t_foldover, ay_hinge, chamfer_int) {
                 rotate(a=90, v=[1, 0, 0])
                   linear_extrude(h=t_leather, center=true)
                     polygon(p_fedge);
-            mask_hinge_pin(ext=ext, d=d_hinge, ay=ay_hinge, teardrop=false);
+            mask_hinge_pin(ext=ext, ay=ay_hinge, teardrop=false);
           }
   }
 
@@ -1308,23 +1312,27 @@ module liner_template(ext, int, cp) {
 module hinge_jig() {
   ext = ext_main;
 
-  body = [d_hinge * 1.5, ext.y + gap_hinge_jig * 2, ext.z];
-  side = [body.x * 2, d_hinge * 1.5, body.z];
+  z_extra = l_hinge / 8;
 
-  difference() {
-    translate(v=[ext.x / 2 + body.x / 2, 0, -ext.z / 2 + body.z / 4]) {
-      cube(size=body, center=true);
+  body = [l_hinge / 2 * sin(a_open / 2), ext.y + d_hinge, ext.z / 2 + z_extra];
 
-      translate(v=[(body.x - side.x) / 2, 0, 0]) {
-        translate(v=[0, (body.y + side.y) / 2, 0])
-          cube(size=side, center=true);
-        translate(v=[0, -(body.y + side.y) / 2, 0])
-          cube(size=side, center=true);
+  color(c="tan")
+    difference() {
+      translate(v=[ext.x / 2 + body.x / 2 + gap_hinge_jig, 0, -body.z / 2]) {
+        difference() {
+          cube(size=body, center=true);
+
+          #translate(v=[-body.x / 2, 0, -body.z / 2])
+            rotate(a=90, v=[1, 0, 0])
+              chamfer_edge_mask(h=body.y, chamfer=hinge_inset_dz + z_extra, orient=BOTTOM, excess=0);
+
+          cube(size=[body.x, body.y - t_wall * 4 - d_hinge, body.z / 2], center=true);
+        }
       }
-    }
 
-    mask_hinge_pin(ext=ext, d=d_hinge + gap_hinge_jig, ay=-90, teardrop=false, channel=true);
-  }
+      dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90 + a_open / 2, teardrop=false);
+      dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180 + a_open / 2, teardrop=false, channel=true);
+    }
 }
 
 module slice() {
