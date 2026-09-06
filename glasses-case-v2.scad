@@ -108,7 +108,7 @@ magnet_back_bar = false;
 b_magnet_back_bar = [2.2, 10.5, 5];
 
 /* [Hinges] */
-d_hinge = 3.55; // [0:0.05:10]
+d_hinge = 3.60; // [0:0.05:10]
 l_hinge = 22.5; // [0:0.05:100]
 
 // shell to shell
@@ -372,7 +372,7 @@ module mask_hinge_pin(ext, ay, teardrop, channel = false) {
       rotate(a=ay, v=[0, 1, 0]) {
         if (channel) {
           color(c="yellow")
-            cube(size=[l_hinge, d_hinge, d_hinge], center=true);
+            cube(size=[l_hinge * 2, d_hinge, d_hinge], center=true);
         } else {
           color(c="limegreen")
             translate(v=[-l_hinge / 4 + 0, 0, 0])
@@ -1312,9 +1312,9 @@ module liner_template(ext, int, cp) {
 module hinge_jig() {
   ext = ext_main;
 
-  z_extra = l_hinge / 8;
+  z_extra = ext.z / 8;
 
-  body = [l_hinge / 2 * sin(a_open / 2), ext.y + d_hinge, ext.z / 2 + z_extra];
+  body = [l_hinge / 2 + d_hinge, ext.y + d_hinge, ext.z / 2 + z_extra];
 
   color(c="tan")
     difference() {
@@ -1322,11 +1322,12 @@ module hinge_jig() {
         difference() {
           cube(size=body, center=true);
 
-          #translate(v=[-body.x / 2, 0, -body.z / 2])
+          translate(v=[-body.x / 2, 0, -body.z / 2])
             rotate(a=90, v=[1, 0, 0])
               chamfer_edge_mask(h=body.y, chamfer=hinge_inset_dz + z_extra, orient=BOTTOM, excess=0);
 
-          cube(size=[body.x, body.y - t_wall * 4 - d_hinge, body.z / 2], center=true);
+          translate(v=[0, 0, body.z - ext.z / 6])
+            cube(size=body, center=true);
         }
       }
 
