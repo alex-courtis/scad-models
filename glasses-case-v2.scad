@@ -5,6 +5,7 @@ include <lib/joints.scad>
 
 // TODO
 // if end leather is too long, subtract t_leather from r_end_quant when calculating end leather length - use ext.z
+// reduce a_open so as not to stress hinges
 
 /* [Show Shell] */
 show_back = true;
@@ -109,14 +110,16 @@ b_magnet_back_bar = [2.2, 10.5, 5];
 
 /* [Hinges] */
 d_hinge = 3.50; // [0:0.05:10]
-dd_hinge_shell = 0.1; // [0:0.05:1]
-dd_hinge_jig = 0.15; // [0:0.05:1]
-d_hinge_shell = d_hinge + dd_hinge_shell;
+dd_hinge_main = 0.05; // [0:0.05:1]
+dd_hinge_lid = 0.15; // [0:0.05:1]
+dd_hinge_jig = 0.30; // [0:0.05:1]
+d_hinge_main = d_hinge + dd_hinge_main;
+d_hinge_lid = d_hinge + dd_hinge_lid;
 d_hinge_jig = d_hinge + dd_hinge_jig;
 
 l_hinge = 20; // [0:0.05:100]
-dl_hinge_shell = 1.25; // [0:0.05:1]
-dl_hinge_jig = 0.2; // [0:0.05:1]
+dl_hinge_shell = 1.5; // [0:0.05:1]
+dl_hinge_jig = 0.5; // [0:0.05:1]
 l_hinge_shell = l_hinge + dl_hinge_shell;
 l_hinge_jig = l_hinge + dl_hinge_jig;
 
@@ -719,7 +722,7 @@ module lid(cp) {
 
     dbg_magnets() mask_magnets_back(ext=ext_lid, int=int_lid, dz=t_wall / 2);
 
-    dbg_hinges() mask_hinge_pin(ext=ext_lid, ay=a_hinge_lid, d=d_hinge_shell, l=l_hinge_shell, teardrop=false);
+    dbg_hinges() mask_hinge_pin(ext=ext_lid, ay=a_hinge_lid, d=d_hinge_lid, l=l_hinge_shell, teardrop=false);
 
     dbg_gaps() mask_hinge_chamfer(ext=ext_lid, int=int_lid);
 
@@ -829,7 +832,7 @@ module back() {
   difference() {
     shell_main(hinge=true);
 
-    dbg_hinges() mask_hinge_pin(ext=ext_main, ay=a_hinge_main, d=d_hinge_shell, l=l_hinge_shell, teardrop=true);
+    dbg_hinges() mask_hinge_pin(ext=ext_main, ay=a_hinge_main, d=d_hinge_main, l=l_hinge_shell, teardrop=true);
 
     dbg_gaps() mask_hinge_chamfer(ext=ext_main, int=int_main);
 
@@ -964,7 +967,7 @@ module leather_wall_foldover(cp, ext, int, hinge, t_foldover, chamfer_int, a_hin
               }
             }
             if (hinge)
-              mask_hinge_pin(ext=ext, ay=a_hinge, d=d_hinge_shell, l=l_hinge_shell, teardrop=false);
+              mask_hinge_pin(ext=ext, ay=a_hinge, d=d_hinge_main, l=l_hinge_shell, teardrop=false);
           }
   }
 
@@ -1098,7 +1101,7 @@ module leather_side_foldover(cp, ext, int, t_foldover, ay_hinge, chamfer_int) {
                 rotate(a=90, v=[1, 0, 0])
                   linear_extrude(h=t_leather, center=true)
                     polygon(p_fedge);
-            mask_hinge_pin(ext=ext, ay=ay_hinge, d=d_hinge_shell, l=l_hinge_shell, teardrop=false);
+            mask_hinge_pin(ext=ext, ay=ay_hinge, d=d_hinge_main, l=l_hinge_shell, teardrop=false);
           }
   }
 
@@ -1319,9 +1322,11 @@ module liner_template(ext, int, cp) {
 }
 
 module hinge_jig() {
+  a = 30; // try to stop any slippage when inserting
+
   ext = ext_main;
 
-  body = [l_hinge_jig / 2 + d_hinge_jig, ext.y + d_hinge_jig, ext.z / 2];
+  body = [l_hinge_jig / 2 * sqrt(2) + d_hinge_jig * 2, ext.y + d_hinge_jig, ext.z / 2];
 
   color(c="tan")
     difference() {
@@ -1333,14 +1338,18 @@ module hinge_jig() {
             rotate(a=90, v=[1, 0, 0])
               chamfer_edge_mask(h=body.y, chamfer=hinge_inset_dz, orient=BOTTOM, excess=0);
 
-          #cube(size=[body.x, ext.y - t_side * 2 - chamfer_int_main * 2 - d_hinge_jig, ext.z / 2 - t_side * 2], center=true);
+          cube(size=[body.x, ext.y - t_side * 2 - chamfer_int_main * 2 - d_hinge_jig, ext.z / 2 - t_side * 2], center=true);
         }
       }
+      translate(v=[ext.x / 2 + body.x / 2, 0, -body.z / 2])
+        rotate(a=-a, v=[0, 1, 0])
+          translate(v=[ext.x / 2, 0, 0])
+            cube(size=[ext.x, body.y, ext.z], center=true);
 
-      dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180, d=d_hinge_jig, l=l_hinge_jig, teardrop=false);
+      dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180 - a, d=d_hinge_jig, l=l_hinge_jig, teardrop=false);
 
       translate(v=[0, 0, d_hinge_jig / 2])
-        dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90, d=d_hinge_jig, l=l_hinge_jig, teardrop=false, channel=true);
+        dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90 - a, d=d_hinge_jig, l=l_hinge_jig, teardrop=false, channel=true);
     }
 }
 
