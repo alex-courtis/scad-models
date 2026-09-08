@@ -111,15 +111,15 @@ b_magnet_back_bar = [2.2, 10.5, 5];
 /* [Hinges] */
 d_hinge = 3.50; // [0:0.05:10]
 dd_hinge_pin_main = 0.05; // [0:0.05:1]
-dd_hinge_pin_lid = 0.15; // [0:0.05:1]
-dd_hinge_pin_jig = 0.40; // [0:0.05:1]
+dd_hinge_pin_lid = 0.175; // [0:0.05:1]
+dd_hinge_pin_jig = 0.35; // [0:0.05:1]
 d_hinge_pin_main = d_hinge + dd_hinge_pin_main;
 d_hinge_pin_lid = d_hinge + dd_hinge_pin_lid;
 d_hinge_pin_jig = d_hinge + dd_hinge_pin_jig;
 
 l_hinge = 20; // [0:0.05:100]
-dl_hinge_pin_shell = 0.5; // [0:0.05:1]
-dl_hinge_pin_jig = 0.2; // [0:0.05:1]
+dl_hinge_pin_shell = 1.25; // [0:0.05:1]
+dl_hinge_pin_jig = 0.275; // [0:0.05:1]
 l_hinge_pin_shell = l_hinge + dl_hinge_pin_shell + d_hinge/2;
 l_hinge_pin_jig = l_hinge + dl_hinge_pin_jig + d_hinge/2;
 
