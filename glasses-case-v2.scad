@@ -107,7 +107,7 @@ da_magnet_back = -10; // [-20:1:20]
 
 magnet_back_disc = true;
 d_magnet_back_disc = 5.2; // [0:0.05:10]
-t_magnet_back_disc = 2; // [0:0.05:10]
+t_magnet_back_disc = 3; // [0:0.05:10]
 
 magnet_back_bar = false;
 b_magnet_back_bar = [2.2, 10.5, 5];
