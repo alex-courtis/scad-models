@@ -128,10 +128,10 @@ l_hinge_pin_shell = l_hinge + dl_hinge_pin_shell + d_hinge / 2;
 l_hinge_pin_jig = l_hinge + dl_hinge_pin_jig + d_hinge / 2;
 
 // shell to shell
-clearance_lid = 2.4; // [-1.6:0.05:5]
+clearance_lid = 1.6; // [-1.6:0.05:5]
 
 // shell to shell
-clearance_hinge = 2.2; // [-1.6:0.05:5]
+clearance_hinge = 2.0; // [-1.6:0.05:5]
 
 // maximum angle lid can open
 a_open = 110; // [0:1:180]
