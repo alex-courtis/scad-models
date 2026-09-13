@@ -53,8 +53,8 @@ int_main_target = [120, 55, 36];
 t_side = 4.0; // [0:0.05:10]
 t_wall = 3.5; // [0:0.05:10]
 
-chamfer_ext = 1; // [0:0.05:5]
-chamfer_int_main = 2.0; // [0:0.05:5]
+chamfer_ext = 1.2; // [0:0.05:5]
+chamfer_int_main = 1.6; // [0:0.05:5]
 chamfer_int_lid = 0.6; // [0:0.05:5]
 
 // also rounded r=1.5
@@ -81,7 +81,7 @@ stitch_l = 3.7; // [0:0.1:5]
 stitch_w = 1.7; // [0:0.1:5]
 
 // centre of hole to edge
-stitch_inset = 4; // [0:0.1:10]
+stitch_inset = 3.6; // [0:0.1:10]
 stitch_spacing = 5.2; // [0:0.1:10]
 
 // sides and wall
@@ -549,8 +549,8 @@ module shell_end(ext, int, chamfer_int, da_stitches_start = 0, da_stitches_end =
 
   module mask_stitches() {
     dx = -ext.x / 2;
-    dy = (ext.y) / 2 - stitch_inset / 2 + t_leather / 2;
-    dz = (ext.z) / 2 - stitch_inset / 2 + t_leather / 2;
+    dy = (ext.y) / 2 - stitch_inset / 2;
+    dz = (ext.z) / 2 - stitch_inset / 2;
 
     for (i = [-1, 1]) {
       translate(v=[dx, 0, 0])
@@ -584,7 +584,7 @@ module shell_end(ext, int, chamfer_int, da_stitches_start = 0, da_stitches_end =
 module shell_long(ext, int, hinge, chamfer_int) {
 
   module mask_stitches() {
-    dyz_long = ( -stitch_inset + t_leather) / 2;
+    dyz = -stitch_inset / 2;
     x0 = ext.x / 2 - stitch_inset - stitch_spacing - (hinge ? hinge_inset_stitches : 0);
     x1 = -ext.x / 2;
     x_chamfer = ext.x / 2 - x0 - stitch_spacing + stitch_l / 2;
@@ -592,7 +592,7 @@ module shell_long(ext, int, hinge, chamfer_int) {
     for (i = [-1, 1]) {
       translate(v=[0, i * ext.y / 2, -ext.z / 2]) {
         if (x1 < x0 + stitch_spacing)
-          translate(v=[0, i * dyz_long, -dyz_long])
+          translate(v=[0, i * dyz, -dyz])
             mask_stitches_long(ax=i * -45, az=0, x0=x0, x1=x1);
 
         mirror(v=[0, i == 1 ? 1 : 0, 0])
