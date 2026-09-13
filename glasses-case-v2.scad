@@ -61,7 +61,8 @@ chamfer_int_lid = 0.6; // [0:0.05:5]
 chamfer_ext_magnet_hinge = 2.8; // [0:0.05:5]
 
 t_leather = 0.8; // [0.05:0.05:5]
-t_leather_overhang = 0.0; // [0:0.05:5]
+t_leather_overhang_wall = 0.4; // [0:0.05:5]
+t_leather_overhang_side = 0.4; // [0:0.05:5]
 
 t_foldover = 1.8; // [0:0.05:15]
 w_foldover = 6.5; // [0:0.05:15]
@@ -858,7 +859,7 @@ module back() {
 }
 
 module leather_wall_end(ext, cp) {
-  b_end = [2 * r_end_quant * PI / 4 + t_leather_overhang, ext.y + t_leather_overhang * 2, t_leather];
+  b_end = [2 * r_end_quant * PI / 4 + t_leather_overhang_wall, ext.y + t_leather_overhang_wall * 2, t_leather];
 
   module mask_end_stitches_folded() {
     for (i = [-1, 1])
@@ -880,7 +881,7 @@ module leather_wall_end(ext, cp) {
         mask_stitches_long(ax=0, az=i * a_stitch, x0=x0, x1=x1);
 
     if (two_piece_wall)
-      mask_stitches_wide(ext=ext, az=90, dx=-ext.x / 2 - b_end.x + stitch_spacing / 2 + t_leather_overhang, dz=-ext.z / 2);
+      mask_stitches_wide(ext=ext, az=90, dx=-ext.x / 2 - b_end.x + stitch_spacing / 2 + t_leather_overhang_wall, dz=-ext.z / 2);
   }
 
   module mask_end_stitches() {
@@ -924,7 +925,7 @@ module leather_wall_end(ext, cp) {
 }
 
 module leather_wall_foldover(cp, ext, int, hinge, t_foldover, chamfer_int, a_hinge) {
-  y_edge_bottom = ext.y + t_leather_overhang * 2;
+  y_edge_bottom = ext.y + t_leather_overhang_wall * 2;
   y_edge_top = y_edge_bottom - 2 * t_side - chamfer_int;
 
   b_fedge = [
@@ -1027,7 +1028,7 @@ module leather_wall_long(ext, cp, hinge, a_wide) {
     // midway up hinge chamfer, overhanging end by 1 leather
     dx = hinge ? -hinge_inset_dx / 2 : 0;
     translate(v=[(dx + t_leather) / 2, 0, ( -ext.z - t_leather) / 2])
-      cube([ext.x + dx + t_leather, ext.y + t_leather_overhang * 2, t_leather], center=true);
+      cube([ext.x + dx + t_leather, ext.y + t_leather_overhang_wall * 2, t_leather], center=true);
   }
 
   difference() {
@@ -1067,7 +1068,7 @@ module leather_wall_back(cp) {
 }
 
 module leather_side_foldover(cp, ext, int, t_foldover, ay_hinge, chamfer_int) {
-  l_out = ext.z + t_leather_overhang * 2;
+  l_out = ext.z + t_leather_overhang_side * 2;
   l_in = l_out - 2 * t_wall - chamfer_int;
 
   w_side = t_side + chamfer_int / 2;
@@ -1145,7 +1146,7 @@ module leather_side_foldover(cp, ext, int, t_foldover, ay_hinge, chamfer_int) {
 }
 
 module leather_side(ext, int, cp) {
-  d = ext.z + t_leather_overhang * 2;
+  d = ext.z + t_leather_overhang_side * 2;
 
   dz_stitch = ext.z / 2 - stitch_inset;
 
