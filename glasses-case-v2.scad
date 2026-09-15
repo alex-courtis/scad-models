@@ -38,7 +38,7 @@ debug_pins = false;
 debug_gaps = false;
 debug_foldover = false;
 debug_slice = false;
-debug_dx_slice = 0; // [-200:0.1:0]
+debug_dx_slice = 0; // [-200:0.1:200]
 debug_dy_slice = 0; // [-50:0.1:0]
 debug_dz_slice = 0; // [-50:0.1:0]
 
@@ -123,7 +123,7 @@ d_hinge_pin_jig = d_hinge + dd_hinge_pin_jig;
 
 l_hinge = 20; // [0:0.05:100]
 dl_hinge_pin_shell = 1.25; // [0:0.05:1]
-dl_hinge_pin_jig = 0.275; // [0:0.05:1]
+dl_hinge_pin_jig = 0.325; // [0:0.05:1]
 l_hinge_pin_shell = l_hinge + dl_hinge_pin_shell + d_hinge / 2;
 l_hinge_pin_jig = l_hinge + dl_hinge_pin_jig + d_hinge / 2;
 
@@ -1333,41 +1333,62 @@ module liner_template(ext, int, cp) {
 }
 
 module hinge_jig() {
-  a = 30; // try to stop any slippage when inserting
+  a = 50; // try to stop any slippage when inserting
 
   ext = ext_main;
+  int = int_main;
 
-  body = [l_hinge_pin_jig, ext.y + d_hinge_pin_jig, ext.z / 2];
+  body = [l_hinge_pin_jig / 2, ext.y + d_hinge_pin_jig, ext.z / 2];
 
   color(c="tan")
     difference() {
-      translate(v=[ext.x / 2 + body.x / 2 + gap_hinge_jig, 0, -body.z / 2]) {
-        difference() {
-          cube(size=body, center=true);
+      translate(v=[ext.x / 2 + body.x / 2 + gap_hinge_jig, 0, -body.z / 2])
+        cube(size=body, center=true);
 
-          translate(v=[-body.x / 2, 0, -body.z / 2])
-            rotate(a=90, v=[1, 0, 0])
-              chamfer_edge_mask(h=body.y, chamfer=hinge_inset_dz, orient=BOTTOM, excess=0);
+      translate(v=[ext.x / 2 + gap_hinge_jig, 0, -body.z])
+        rotate(a=90, v=[1, 0, 0])
+          linear_extrude(h=body.y, center=true)
+            polygon(
+              [
+                [-0.0001, 0],
+                [-0.0001, hinge_inset_dz],
+                [hinge_inset_dx, 0],
+              ]
+            );
 
-          cube(size=[body.x, ext.y - t_side * 2 - chamfer_int_main * 2 - d_hinge_pin_jig, ext.z / 2 - t_side * 2], center=true);
-        }
-      }
-      translate(v=[ext.x / 2 + body.x / 2, 0, -body.z / 2])
-        rotate(a=-a, v=[0, 1, 0])
-          translate(v=[ext.x / 2, 0, 0])
-            cube(size=[ext.x, body.y, ext.z], center=true);
+      translate(v=[ext.x / 2 + gap_hinge_jig, 0, 0])
+        rotate(a=90, v=[1, 0, 0])
+          linear_extrude(h=body.y, center=true)
+            polygon(
+              [
+                [0, 0],
+                [body.x + 0.0001, 0],
+                [body.x + 0.0001, -body.x / tan(a)],
+              ]
+            );
+
+      translate(v=[ext.x / 2 + gap_hinge_jig + body.x, 0, -body.z])
+        rotate(a=90, v=[1, 0, 0])
+          linear_extrude(h=body.y, center=true)
+            polygon(
+              [
+                [0.0001, 0],
+                [0.0001, body.z - body.x / tan(a)],
+                [-body.x + hinge_inset_dx, 0],
+              ]
+            );
 
       dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180 - a, d=d_hinge_pin_jig, l=l_hinge_pin_jig, teardrop=false);
 
-      translate(v=[0, 0, d_hinge_pin_jig / 2])
-        dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90 - a, d=d_hinge_pin_jig, l=l_hinge_pin_jig, teardrop=false, channel=true);
+      // translate(v=[0, 0, d_hinge_pin_jig / 2])
+      //   dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90 - a, d=d_hinge_pin_jig, l=l_hinge_pin_jig * 2, teardrop=false, channel=true);
     }
 }
 
 module slice() {
   if (debug_slice) {
     bottom_half(z=ext_main.z / 2 + t_leather + debug_dz_slice, s=ext_main.x * 5)
-      back_half(y=-ext_main.y / 2 - t_leather_overhang - debug_dy_slice, s=ext_main.x * 5)
+      back_half(y=-ext_main.y / 2 - t_leather_overhang_wall - debug_dy_slice, s=ext_main.x * 5)
         left_half(x=ext_main.x / 2 + debug_dx_slice, s=ext_main.x * 5)
           children();
   } else {
