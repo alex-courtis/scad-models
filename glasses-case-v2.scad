@@ -1380,8 +1380,8 @@ module hinge_jig() {
 
       dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180 - a, d=d_hinge_pin_jig, l=l_hinge_pin_jig, teardrop=false);
 
-      // translate(v=[0, 0, d_hinge_pin_jig / 2])
-      //   dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90 - a, d=d_hinge_pin_jig, l=l_hinge_pin_jig * 2, teardrop=false, channel=true);
+      translate(v=[0, 0, d_hinge_pin_jig / 2])
+        dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90 - a, d=d_hinge_pin_jig, l=l_hinge_pin_jig * 2, teardrop=false, channel=true);
     }
 }
 
