@@ -4,7 +4,6 @@ include <lib/colours.scad>
 include <lib/joints.scad>
 
 // TODO
-// chamfer pin holes
 // wider corner holes
 // lid hinge pin holes
 
@@ -450,6 +449,11 @@ module mask_pins(ext, int) {
     for (x = [-ext.x / 2 + d_pin / 2, 0, ext.x / 2 - w_foldover * 2]) {
       translate(v=[x, i * (ext.y + int.y) / 4, -l_pin / 4])
         cylinder(d=d_pin, h=l_pin / 2, center=true);
+
+      dr = d_pin / 2 * 0.35;
+      translate(v=[x, i * (ext.y + int.y) / 4, -(dr + gap_half) / 2])
+        cylinder(d1=d_pin, d2=d_pin + dr * 2, h=dr, center=true);
+
       translate(v=[x, i * (ext.y / 2 - t_side / 4), -d_pin * 1.5])
         rotate(a=45, v=[0, 1, 0])
           cube(size=[d_pin, t_side / 2, d_pin], center=true);
