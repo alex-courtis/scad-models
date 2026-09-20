@@ -4,7 +4,7 @@ include <lib/colours.scad>
 include <lib/joints.scad>
 
 // TODO
-// lid hinge pin holes
+// lid hinge glue leaks
 // extra sew holes
 
 /* [Show Shell] */
@@ -1267,7 +1267,7 @@ module leather_lid_side(cp, ay_deep) {
   leather_side(ext=ext, int=int, cp=cp, ay_deep=ay_deep, ayz_long=a_stitch);
 
   intersection() {
-    leather_side_foldover(cp=cp, ext=ext, int=int, t_foldover=0, ay_hinge=a_hinge_lid, chamfer_int=chamfer_int_lid, ay_deep=ay_deep);
+    leather_side_foldover(cp=cp, ext=ext, int=int, t_foldover=0, ay_hinge=a_hinge_lid, chamfer_int=chamfer_int_lid * 2, ay_deep=ay_deep);
     union() {
       interior();
       if (fold) {
