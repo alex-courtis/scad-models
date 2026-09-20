@@ -94,8 +94,8 @@ d_pin = 2.3; // [0:0.05:5]
 l_pin = 27; // [0:0.1:50]
 
 /* [Magnets] */
-d_magnet_front = 6.2; // [0:0.05:10]
-t_magnet_front = 4.15; // [0:0.05:10]
+d_magnet_front = 6.25; // [0:0.05:10]
+t_magnet_front = 4.30; // [0:0.05:10]
 
 n_magnets_back = 5; // [0:1:5]
 
