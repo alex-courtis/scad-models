@@ -5,7 +5,6 @@ include <lib/joints.scad>
 
 // TODO
 // lid hinge glue leaks
-// extra sew holes
 
 /* [Show Shell] */
 show_back = true;
@@ -554,18 +553,17 @@ module template_joiners(cp, ext) {
   }
 }
 
-module mask_liner_holes_long(ext, int) {
+module mask_liner_holes_long(ext, int, hinge) {
   dy = (int.y) / 2 - chamfer_int_main - sew_d / 2;
   dz = -(int.z + t_wall) / 2;
   x0 = -ext.x / 2;
-  x1 = ext.x / 2 - stitch_inset - stitch_spacing * 2;
+  x1 = ext.x / 2 - stitch_inset - stitch_spacing * (hinge ? 2 : 1);
 
   // long holes
-  for (i = [-1, 1])
-    for (dx = [x0:stitch_spacing:x1])
-      translate(v=[0, i * dy, 0])
-        translate(v=[dx, 0, dz])
-          cylinder(d=sew_d, h=t_wall, center=true);
+  #for(i=[-1, 1])for (dx = [x0:stitch_spacing:x1])
+    translate(v=[0, i * dy, 0])
+      translate(v=[dx, 0, dz])
+        cylinder(d=sew_d, h=t_wall, center=true);
 }
 
 module mask_liner_holes_quartercircle(ext, int) {
@@ -573,7 +571,7 @@ module mask_liner_holes_quartercircle(ext, int) {
   dy = (int.y) / 2 - chamfer_int_main - sew_d / 2;
   dz = (int.z + t_wall) / 2;
 
-  for (a = [0:a_end_quant:90 - a_end_quant])
+  for (a = [0:a_end_quant:90])
     for (i = [-1, 1])
       translate(v=[dx, i * dy, 0])
         rotate(a=a, v=[0, 1, 0])
@@ -698,7 +696,7 @@ module shell_main(hinge) {
       shell_long(ext=ext_main, int=int_main, hinge=hinge, chamfer_int=chamfer_int_main, stitches=true);
     }
 
-    mask_liner_holes_long(ext=ext_main, int=int_main);
+    mask_liner_holes_long(ext=ext_main, int=int_main, hinge=hinge);
 
     mask_liner_holes_quartercircle(ext=ext_main, int=int_main);
 
