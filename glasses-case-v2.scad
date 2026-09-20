@@ -452,7 +452,7 @@ module mask_pins(ext, int) {
         cylinder(d=d_pin, h=l_pin / 2, center=true);
       translate(v=[x, i * (ext.y / 2 - t_side / 4), -d_pin * 1.5])
         rotate(a=45, v=[0, 1, 0])
-          cube(size=[d_pin / sqrt(2), t_side / 2, d_pin / sqrt(2)], center=true);
+          cube(size=[d_pin, t_side / 2, d_pin], center=true);
     }
   }
 }
