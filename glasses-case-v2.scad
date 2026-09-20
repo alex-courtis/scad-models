@@ -4,7 +4,6 @@ include <lib/colours.scad>
 include <lib/joints.scad>
 
 // TODO
-// wider corner holes
 // lid hinge pin holes
 
 /* [Show Shell] */
@@ -252,9 +251,18 @@ module mask_stitches_long(ax, az, x0, x1) {
 module mask_stitches_wide(ext, az, dx, dz, az) {
   y = ext.y / 2 - stitch_inset - stitch_spacing;
 
-  for (dy = [-y:stitch_spacing:y])
-    translate(v=[dx, dy, dz])
+  translate(v=[dx, 0, dz]) {
+
+    translate(v=[0, -y - stitch_l / 3, 0])
       mask_stitch(ax=0, ay=0, az=az);
+
+    for (dy = [-y:stitch_spacing:y])
+      translate(v=[0, dy, 0])
+        mask_stitch(ax=0, ay=0, az=az);
+
+    translate(v=[0, y + stitch_l / 3, 0])
+      mask_stitch(ax=0, ay=0, az=az);
+  }
 }
 
 module mask_stitches_deep(ext, ay, dy) {
@@ -262,8 +270,15 @@ module mask_stitches_deep(ext, ay, dy) {
 
   spacing = z / round_nearest(z, stitch_spacing) * stitch_spacing;
 
-  for (dz = [-z + spacing:spacing:z - spacing / 2]) {
-    translate(v=[ext.x / 2 - stitch_inset, dy, dz])
+  translate(v=[ext.x / 2 - stitch_inset, dy, 0]) {
+    translate(v=[0, 0, -z + spacing - stitch_l / 3])
+      mask_stitch(ax=90, ay=ay, az=0);
+
+    for (dz = [-z + spacing:spacing:z - spacing / 2])
+      translate(v=[0, 0, dz])
+        mask_stitch(ax=90, ay=ay, az=0);
+
+    translate(v=[0, 0, z - spacing + stitch_l / 3])
       mask_stitch(ax=90, ay=ay, az=0);
   }
 }
