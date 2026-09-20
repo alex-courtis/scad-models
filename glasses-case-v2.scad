@@ -592,9 +592,10 @@ module shell_long(ext, int, hinge, chamfer_int, stitches) {
 
     for (i = [-1, 1]) {
       translate(v=[0, i * ext.y / 2, -ext.z / 2]) {
-        if (x1 < x0 + stitch_spacing)
-          translate(v=[0, i * dyz, -dyz])
-            mask_stitches_long(ax=i * -45, az=0, x0=x0, x1=x1);
+        if (stitches)
+          if (x1 < x0 + stitch_spacing)
+            translate(v=[0, i * dyz, -dyz])
+              mask_stitches_long(ax=i * -45, az=0, x0=x0, x1=x1);
 
         if (hinge)
           mirror(v=[0, i == 1 ? 1 : 0, 0])
@@ -641,8 +642,7 @@ module shell_long(ext, int, hinge, chamfer_int, stitches) {
 
     mask_int();
 
-    if (stitches)
-      mask_stitches();
+    mask_stitches();
   }
 }
 
