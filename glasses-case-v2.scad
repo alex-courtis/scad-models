@@ -560,10 +560,11 @@ module mask_liner_holes_long(ext, int, hinge) {
   x1 = ext.x / 2 - stitch_inset - stitch_spacing * (hinge ? 2 : 1);
 
   // long holes
-  #for(i=[-1, 1])for (dx = [x0:stitch_spacing:x1])
-    translate(v=[0, i * dy, 0])
-      translate(v=[dx, 0, dz])
-        cylinder(d=sew_d, h=t_wall, center=true);
+  for (i = [-1, 1])
+    for (dx = [x0:stitch_spacing:x1])
+      translate(v=[0, i * dy, 0])
+        translate(v=[dx, 0, dz])
+          cylinder(d=sew_d, h=t_wall, center=true);
 }
 
 module mask_liner_holes_quartercircle(ext, int) {
