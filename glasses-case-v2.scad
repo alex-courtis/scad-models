@@ -72,7 +72,7 @@ chamfer_foldover = 0.8; // [0:0.05:2]
 
 n_lid_holes = 1; // [1:1:10]
 
-gap_half = 1; // [0:0.05:5]
+gap_half = 0.6; // [0:0.05:5]
 gap_inset_w = t_side + chamfer_int_main;
 gap_inset_l_end = t_wall + chamfer_int_main;
 gap_inset_l_open = w_foldover + chamfer_foldover * 2;
