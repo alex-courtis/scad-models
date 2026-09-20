@@ -5,6 +5,7 @@ include <lib/joints.scad>
 
 // TODO
 // lid hinge pin holes
+// extra sew holes
 
 /* [Show Shell] */
 show_back = true;
@@ -52,7 +53,7 @@ int_main_target = [120, 55, 36];
 t_side = 4.0; // [0:0.05:10]
 t_wall = 3.5; // [0:0.05:10]
 
-chamfer_ext = 1.2; // [0:0.05:5]
+chamfer_ext = 0.7; // [0:0.05:5]
 chamfer_int_main = 1.6; // [0:0.05:5]
 chamfer_int_lid = 0.6; // [0:0.05:5]
 
@@ -76,12 +77,15 @@ gap_inset_l_end = t_wall + chamfer_int_main;
 gap_inset_l_open = w_foldover + chamfer_foldover * 2;
 
 /* [Leather Stitch Holes] */
-stitch_shell = [3.7, 1.7];
-stitch_leather = [3, 0.5];
+stitch_shell = [3.7, 2.1];
+stitch_leather = [3.55, 1.5];
 
 // centre of hole to edge
 stitch_inset = 3.6; // [0:0.1:10]
 stitch_spacing = 5.2; // [0:0.1:10]
+
+// additional shell inset from edge
+shell_stitch_inset = -0.2; // [-10:0.05:10]
 
 // long sides and wall
 a_stitch = -45; // [-90:1:90]
@@ -591,8 +595,8 @@ module shell_end(ext, int, chamfer_int, da_stitches_start = 0, da_stitches_end =
 
   module mask_stitches() {
     dx = -ext.x / 2;
-    dy = (ext.y) / 2 - stitch_inset / 2;
-    dz = (ext.z) / 2 - stitch_inset / 2;
+    dy = (ext.y) / 2 - stitch_inset / 2 - shell_stitch_inset / 2;
+    dz = (ext.z) / 2 - stitch_inset / 2 - shell_stitch_inset / 2;
 
     for (i = [-1, 1]) {
       translate(v=[dx, 0, 0])
@@ -626,7 +630,7 @@ module shell_end(ext, int, chamfer_int, da_stitches_start = 0, da_stitches_end =
 module shell_long(ext, int, hinge, chamfer_int, stitches) {
 
   module mask_stitches() {
-    dyz = -stitch_inset / 2;
+    dyz = -stitch_inset / 2 - shell_stitch_inset / 2;
     x0 = ext.x / 2 - stitch_inset - stitch_spacing - (hinge ? hinge_inset_stitches : 0);
     x1 = -ext.x / 2;
     x_chamfer = ext.x / 2 - x0 - stitch_spacing + stitch_shell.x / 2;
