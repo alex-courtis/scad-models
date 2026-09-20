@@ -3,10 +3,6 @@ include <lib/geom.scad>
 include <lib/colours.scad>
 include <lib/joints.scad>
 
-// TODO
-// if end leather is too long, subtract t_leather from r_end_quant when calculating end leather length - use ext.z
-// reduce a_open so as not to stress hinges
-
 /* [Show Shell] */
 show_back = true;
 show_front = false;
@@ -85,7 +81,7 @@ stitch_inset = 3.6; // [0:0.1:10]
 stitch_spacing = 5.2; // [0:0.1:10]
 
 // sides and wall
-a_stitch = -45; // [0:1:90]
+a_stitch = -45; // [-90:1:90]
 
 // back and front split at end mid
 two_piece_wall = false;
@@ -122,7 +118,7 @@ d_hinge_pin_lid = d_hinge + dd_hinge_pin_lid;
 d_hinge_pin_jig = d_hinge + dd_hinge_pin_jig;
 
 l_hinge = 20; // [0:0.05:100]
-dl_hinge_pin_shell = 1.25; // [0:0.05:1]
+dl_hinge_pin_shell = 1.25; // [0:0.05:5]
 dl_hinge_pin_jig = 0.325; // [0:0.05:1]
 l_hinge_pin_shell = l_hinge + dl_hinge_pin_shell + d_hinge / 2;
 l_hinge_pin_jig = l_hinge + dl_hinge_pin_jig + d_hinge / 2;
@@ -142,7 +138,7 @@ a_hinge_lid = 14; // [0:1:50]
 gap_hinge_jig = 0.1; // [0:0.01:1]
 
 // relative to ext.y/2
-y_pivot_hinge = -3; // [0:0.01:5]
+y_pivot_hinge = -3; // [-10:0.01:10]
 
 // relative to -ext.z/2
 z_pivot_hinge = 2.75; // [0:0.01:5]
