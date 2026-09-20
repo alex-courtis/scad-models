@@ -3,6 +3,11 @@ include <lib/geom.scad>
 include <lib/colours.scad>
 include <lib/joints.scad>
 
+// TODO
+// chamfer pin holes
+// wider corner holes
+// lid hinge pin holes
+
 /* [Show Shell] */
 show_back = true;
 show_front = false;
@@ -294,25 +299,38 @@ module mask_foldover_wide(ext, int, w, t) {
   }
 }
 
-module mask_foldover_deep(ext, int, w, t) {
+module mask_foldover_deep(ext, int, w, t, hinge) {
   mask = [
     w,
     int.y + t * 2,
-    int.z / 2 - chamfer_int_main,
+    hinge ?
+      int.z / 2 - t_side + chamfer_int_main
+    : int.z / 2 - chamfer_int_main,
   ];
 
   translate(v=[(ext.x - mask.x) / 2, 0, -mask.z / 2])
     cube(size=mask, center=true);
 
-  translate(v=[ext.x / 2, 0, 0]) {
-    for (i = [-1, 1]) {
-      translate(v=[0, i * (ext.y / 2 - t_side + t), 0])
-        chamfer_edge_mask(l=int.z - chamfer_int_main * 2, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
+  for (i = [-1, 1]) {
+    translate(v=[ext.x / 2, 0, 0]) {
+      translate(v=[0, i * (ext.y / 2 - t_side + t), -mask.z / 2])
+        chamfer_edge_mask(l=mask.z, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
 
-      translate(v=[-w, 0, 0]) {
-        translate(v=[0, i * (ext.y / 2 - t_side), 0])
-          chamfer_edge_mask(l=int.z - 2 * chamfer_int_main, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
-      }
+      translate(v=[-w, 0, 0])
+        translate(v=[0, i * (ext.y / 2 - t_side), -mask.z / 2])
+          chamfer_edge_mask(l=mask.z, chamfer=chamfer_foldover, orient=BOTTOM, excess=0);
+
+      if (hinge)
+        translate(v=[-mask.x / 2, 0, 0])
+          translate(
+            v=[
+              0,
+              i * int.y / 2,
+              -int.z / 2 + chamfer_int_main * 2,
+            ]
+          )
+            rotate(a=90, v=[0, 1, 0])
+              chamfer_edge_mask(l=mask.x, chamfer=chamfer_int_main, orient=BOTTOM, excess=0);
     }
   }
 }
@@ -393,7 +411,7 @@ module mask_hinge_pin(ext, ay, teardrop, d, l, channel = false) {
           color(c="limegreen")
             translate(v=[-l / 4 + 0, 0, 0])
               rotate(a=90, v=[0, 0, 1])
-                teardrop(h=l / 2, d=d, ang=(teardrop ? 45 : 90));
+                teardrop(h=l / 2, d=d, ang=(teardrop ? 55 : 90));
         }
       }
 
@@ -725,8 +743,6 @@ module lid(cp) {
       shell_lid_back(cp);
     }
 
-    dbg_foldover() mask_foldover_deep(ext=ext_lid, int=int_lid, w=0, t=0);
-
     dbg_magnets() mask_magnets_front(ext=ext_lid, teardrop=90);
 
     dbg_magnets() mask_magnets_back(ext=ext_lid, int=int_lid, dz=t_wall / 2);
@@ -833,7 +849,7 @@ module front() {
     mirror(v=[0, 0, 1]) {
       dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
 
-      dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
+      dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover, hinge=false);
     }
   }
 }
@@ -853,7 +869,7 @@ module back() {
       dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=0, t=t_wall);
     }
 
-    dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
+    dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover, hinge=true);
   }
 }
 
