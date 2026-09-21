@@ -94,7 +94,8 @@ a_stitch = -45; // [-90:1:90]
 two_piece_wall = false;
 
 /* [Liner Holes] */
-sew_d = 1.8;
+d_liner_hole = 1.8;
+liner_hole_spacing = 4; // [0:0.1:10]
 
 /* [Pins] */
 d_pin = 2.3; // [0:0.05:5]
@@ -557,30 +558,36 @@ module template_joiners(cp, ext) {
 }
 
 module mask_liner_holes_long(ext, int, hinge) {
-  dy = (int.y) / 2 - chamfer_int_main - sew_d / 2;
+  dy = (int.y) / 2 - chamfer_int_main - d_liner_hole / 2;
   dz = -(int.z + t_wall) / 2;
   x0 = -ext.x / 2;
   x1 = ext.x / 2 - stitch_inset - stitch_spacing * (hinge ? 2 : 1);
 
   // long holes
   for (i = [-1, 1])
-    for (dx = [x0:stitch_spacing:x1])
+    for (dx = [x0:liner_hole_spacing:x1])
       translate(v=[0, i * dy, 0])
         translate(v=[dx, 0, dz])
-          cylinder(d=sew_d, h=t_wall, center=true);
+          cylinder(d=d_liner_hole, h=t_wall, center=true);
 }
 
 module mask_liner_holes_quartercircle(ext, int) {
   dx = -ext.x / 2;
-  dy = (int.y) / 2 - chamfer_int_main - sew_d / 2;
+  dy = (int.y) / 2 - chamfer_int_main - d_liner_hole / 2;
   dz = (int.z + t_wall) / 2;
 
-  for (a = [0:a_end_quant:90])
+  module hole(a) {
     for (i = [-1, 1])
       translate(v=[dx, i * dy, 0])
         rotate(a=a, v=[0, 1, 0])
           translate(v=[0, 0, -dz])
-            cylinder(d=sew_d, h=t_wall * 2, center=true);
+            cylinder(d=d_liner_hole, h=t_wall * 2, center=true);
+  }
+
+  for (a = [0:chord_angle(liner_hole_spacing, int.z / 2):90])
+    hole(a);
+
+  hole(90);
 }
 
 module mask_chamfer_ext_hinge(ext, l) {
