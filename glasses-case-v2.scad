@@ -78,7 +78,7 @@ gap_inset_l_open = w_foldover + chamfer_foldover * 2;
 
 /* [Leather Stitch Holes] */
 stitch_shell = [3.7, 2.1];
-stitch_leather = [3.55, 1.5];
+stitch_leather = [3.40, 1.4];
 
 // centre of hole to edge
 stitch_inset = 3.6; // [0:0.1:10]
@@ -152,7 +152,7 @@ y_pivot_hinge = -3; // [-10:0.01:10]
 z_pivot_hinge = 2.75; // [0:0.01:5]
 
 /* [Template] */
-t_template = 1.8; // [0.05:0.05:5]
+t_template = 1.6; // [0.05:0.05:5]
 t_template_line = 0.8; // [0.05:0.05:5]
 w_template_joiner = 12; // [0:1:20]
 l_template_joiner = 8; // [0:1:20]
