@@ -153,7 +153,7 @@ z_pivot_hinge = 2.75; // [0:0.01:5]
 
 /* [Template] */
 t_template = 1.8; // [0.05:0.05:5]
-t_template_line = 0.6; // [0.05:0.05:5]
+t_template_line = 0.8; // [0.05:0.05:5]
 w_template_joiner = 12; // [0:1:20]
 l_template_joiner = 8; // [0:1:20]
 a_template_joiner = 12.5; // [1:0.5:40]
