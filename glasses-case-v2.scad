@@ -157,7 +157,7 @@ t_template_line = 0.8; // [0.05:0.05:5]
 w_template_joiner = 12; // [0:1:20]
 l_template_joiner = 8; // [0:1:20]
 a_template_joiner = 12.5; // [1:0.5:40]
-g_pin_template_joiner = 0.010; // [0:0.001:0.2]
+g_pin_template_joiner = 0.020; // [0:0.001:0.2]
 g_shoulder_template_joiner = 0.040; // [0:0.001:0.2]
 r_edge_template_joiner = 0.5; // [0:0.001:2]
 
