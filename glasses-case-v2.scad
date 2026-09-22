@@ -44,7 +44,7 @@ debug_dz_slice = 0; // [-50:0.1:0]
 // x, y quantized for linear hole spacing
 // z quantized for curved hole spacing, arc outside of leather
 
-int_main_target = [120, 55, 36];
+int_main_target = [120, 60, 50];
 
 t_side = 4.0; // [0:0.05:10]
 t_wall = 4.0; // [0:0.05:10]
@@ -55,7 +55,7 @@ chamfer_int = 1.6; // [0:0.05:5]
 // also rounded r=1.5
 chamfer_ext_hinge = 2.8; // [0:0.05:5]
 
-t_leather = 0.8; // [0.05:0.05:5]
+t_leather = 1.2; // [0.05:0.05:5]
 t_leather_overhang_wall = 0.4; // [0:0.05:5]
 t_leather_overhang_side = 0.4; // [0:0.05:5]
 t_leather_underhang_lid = 0.3; // [0:0.05:5]
@@ -78,7 +78,7 @@ stitch_leather = [3.40, 1.4];
 
 // centre of hole to edge
 stitch_inset = 3.6; // [0:0.1:10]
-stitch_spacing = 5.2; // [0:0.1:10]
+stitch_spacing = 5.0; // [0:0.1:10]
 
 // additional shell inset from edge
 shell_stitch_inset = -0.2; // [-10:0.05:10]
