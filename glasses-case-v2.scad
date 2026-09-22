@@ -3,9 +3,6 @@ include <lib/geom.scad>
 include <lib/colours.scad>
 include <lib/joints.scad>
 
-// TODO
-// remove lid chamfer
-
 /* [Show Shell] */
 show_back = true;
 show_front = false;
@@ -53,7 +50,7 @@ t_side = 4.0; // [0:0.05:10]
 t_wall = 3.5; // [0:0.05:10]
 
 chamfer_ext = 0.7; // [0:0.05:5]
-chamfer_int_main = 1.6; // [0:0.05:5]
+chamfer_int = 1.6; // [0:0.05:5]
 
 // also rounded r=1.5
 chamfer_ext_hinge = 2.8; // [0:0.05:5]
@@ -71,8 +68,8 @@ chamfer_foldover = 0.8; // [0:0.05:2]
 n_lid_holes = 1; // [1:1:10]
 
 gap_half = 0.6; // [0:0.05:5]
-gap_inset_w = t_side + chamfer_int_main;
-gap_inset_l_end = t_wall + chamfer_int_main;
+gap_inset_w = t_side + chamfer_int;
+gap_inset_l_end = t_wall + chamfer_int;
 gap_inset_l_open = w_foldover + chamfer_foldover * 2;
 
 /* [Leather Stitch Holes] */
@@ -316,7 +313,7 @@ module mask_stitches_quartercircle(stitch, ax, ay, az, dy, dz, da_start = 0, da_
 module mask_foldover_wide(ext, int, w, t) {
   mask = [
     w,
-    int.y - chamfer_int_main * 2,
+    int.y - chamfer_int * 2,
     int.z / 2 + t,
   ];
 
@@ -325,11 +322,11 @@ module mask_foldover_wide(ext, int, w, t) {
 
   translate(v=[ext.x / 2, 0, -ext.z / 2]) {
     translate(v=[0, 0, t_wall - t])
-      chamfer_edge_mask(l=int.y - chamfer_int_main * 2, chamfer=chamfer_foldover, orient=FRONT, excess=0);
+      chamfer_edge_mask(l=int.y - chamfer_int * 2, chamfer=chamfer_foldover, orient=FRONT, excess=0);
 
     translate(v=[-w, 0, 0]) {
       translate(v=[0, 0, t_wall])
-        chamfer_edge_mask(l=int.y - 2 * chamfer_int_main, chamfer=chamfer_foldover, orient=FRONT, excess=0);
+        chamfer_edge_mask(l=int.y - 2 * chamfer_int, chamfer=chamfer_foldover, orient=FRONT, excess=0);
     }
   }
 }
@@ -339,8 +336,8 @@ module mask_foldover_deep(ext, int, w, t, hinge) {
     w,
     int.y + t * 2,
     hinge ?
-      int.z / 2 - t_side + chamfer_int_main
-    : int.z / 2 - chamfer_int_main,
+      int.z / 2 - t_side + chamfer_int
+    : int.z / 2 - chamfer_int,
   ];
 
   translate(v=[(ext.x - mask.x) / 2, 0, -mask.z / 2])
@@ -361,11 +358,11 @@ module mask_foldover_deep(ext, int, w, t, hinge) {
             v=[
               0,
               i * int.y / 2,
-              -int.z / 2 + chamfer_int_main * 2,
+              -int.z / 2 + chamfer_int * 2,
             ]
           )
             rotate(a=90, v=[0, 1, 0])
-              chamfer_edge_mask(l=mask.x, chamfer=chamfer_int_main, orient=BOTTOM, excess=0);
+              chamfer_edge_mask(l=mask.x, chamfer=chamfer_int, orient=BOTTOM, excess=0);
     }
   }
 }
@@ -387,7 +384,7 @@ module mask_half_gap(ext) {
 }
 
 module mask_magnets_front(ext, teardrop) {
-  inset = [(ext.x - t_magnet_front) / 2, (ext.y - t_side - chamfer_int_main) / 2, -( -ext.z + t_wall + chamfer_int_main) / 2];
+  inset = [(ext.x - t_magnet_front) / 2, (ext.y - t_side - chamfer_int) / 2, -( -ext.z + t_wall + chamfer_int) / 2];
 
   for (i = [-1, 1]) {
     translate(v=vector_multiply_vector(inset, [1, i, 1])) {
@@ -432,7 +429,7 @@ module magnet_shroud_back(ext, int, dz) {
             cube(
               size=[
                 (magnet_back_bar ? b_magnet_back_bar.x : t_magnet_back_disc) * 0.99,
-                int.y - chamfer_int_main * 2,
+                int.y - chamfer_int * 2,
                 (magnet_back_bar ? b_magnet_back_bar.z * 0.999 : d_magnet_back_disc),
               ], center=true
             );
@@ -475,7 +472,7 @@ module mask_hinge_chamfer(ext, int) {
 
   mask = [
     hinge_inset_dx,
-    int.y - chamfer_int_main * 2,
+    int.y - chamfer_int * 2,
     ext.z / 2,
   ];
 
@@ -584,7 +581,7 @@ module template_joiners(cp, ext) {
 }
 
 module mask_liner_holes_long(ext, int, hinge) {
-  dy = (int.y) / 2 - chamfer_int_main - d_liner_hole / 2;
+  dy = (int.y) / 2 - chamfer_int - d_liner_hole / 2;
   dz = -(int.z + t_wall) / 2;
   x0 = -ext.x / 2;
   x1 = ext.x / 2 - stitch_inset - stitch_spacing * (hinge ? 2 : 1);
@@ -599,7 +596,7 @@ module mask_liner_holes_long(ext, int, hinge) {
 
 module mask_liner_holes_quartercircle(ext, int) {
   dx = -ext.x / 2;
-  dy = (int.y) / 2 - chamfer_int_main - d_liner_hole / 2;
+  dy = (int.y) / 2 - chamfer_int - d_liner_hole / 2;
   dz = (int.z + t_wall) / 2;
 
   module hole(a) {
@@ -626,7 +623,7 @@ module mask_chamfer_ext_hinge(ext, l) {
   }
 }
 
-module shell_end(ext, int, chamfer_int, da_stitches_start = 0, da_stitches_end = 0) {
+module shell_end(ext, int, chamfer, da_stitches_start = 0, da_stitches_end = 0) {
 
   module mask_stitches() {
     dx = -ext.x / 2;
@@ -642,7 +639,7 @@ module shell_end(ext, int, chamfer_int, da_stitches_start = 0, da_stitches_end =
   module mask_int() {
     translate(v=[-int.x / 2, 0, 0])
       rotate(a=90, v=[1, 0, 0])
-        cyl(h=int.y, d=int.z, chamfer=chamfer_int);
+        cyl(h=int.y, d=int.z, chamfer=chamfer);
   }
 
   module body() {
@@ -650,7 +647,7 @@ module shell_end(ext, int, chamfer_int, da_stitches_start = 0, da_stitches_end =
       rotate(a=90, v=[1, 0, 0])
         front_half()
           left_half()
-            cyl(d=ext.z, h=ext.y, chamfer=chamfer_ext);
+            cyl(d=ext.z, h=ext.y, chamfer=chamfer);
   }
 
   difference() {
@@ -662,7 +659,7 @@ module shell_end(ext, int, chamfer_int, da_stitches_start = 0, da_stitches_end =
   }
 }
 
-module shell_long(ext, int, hinge, chamfer_int, stitches) {
+module shell_long(ext, int, hinge, chamfer, stitches) {
 
   module mask_stitches() {
     dyz = -stitch_inset / 2 - shell_stitch_inset / 2;
@@ -694,7 +691,7 @@ module shell_long(ext, int, hinge, chamfer_int, stitches) {
     translate(v=[0, 0, -mask.z / 2 + 0.0001])
       cuboid(
         size=mask,
-        chamfer=chamfer_int,
+        chamfer=chamfer,
         edges=[
           BOTTOM + FRONT,
           BOTTOM + BACK,
@@ -729,8 +726,8 @@ module shell_long(ext, int, hinge, chamfer_int, stitches) {
 module shell_main(hinge) {
   difference() {
     union() {
-      shell_end(ext=ext_main, int=int_main, chamfer_int=chamfer_int_main);
-      shell_long(ext=ext_main, int=int_main, hinge=hinge, chamfer_int=chamfer_int_main, stitches=true);
+      shell_end(ext=ext_main, int=int_main, chamfer=chamfer_int);
+      shell_long(ext=ext_main, int=int_main, hinge=hinge, chamfer=chamfer_int, stitches=true);
     }
 
     mask_liner_holes_long(ext=ext_main, int=int_main, hinge=hinge);
@@ -747,9 +744,9 @@ module shell_lid_front(cp) {
   difference() {
     union() {
       color(c=cp[0])
-        shell_end(ext=ext_lid, int=int_lid, chamfer_int=0, da_stitches_start=a_end_quant);
+        shell_end(ext=ext_lid, int=int_lid, chamfer=0, da_stitches_start=a_end_quant);
       color(c=cp[1])
-        shell_long(ext=ext_lid, int=int_lid, hinge=false, chamfer_int=0);
+        shell_long(ext=ext_lid, int=int_lid, hinge=false, chamfer=0);
     }
 
     dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall);
@@ -762,9 +759,9 @@ module shell_lid_back(cp) {
   difference() {
     union() {
       color(c=cp[1])
-        shell_end(ext=ext_lid, int=int_lid, chamfer_int=0, da_stitches_start=a_end_quant * 2);
+        shell_end(ext=ext_lid, int=int_lid, chamfer=0, da_stitches_start=a_end_quant * 2);
       color(c=cp[0])
-        shell_long(ext=ext_lid, int=int_lid, hinge=true, chamfer_int=0);
+        shell_long(ext=ext_lid, int=int_lid, hinge=true, chamfer=0);
 
       for (i = [-1, 1]) {
         intersection() {
@@ -848,7 +845,7 @@ module leather_lid_wall(cp) {
             line=false,
           );
 
-        leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=true, t_foldover=0, chamfer_int=chamfer_int_main, a_hinge=a_hinge_lid, az_wide=a_stitch);
+        leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=true, t_foldover=0, a_hinge=a_hinge_lid, az_wide=a_stitch);
       }
   }
 
@@ -866,7 +863,7 @@ module leather_lid_wall(cp) {
         leather_wall_long(ext=ext, cp=cp, az_wide=a_stitch, az_long=-a_stitch, line=true);
 
         // approximate extra, a bit long, needs manually marked holes
-        leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=false, t_foldover=0, chamfer_int=chamfer_int_main, a_hinge=a_hinge_lid, az_wide=-a_stitch, int_extra=int.z * PI / 2 - hinge_inset_stitches);
+        leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=false, t_foldover=0, a_hinge=a_hinge_lid, az_wide=-a_stitch, int_extra=int.z * PI / 2 - hinge_inset_stitches);
       }
     }
   }
@@ -984,7 +981,7 @@ module leather_wall_end(ext, cp, az_long, line) {
   }
 }
 
-module leather_wall_foldover(cp, ext, int, hinge, t_foldover, chamfer_int, a_hinge, az_wide, int_extra = 0) {
+module leather_wall_foldover(cp, ext, int, hinge, t_foldover, a_hinge, az_wide, int_extra = 0) {
   y_edge_bottom = ext.y + t_leather_overhang_wall * 2;
   y_edge_top = y_edge_bottom - 2 * t_side - chamfer_int;
 
@@ -1121,7 +1118,7 @@ module leather_wall_front(cp) {
           leather_wall_end(ext=ext_main, cp=cp, az_long=a_stitch);
           leather_wall_long(ext=ext_main, cp=cp, hinge=false, az_wide=a_stitch, az_long=a_stitch, line=true);
 
-          leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=false, t_foldover=t_foldover, chamfer_int=chamfer_int_main, a_hinge=a_hinge_main, az_wide=-a_stitch);
+          leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=false, t_foldover=t_foldover, a_hinge=a_hinge_main, az_wide=-a_stitch);
         }
 }
 
@@ -1134,17 +1131,17 @@ module leather_wall_back(cp) {
       leather_wall_end(ext=ext, cp=cp, az_long=a_stitch);
       leather_wall_long(ext=ext, cp=cp, hinge=true, az_wide=a_stitch, az_long=a_stitch, line=true);
 
-      leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=true, t_foldover=t_foldover, chamfer_int=chamfer_int_main, a_hinge=a_hinge_main, az_wide=-a_stitch);
+      leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=true, t_foldover=t_foldover, a_hinge=a_hinge_main, az_wide=-a_stitch);
     }
 }
 
-module leather_side_foldover(cp, ext, int, t_foldover, ay_hinge, chamfer_int, ay_deep) {
+module leather_side_foldover(cp, ext, int, t_foldover, ay_hinge, chamfer, ay_deep) {
   l_out = ext.z + t_leather_overhang_side * 2;
-  l_in = l_out - 2 * t_wall - chamfer_int;
+  l_in = l_out - 2 * t_wall - chamfer;
 
   t = fold ? t_leather : t_template;
 
-  w_side = t_side + chamfer_int / 2;
+  w_side = t_side + chamfer / 2;
 
   p_fedge = [
     [w_side / 2, -l_in / 2],
@@ -1154,7 +1151,7 @@ module leather_side_foldover(cp, ext, int, t_foldover, ay_hinge, chamfer_int, ay
   ];
 
   // subtract edge overhang
-  dw_inner = -chamfer_int / 2 - t_foldover;
+  dw_inner = -chamfer / 2 - t_foldover;
 
   b_finner = [
     w_foldover + t_leather + dw_inner,
@@ -1196,7 +1193,7 @@ module leather_side_foldover(cp, ext, int, t_foldover, ay_hinge, chamfer_int, ay
       0,
     ];
     shifted = [
-      (ext.x + b_finner.x) / 2 + t_side + chamfer_int / 2 + t_leather,
+      (ext.x + b_finner.x) / 2 + t_side + chamfer / 2 + t_leather,
       (ext.y + t) / 2,
       0,
     ];
@@ -1270,7 +1267,7 @@ module leather_side(ext, int, cp, ay_deep, ayz_long) {
 module leather_main_side(cp, ay_deep, ayz_long) {
   leather_side(ext=ext_main, int=int_main, cp=cp, ay_deep=ay_deep, ayz_long=ayz_long);
 
-  leather_side_foldover(cp=cp, ext=ext_main, int=int_main, t_foldover=t_foldover, ay_hinge=a_hinge_main, chamfer_int=chamfer_int_main, ay_deep=ay_deep);
+  leather_side_foldover(cp=cp, ext=ext_main, int=int_main, t_foldover=t_foldover, ay_hinge=a_hinge_main, chamfer=chamfer_int, ay_deep=ay_deep);
 }
 
 module leather_main_side_left(cp) {
@@ -1309,7 +1306,7 @@ module leather_lid_side(cp, ay_deep) {
   leather_side(ext=ext, int=int, cp=cp, ay_deep=ay_deep, ayz_long=a_stitch);
 
   intersection() {
-    leather_side_foldover(cp=cp, ext=ext, int=int, t_foldover=0, ay_hinge=a_hinge_lid, chamfer_int=t_leather_underhang_lid * 2 + t_leather_overhang_side * 2, ay_deep=ay_deep);
+    leather_side_foldover(cp=cp, ext=ext, int=int, t_foldover=0, ay_hinge=a_hinge_lid, chamfer=t_leather_underhang_lid * 2 + t_leather_overhang_side * 2, ay_deep=ay_deep);
     union() {
       interior();
       if (fold) {
