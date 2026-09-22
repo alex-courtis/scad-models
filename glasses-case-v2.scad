@@ -47,7 +47,7 @@ debug_dz_slice = 0; // [-50:0.1:0]
 int_main_target = [120, 55, 36];
 
 t_side = 4.0; // [0:0.05:10]
-t_wall = 3.5; // [0:0.05:10]
+t_wall = 4.0; // [0:0.05:10]
 
 chamfer_ext = 0.7; // [0:0.05:5]
 chamfer_int = 1.6; // [0:0.05:5]
@@ -111,6 +111,10 @@ t_magnet_back_disc = 2.1; // [0:0.05:10]
 
 magnet_back_bar = false;
 b_magnet_back_bar = [2.2, 10.5, 5];
+
+magnet_wall_disc = true;
+d_magnet_wall = 21; // [0:0.05:50]
+t_magnet_wall = 3.25; // [0:0.05:10]
 
 /* [Hinges] */
 d_hinge = 3.50; // [0:0.05:10]
@@ -441,6 +445,18 @@ module magnet_shroud_back(ext, int, dz) {
   }
 }
 
+module mask_magnets_wall(ext) {
+  if (magnet_wall_disc) {
+    translate(v=[0, 0, ( -ext.z + t_magnet_wall) / 2]) {
+      translate(v=[(ext.x - d_magnet_wall) / 2 - hinge_inset_dx - w_foldover_hinge - chamfer_int, 0, 0])
+        cylinder(d=d_magnet_wall, h=t_magnet_wall, center=true);
+
+      translate(v=[( -ext.x + d_magnet_wall) / 2 + chamfer_int, 0, 0])
+        cylinder(d=d_magnet_wall, h=t_magnet_wall, center=true);
+    }
+  }
+}
+
 module mask_hinge_pin(ext, ay, teardrop, d, l, channel = false) {
   tr = [
     ext.x / 2 + pivot_hinge.x,
@@ -591,7 +607,7 @@ module mask_liner_holes_long(ext, int, hinge) {
     for (dx = [x0:liner_hole_spacing:x1])
       translate(v=[0, i * dy, 0])
         translate(v=[dx, 0, dz])
-          cylinder(d=d_liner_hole, h=t_wall, center=true);
+          cylinder(d=d_liner_hole, h=t_wall + 0.001, center=true);
 }
 
 module mask_liner_holes_quartercircle(ext, int) {
@@ -647,7 +663,7 @@ module shell_end(ext, int, chamfer, da_stitches_start = 0, da_stitches_end = 0) 
       rotate(a=90, v=[1, 0, 0])
         front_half()
           left_half()
-            cyl(d=ext.z, h=ext.y, chamfer=chamfer);
+            cyl(d=ext.z, h=ext.y, chamfer=chamfer_ext);
   }
 
   difference() {
@@ -904,6 +920,8 @@ module back() {
     }
 
     dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover, hinge=true);
+
+    dbg_magnets() mask_magnets_wall(ext=ext_main);
   }
 
   magnet_shroud_back(ext=ext_main, int=int_main, dz=t_foldover / 2);
