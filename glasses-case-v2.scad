@@ -120,10 +120,12 @@ b_magnet_back_bar = [2.2, 10.5, 5];
 d_hinge = 3.50; // [0:0.05:10]
 dd_hinge_pin_main = 0.05; // [0:0.05:1]
 dd_hinge_pin_lid = 0.175; // [0:0.05:1]
-dd_hinge_pin_jig = 0.35; // [0:0.05:1]
+dd_hinge_pin_jig = 0.30; // [0:0.05:1]
 d_hinge_pin_main = d_hinge + dd_hinge_pin_main;
 d_hinge_pin_lid = d_hinge + dd_hinge_pin_lid;
 d_hinge_pin_jig = d_hinge + dd_hinge_pin_jig;
+
+d_hinge_pin_jig_hole = 2.4; // [0:0.05:5]
 
 l_hinge = 20; // [0:0.05:100]
 dl_hinge_pin_shell = 1.25; // [0:0.05:5]
@@ -1491,6 +1493,8 @@ module hinge_jig() {
             );
 
       dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180 - a, d=d_hinge_pin_jig, l=l_hinge_pin_jig, teardrop=false);
+
+      dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180 - a, d=d_hinge_pin_jig_hole, l=l_hinge_pin_jig * 2, teardrop=false);
 
       translate(v=[0, 0, d_hinge_pin_jig / 2])
         dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90 - a, d=d_hinge_pin_jig, l=l_hinge_pin_jig * 2, teardrop=false, channel=true);
