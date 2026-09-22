@@ -121,17 +121,21 @@ d_hinge = 3.50; // [0:0.05:10]
 dd_hinge_pin_main = 0.05; // [0:0.05:1]
 dd_hinge_pin_lid = 0.175; // [0:0.05:1]
 dd_hinge_pin_jig = 0.30; // [0:0.05:1]
+dr_hinge_pin_shroud = 0.8; // [0:0.05:5]
 d_hinge_pin_main = d_hinge + dd_hinge_pin_main;
 d_hinge_pin_lid = d_hinge + dd_hinge_pin_lid;
 d_hinge_pin_jig = d_hinge + dd_hinge_pin_jig;
+d_hinge_pin_shroud = d_hinge + dr_hinge_pin_shroud * 2;
 
 d_hinge_pin_jig_hole = 2.4; // [0:0.05:5]
 
 l_hinge = 20; // [0:0.05:100]
 dl_hinge_pin_shell = 1.25; // [0:0.05:5]
 dl_hinge_pin_jig = 0.325; // [0:0.05:1]
+dl_hinge_pin_shroud = 1.2; // [0:0.05:5]
 l_hinge_pin_shell = l_hinge + dl_hinge_pin_shell + d_hinge / 2;
 l_hinge_pin_jig = l_hinge + dl_hinge_pin_jig + d_hinge / 2;
+l_hinge_pin_shroud = l_hinge_pin_shell + dl_hinge_pin_shroud;
 
 // shell to shell
 clearance_lid = 1.6; // [-1.6:0.05:5]
@@ -143,7 +147,7 @@ clearance_hinge = 2.0; // [-1.6:0.05:5]
 a_open = 110; // [0:1:180]
 
 a_hinge_main = 2; // [0:1:50]
-a_hinge_lid = 14; // [0:1:50]
+a_hinge_lid = 5; // [0:1:50]
 
 gap_hinge_jig = 0.1; // [0:0.01:1]
 
@@ -763,22 +767,19 @@ module shell_lid_back(cp) {
       color(c=cp[0])
         shell_long(ext=ext_lid, int=int_lid, hinge=true, chamfer_int=chamfer_int_lid);
 
-      for (i = [-1, 1])
+      for (i = [-1, 1]) {
         intersection() {
           union() {
             cube(size=int_lid, center=true);
             translate(v=[-int_lid.x / 2, 0, 0])
               rotate(a=90, v=[1, 0, 0])
                 left_half()
-                  cylinder(d=int_lid.z, h=int_lid.y, center=true);
+                  cylinder(d=ext_lid.z, h=ext_lid.y, center=true);
           }
 
-          translate(v=[int_lid.x / 2, i * int_lid.y / 2 + i * chamfer_int_main / 2, -int_lid.z / 2 - chamfer_int_main / 2])
-            rotate(a=a_hinge_lid, v=[0, 1, 0])
-              translate(v=[-l_hinge_pin_shell / 2, 0, 0])
-                rotate(a=45, v=[1, 0, 0])
-                  cube(size=[l_hinge_pin_shell, chamfer_int_main * sqrt(2) * 2, chamfer_int_main * sqrt(2) * 2], center=true);
+          mask_hinge_pin(ext=ext_lid, ay=a_hinge_lid, d=d_hinge_pin_shroud, l=l_hinge_pin_shroud, teardrop=false);
         }
+      }
     }
 
     for (i = [-1, 1])
@@ -786,10 +787,6 @@ module shell_lid_back(cp) {
         mirror(v=[0, i == 1 ? 1 : 0, 0])
           mask_chamfer_ext_hinge(ext=ext_lid, l=ext_lid.z);
 
-    translate(v=[-hinge_inset_dx, 0, 0])
-      dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall);
-
-    
     mask_stitches_wide(stitch=stitch_shell, ext=ext_lid, az=90, dx=ext_lid.x / 2 - stitch_inset - hinge_inset_stitches, dz=( -ext_lid.z + t_wall - t_foldover) / 2);
   }
 }
