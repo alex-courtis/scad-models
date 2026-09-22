@@ -4,8 +4,8 @@ include <lib/colours.scad>
 include <lib/joints.scad>
 
 // TODO
-// lid hinge glue leaks
-// magnet shrouds - attached or printed
+// lid hinge glue leaks - normalise main and lid
+// remove lid chamfer
 
 /* [Show Shell] */
 show_back = true;
@@ -110,8 +110,8 @@ n_magnets_back = 5; // [0:1:5]
 da_magnet_back = -10; // [-20:1:20]
 
 magnet_back_disc = true;
-d_magnet_back_disc = 5.2; // [0:0.05:10]
-t_magnet_back_disc = 3; // [0:0.05:10]
+d_magnet_back_disc = 5.3; // [0:0.05:10]
+t_magnet_back_disc = 2.1; // [0:0.05:10]
 
 magnet_back_bar = false;
 b_magnet_back_bar = [2.2, 10.5, 5];
@@ -224,6 +224,11 @@ echo(hinge_inset_stitches=hinge_inset_stitches);
 
 w_foldover_hinge = w_foldover - hinge_inset_dx + hinge_inset_stitches;
 echo(w_foldover_hinge=w_foldover_hinge);
+
+magnet_back_dx = -(magnet_back_bar ? b_magnet_back_bar.x : t_magnet_back_disc) / 4 / cos(a_open / 2);
+echo(magnet_back_dx=magnet_back_dx);
+magnet_back_dy = int_main.y / (n_magnets_back);
+echo(magnet_back_dy=magnet_back_dy);
 
 module dbg_stiches() { if (debug_stitches) #children(); else children(); }
 module dbg_hinges() { if (debug_hinges) #children(); else children(); }
@@ -390,32 +395,48 @@ module mask_magnets_front(ext, teardrop) {
 }
 
 module mask_magnets_back_bar(ext, int, dz) {
-  dx = -b_magnet_back_bar.x / 4 / cos(a_open / 2);
-  dy = int.y / (n_magnets_back);
-
-  for (y = [-int.y / 2 + dy / 2:dy:int.y / 2 - dy / 2])
-    translate(v=[ext.x / 2 - hinge_inset_dx + dx, y, -ext.z / 2 + dz])
+  for (y = [-int.y / 2 + magnet_back_dy / 2:magnet_back_dy:int.y / 2 - magnet_back_dy / 2])
+    translate(v=[ext.x / 2 - hinge_inset_dx + magnet_back_dx, y, -ext.z / 2 + dz])
       rotate(a=a_open / 2 + da_magnet_back, v=[0, 1, 0])
         cube(size=b_magnet_back_bar, center=true);
 }
 
 module mask_magnets_back_disc(ext, int, dz) {
-  dx = -t_magnet_back_disc / 4 / cos(a_open / 2);
-  dy = int.y / (n_magnets_back);
-
-  for (y = [-int.y / 2 + dy / 2:dy:int.y / 2 - dy / 2])
-    translate(v=[ext.x / 2 - hinge_inset_dx + dx, y, -ext.z / 2 + dz])
+  for (y = [-int.y / 2 + magnet_back_dy / 2:magnet_back_dy:int.y / 2 - magnet_back_dy / 2])
+    translate(v=[ext.x / 2 - hinge_inset_dx + magnet_back_dx, y, -ext.z / 2 + dz])
       rotate(a=a_open / 2 + da_magnet_back, v=[0, 1, 0])
         rotate(a=90, v=[0, 0, 1])
-          teardrop(h=t_magnet_back_disc, d=d_magnet_back_disc, orient=UP, ang=90);
+          teardrop(h=t_magnet_back_disc, d=d_magnet_back_disc, orient=UP, ang=45);
 }
 
 module mask_magnets_back(ext, int, dz) {
   if (magnet_back_bar)
     mask_magnets_back_bar(ext, int, dz);
-
-  if (magnet_back_disc)
+  else if (magnet_back_disc)
     mask_magnets_back_disc(ext, int, dz);
+}
+
+module magnet_shroud_back(ext, int, dz) {
+  if (magnet_back_bar || magnet_back_disc) {
+    difference() {
+      intersection() {
+        cube(size=ext, center=true);
+
+        translate(v=[ext.x / 2 - hinge_inset_dx + magnet_back_dx, 0, -ext.z / 2 + dz])
+          rotate(a=a_open / 2 + da_magnet_back, v=[0, 1, 0]) {
+            cube(
+              size=[
+                (magnet_back_bar ? b_magnet_back_bar.x : t_magnet_back_disc) * 0.99,
+                int.y - chamfer_int_main * 2,
+                (magnet_back_bar ? b_magnet_back_bar.z * 0.999 : d_magnet_back_disc),
+              ], center=true
+            );
+          }
+      }
+
+      mask_magnets_back(ext, int, dz);
+    }
+  }
 }
 
 module mask_hinge_pin(ext, ay, teardrop, d, l, channel = false) {
@@ -871,7 +892,7 @@ module leather_lid_wall(cp) {
       if (!fold)
         color(c=cp[1])
           translate(v=[-1, 0, (t_template + t_template_line) / 2])
-            #cube([s.x, t_template_line, t_template_line], center=true);
+            cube([s.x, t_template_line, t_template_line], center=true);
     }
   }
 
@@ -915,6 +936,8 @@ module back() {
 
     dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover, hinge=true);
   }
+
+  magnet_shroud_back(ext=ext_main, int=int_main, dz=t_foldover / 2);
 }
 
 module leather_wall_end(ext, cp, az_long, line) {
