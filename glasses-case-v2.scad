@@ -4,7 +4,6 @@ include <lib/colours.scad>
 include <lib/joints.scad>
 
 // TODO
-// lid hinge glue leaks - normalise main and lid
 // remove lid chamfer
 
 /* [Show Shell] */
@@ -55,7 +54,6 @@ t_wall = 3.5; // [0:0.05:10]
 
 chamfer_ext = 0.7; // [0:0.05:5]
 chamfer_int_main = 1.6; // [0:0.05:5]
-chamfer_int_lid = 0.6; // [0:0.05:5]
 
 // also rounded r=1.5
 chamfer_ext_hinge = 2.8; // [0:0.05:5]
@@ -63,6 +61,7 @@ chamfer_ext_hinge = 2.8; // [0:0.05:5]
 t_leather = 0.8; // [0.05:0.05:5]
 t_leather_overhang_wall = 0.4; // [0:0.05:5]
 t_leather_overhang_side = 0.4; // [0:0.05:5]
+t_leather_underhang_lid = 0.3; // [0:0.05:5]
 
 t_foldover = 1.8; // [0:0.05:15]
 w_foldover = 6.5; // [0:0.05:15]
@@ -748,9 +747,9 @@ module shell_lid_front(cp) {
   difference() {
     union() {
       color(c=cp[0])
-        shell_end(ext=ext_lid, int=int_lid, chamfer_int=chamfer_int_lid, da_stitches_start=a_end_quant);
+        shell_end(ext=ext_lid, int=int_lid, chamfer_int=0, da_stitches_start=a_end_quant);
       color(c=cp[1])
-        shell_long(ext=ext_lid, int=int_lid, hinge=false, chamfer_int=chamfer_int_lid);
+        shell_long(ext=ext_lid, int=int_lid, hinge=false, chamfer_int=0);
     }
 
     dbg_foldover() mask_foldover_wide(ext=ext_lid, int=int_lid, w=0, t=t_wall);
@@ -763,9 +762,9 @@ module shell_lid_back(cp) {
   difference() {
     union() {
       color(c=cp[1])
-        shell_end(ext=ext_lid, int=int_lid, chamfer_int=chamfer_int_lid, da_stitches_start=a_end_quant * 2);
+        shell_end(ext=ext_lid, int=int_lid, chamfer_int=0, da_stitches_start=a_end_quant * 2);
       color(c=cp[0])
-        shell_long(ext=ext_lid, int=int_lid, hinge=true, chamfer_int=chamfer_int_lid);
+        shell_long(ext=ext_lid, int=int_lid, hinge=true, chamfer_int=0);
 
       for (i = [-1, 1]) {
         intersection() {
@@ -866,41 +865,15 @@ module leather_lid_wall(cp) {
         }
         leather_wall_long(ext=ext, cp=cp, az_wide=a_stitch, az_long=-a_stitch, line=true);
 
-        leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=false, t_foldover=0, chamfer_int=chamfer_int_lid, a_hinge=a_hinge_lid, az_wide=-a_stitch);
+        // approximate extra, a bit long, needs manually marked holes
+        leather_wall_foldover(cp=cp, ext=ext, int=int, hinge=false, t_foldover=0, chamfer_int=chamfer_int_main, a_hinge=a_hinge_lid, az_wide=-a_stitch, int_extra=int.z * PI / 2 - hinge_inset_stitches);
       }
-    }
-  }
-
-  // approximate, a bit long, needs manually marked holes
-  module interior(cp) {
-    s = [
-      int.z * PI / 2 - hinge_inset_stitches,
-      int.y - chamfer_int_lid,
-      t,
-    ];
-
-    translate(
-      v=[
-        s.x / 2 + r_end_quant * PI / 2 + int.x + t_leather + t_wall + w_foldover + t_leather,
-        0,
-        (ext.z + s.z) / 2,
-      ]
-    ) {
-      color(c=cp[0])
-        cube(size=s, center=true);
-      if (!fold)
-        color(c=cp[1])
-          translate(v=[-1, 0, (t_template + t_template_line) / 2])
-            cube([s.x, t_template_line, t_template_line], center=true);
     }
   }
 
   front();
 
   back();
-
-  if (!fold)
-    interior(cp=cp);
 }
 
 module front() {
@@ -1011,7 +984,7 @@ module leather_wall_end(ext, cp, az_long, line) {
   }
 }
 
-module leather_wall_foldover(cp, ext, int, hinge, t_foldover, chamfer_int, a_hinge, az_wide) {
+module leather_wall_foldover(cp, ext, int, hinge, t_foldover, chamfer_int, a_hinge, az_wide, int_extra = 0) {
   y_edge_bottom = ext.y + t_leather_overhang_wall * 2;
   y_edge_top = y_edge_bottom - 2 * t_side - chamfer_int;
 
@@ -1036,7 +1009,7 @@ module leather_wall_foldover(cp, ext, int, hinge, t_foldover, chamfer_int, a_hin
   dw_inner = -chamfer_int / 2 - t_foldover;
 
   b_finner = [
-    (hinge ? w_foldover_hinge : w_foldover) + t_leather + dw_inner,
+    (hinge ? w_foldover_hinge : w_foldover) + t_leather + dw_inner + int_extra,
     y_edge_top,
     t,
   ];
@@ -1328,7 +1301,7 @@ module leather_lid_side(cp, ay_deep) {
                 translate(v=[-int.x / 2, 0, 0])
                   rotate(a=90, v=[1, 0, 0])
                     left_half()
-                      cylinder(h=t, d=int.z - chamfer_int_lid, center=true);
+                      cylinder(h=t, d=int.z - t_leather_underhang_lid * 2, center=true);
               mask_stitches_deep(stitch=stitch_leather, ext=ext, ay=-ay_deep, dy=0);
             }
   }
@@ -1336,7 +1309,7 @@ module leather_lid_side(cp, ay_deep) {
   leather_side(ext=ext, int=int, cp=cp, ay_deep=ay_deep, ayz_long=a_stitch);
 
   intersection() {
-    leather_side_foldover(cp=cp, ext=ext, int=int, t_foldover=0, ay_hinge=a_hinge_lid, chamfer_int=chamfer_int_lid + t_leather_overhang_side * 2, ay_deep=ay_deep);
+    leather_side_foldover(cp=cp, ext=ext, int=int, t_foldover=0, ay_hinge=a_hinge_lid, chamfer_int=t_leather_underhang_lid * 2 + t_leather_overhang_side * 2, ay_deep=ay_deep);
     union() {
       interior();
       if (fold) {
