@@ -1437,12 +1437,16 @@ module hinge_jig() {
   ext = ext_main;
   int = int_main;
 
-  body = [l_hinge_pin_jig / 2, ext.y + d_hinge_pin_jig, ext.z / 2];
+  body = [l_hinge_pin_jig / 2 + d_hinge_pin_jig, ext.y + d_hinge_pin_jig, ext.z / 2];
+  hollow = [body.x, int.y - d_hinge_pin_jig * 2, int.z / 2 - d_hinge_pin_jig * 2];
 
   color(c="tan")
     difference() {
       translate(v=[ext.x / 2 + body.x / 2 + gap_hinge_jig, 0, -body.z / 2])
         cube(size=body, center=true);
+
+      translate(v=[ext.x / 2 + body.x / 2 + gap_hinge_jig, 0, -body.z / 2])
+        cube(size=hollow, center=true);
 
       translate(v=[ext.x / 2 + gap_hinge_jig, 0, -body.z])
         rotate(a=90, v=[1, 0, 0])
@@ -1455,34 +1459,12 @@ module hinge_jig() {
               ]
             );
 
-      translate(v=[ext.x / 2 + gap_hinge_jig, 0, 0])
-        rotate(a=90, v=[1, 0, 0])
-          linear_extrude(h=body.y, center=true)
-            polygon(
-              [
-                [0, 0],
-                [body.x + 0.0001, 0],
-                [body.x + 0.0001, -body.x / tan(a)],
-              ]
-            );
+      dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180, d=d_hinge_pin_jig, l=l_hinge_pin_jig, teardrop=false);
 
-      translate(v=[ext.x / 2 + gap_hinge_jig + body.x, 0, -body.z])
-        rotate(a=90, v=[1, 0, 0])
-          linear_extrude(h=body.y, center=true)
-            polygon(
-              [
-                [0.0001, 0],
-                [0.0001, body.z - body.x / tan(a)],
-                [-body.x + hinge_inset_dx, 0],
-              ]
-            );
-
-      dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180 - a, d=d_hinge_pin_jig, l=l_hinge_pin_jig, teardrop=false);
-
-      dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180 - a, d=d_hinge_pin_jig_hole, l=l_hinge_pin_jig * 2, teardrop=false);
+      dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180, d=d_hinge_pin_jig_hole, l=l_hinge_pin_jig * 2, teardrop=false);
 
       translate(v=[0, 0, d_hinge_pin_jig / 2])
-        dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90 - a, d=d_hinge_pin_jig, l=l_hinge_pin_jig * 2, teardrop=false, channel=true);
+        dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90, d=d_hinge_pin_jig, l=body.z*2, teardrop=false, channel=true);
     }
 }
 
