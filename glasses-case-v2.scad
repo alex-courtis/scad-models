@@ -44,10 +44,10 @@ debug_dz_slice = 0; // [-50:0.1:0]
 // x, y quantized for linear hole spacing
 // z quantized for curved hole spacing, arc outside of leather
 
-int_main_target = [120, 60, 50];
+int_main_target = [120, 50, 35];
 
 t_side = 4.0; // [0:0.05:10]
-t_wall = 4.0; // [0:0.05:10]
+t_wall = 3.6; // [0:0.05:10]
 
 chamfer_ext = 0.7; // [0:0.05:5]
 chamfer_int = 1.6; // [0:0.05:5]
@@ -73,12 +73,12 @@ gap_inset_l_end = t_wall + chamfer_int;
 gap_inset_l_open = w_foldover + chamfer_foldover * 2;
 
 /* [Leather Stitch Holes] */
-stitch_shell = [3.7, 2.1];
-stitch_leather = [3.40, 1.4];
+stitch_shell = [3.0, 2.1];
+stitch_leather = [3.30, 1.4];
 
 // centre of hole to edge
-stitch_inset = 3.6; // [0:0.1:10]
-stitch_spacing = 5.0; // [0:0.1:10]
+stitch_inset = 3.0; // [0:0.1:10]
+stitch_spacing = 4.22; // [0:0.01:10]
 
 // additional shell inset from edge
 shell_stitch_inset = -0.2; // [-10:0.05:10]
@@ -95,7 +95,7 @@ liner_hole_spacing = 4; // [0:0.1:10]
 
 /* [Pins] */
 d_pin = 2.3; // [0:0.05:5]
-l_pin = 42; // [0:0.1:50]
+l_pin = 32; // [0:0.1:50]
 
 /* [Magnets] */
 d_magnet_front = 6.25; // [0:0.05:10]
@@ -1464,7 +1464,7 @@ module hinge_jig() {
       dbg_hinges() mask_hinge_pin(ext=ext_main, ay=180, d=d_hinge_pin_jig_hole, l=l_hinge_pin_jig * 2, teardrop=false);
 
       translate(v=[0, 0, d_hinge_pin_jig / 2])
-        dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90, d=d_hinge_pin_jig, l=body.z*2, teardrop=false, channel=true);
+        dbg_hinges() mask_hinge_pin(ext=ext_main, ay=90, d=d_hinge_pin_jig, l=body.z * 2, teardrop=false, channel=true);
     }
 }
 
