@@ -104,6 +104,7 @@ t_magnet_front = 4.30; // [0:0.05:10]
 n_magnets_back = 5; // [0:1:5]
 
 da_magnet_back = -10; // [-20:1:20]
+dx_magnet_back = 0.5; // [0:0.05:20]
 
 magnet_back_disc = true;
 d_magnet_back_disc = 5.3; // [0:0.05:10]
@@ -141,7 +142,7 @@ l_hinge_pin_shroud = l_hinge_pin_shell + dl_hinge_pin_shroud;
 clearance_lid = 1.6; // [-1.6:0.05:5]
 
 // shell to shell
-clearance_hinge = 2.0; // [-1.6:0.05:5]
+clearance_hinge = 1.5; // [-1.6:0.05:5]
 
 // maximum angle lid can open
 a_open = 110; // [0:1:180]
@@ -231,9 +232,9 @@ echo(hinge_inset_stitches=hinge_inset_stitches);
 w_foldover_hinge = w_foldover - hinge_inset_dx + hinge_inset_stitches;
 echo(w_foldover_hinge=w_foldover_hinge);
 
-magnet_back_dx = -(magnet_back_bar ? b_magnet_back_bar.x : t_magnet_back_disc) / 4 / cos(a_open / 2);
+magnet_back_dx = -(magnet_back_bar ? b_magnet_back_bar.x : t_magnet_back_disc) / 4 / cos(a_open / 2) + dx_magnet_back;
 echo(magnet_back_dx=magnet_back_dx);
-magnet_back_dy = int_main.y / (n_magnets_back);
+magnet_back_dy = int_main.y / (n_magnets_back) - 0.001;
 echo(magnet_back_dy=magnet_back_dy);
 
 module dbg_stiches() { if (debug_stitches) #children(); else children(); }
