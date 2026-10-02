@@ -103,12 +103,13 @@ l_pin = 32; // [0:0.1:50]
 
 /* [Magnets] */
 d_magnet_front = 6.25; // [0:0.05:10]
-t_magnet_front = 4.30; // [0:0.05:10]
+t_magnet_front = 3.30; // [0:0.05:10]
 
 n_magnets_back = 5; // [0:1:5]
 
 da_magnet_back = -10; // [-20:1:20]
-dx_magnet_back = 0.5; // [0:0.05:20]
+dx_magnet_back = 0.5; // [-20:0.05:20]
+dz_magnet_back = -0.5; // [-20:0.05:20]
 
 magnet_back_disc = true;
 d_magnet_back_disc = 5.3; // [0:0.05:10]
@@ -407,14 +408,14 @@ module mask_magnets_front(ext, teardrop) {
 
 module mask_magnets_back_bar(ext, int, dz) {
   for (y = [-int.y / 2 + magnet_back_dy / 2:magnet_back_dy:int.y / 2 - magnet_back_dy / 2])
-    translate(v=[ext.x / 2 - hinge_inset_dx + magnet_back_dx, y, -ext.z / 2 + dz])
+    translate(v=[ext.x / 2 - hinge_inset_dx + magnet_back_dx, y, -ext.z / 2 + dz + dz_magnet_back])
       rotate(a=a_open / 2 + da_magnet_back, v=[0, 1, 0])
         cube(size=b_magnet_back_bar, center=true);
 }
 
 module mask_magnets_back_disc(ext, int, dz) {
   for (y = [-int.y / 2 + magnet_back_dy / 2:magnet_back_dy:int.y / 2 - magnet_back_dy / 2])
-    translate(v=[ext.x / 2 - hinge_inset_dx + magnet_back_dx, y, -ext.z / 2 + dz])
+    translate(v=[ext.x / 2 - hinge_inset_dx + magnet_back_dx, y, -ext.z / 2 + dz + dz_magnet_back])
       rotate(a=a_open / 2 + da_magnet_back, v=[0, 1, 0])
         rotate(a=90, v=[0, 0, 1])
           teardrop(h=t_magnet_back_disc, d=d_magnet_back_disc, orient=UP, ang=45);
@@ -433,7 +434,7 @@ module magnet_shroud_back(ext, int, dz) {
       intersection() {
         cube(size=ext, center=true);
 
-        translate(v=[ext.x / 2 - hinge_inset_dx + magnet_back_dx, 0, -ext.z / 2 + dz])
+        translate(v=[ext.x / 2 - hinge_inset_dx + magnet_back_dx, 0, -ext.z / 2 + dz + dz_magnet_back])
           rotate(a=a_open / 2 + da_magnet_back, v=[0, 1, 0]) {
             cube(
               size=[
