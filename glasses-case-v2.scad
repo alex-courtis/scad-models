@@ -428,7 +428,7 @@ module magnet_shroud_back(ext, int, dz) {
           rotate(a=a_open / 2 + da_magnet_back, v=[0, 1, 0]) {
             cube(
               size=[
-                (magnet_back_bar ? b_magnet_back_bar.x : t_magnet_back_disc) * 0.99,
+                (magnet_back_bar ? b_magnet_back_bar.x : t_magnet_back_disc) * 0.75,
                 int.y - chamfer_int * 2,
                 (magnet_back_bar ? b_magnet_back_bar.z * 0.999 : d_magnet_back_disc),
               ], center=true
@@ -437,6 +437,9 @@ module magnet_shroud_back(ext, int, dz) {
       }
 
       mask_magnets_back(ext, int, dz);
+
+	  dx = ext.x / 2 - stitch_inset - hinge_inset_stitches;
+	  mask_stitches_wide(stitch=stitch_shell, ext=ext, az=90, dx=dx, dz=( -ext.z + t_wall - t_foldover) / 2, hinge=true);
     }
   }
 }
