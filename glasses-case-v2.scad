@@ -105,17 +105,17 @@ l_pin = 32; // [0:0.1:50]
 d_magnet_front = 6.25; // [0:0.05:10]
 t_magnet_front = 3.30; // [0:0.05:10]
 
-n_magnets_back = 5; // [0:1:5]
+n_magnets_back = 3; // [0:1:5]
 
 da_magnet_back = -10; // [-20:1:20]
 dx_magnet_back = 0.5; // [-20:0.05:20]
 dz_magnet_back = -0.5; // [-20:0.05:20]
 
-magnet_back_disc = true;
+magnet_back_disc = false;
 d_magnet_back_disc = 5.3; // [0:0.05:10]
 t_magnet_back_disc = 2.1; // [0:0.05:10]
 
-magnet_back_bar = false;
+magnet_back_bar = true;
 b_magnet_back_bar = [2.2, 10.5, 5];
 
 magnet_wall_disc = false;
