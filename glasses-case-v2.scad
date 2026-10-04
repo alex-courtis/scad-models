@@ -281,7 +281,7 @@ module mask_stitches_wide(stitch, ext, az, dx, dz, az, hinge) {
 
   translate(v=[dx, 0, dz]) {
 
-    if (!hinge && stitch == stitch_shell) {
+    if (!hinge && stitch == stitch_shell && ext == ext_lid) {
       translate(v=[0, -y - stitch.x / 2 + 0.0001, 0])
         mask_stitch(stitch=stitch, ax=0, ay=0, az=az);
       translate(v=[0, y + stitch.x / 2 - 0.0001, 0])
@@ -300,7 +300,7 @@ module mask_stitches_deep(stitch, ext, ay, dy, hinge) {
   spacing = z / round_nearest(z, stitch_spacing) * stitch_spacing;
 
   translate(v=[ext.x / 2 - stitch_inset_side, dy, 0]) {
-    if (!hinge && stitch == stitch_shell) {
+    if (!hinge && stitch == stitch_shell && ext == ext_lid) {
       translate(v=[0, 0, -z + spacing - stitch.x])
         mask_stitch(stitch=stitch, ax=90, ay=ay, az=0);
     }
@@ -922,7 +922,7 @@ module front() {
 
     dbg_magnets() mask_magnets_front(ext=ext_main, teardrop=55);
 
-	dbg_magnets() mask_magnets_side(ext=ext_main);
+    dbg_magnets() mask_magnets_side(ext=ext_main);
 
     mirror(v=[0, 0, 1]) {
       dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
@@ -950,7 +950,7 @@ module back() {
     dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover, hinge=true);
 
     dbg_magnets() mask_magnets_wall(ext=ext_main);
-	
+
     dbg_magnets() mask_magnets_side(ext=ext_main);
   }
 
