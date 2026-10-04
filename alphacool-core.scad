@@ -18,24 +18,27 @@ clip_poly = [
   [8.5, 1.8],
 ];
 
-gap_shroud_x = 1.50;
-gap_shroud_y = l_rib_x;
+gap_front_x = 1.50;
+gap_front_y = l_rib_x;
 
 z_front = 4.0;
 dxy_front = 5.0; // from face
 rounding_front = 1.6;
 
+gap_shroud_x = gap_front_x + 1.5;
+gap_shroud_y = gap_front_y + 1.5;
+
 z_shroud = 6;
-dxy_shroud = 3.5; // from face
+dxy_shroud = 1; // from front
 rounding_shroud = rounding_front;
 
 $fn = 200;
 
 front = [body.x + dxy_front * 2, body.y + dxy_front * 2, z_front];
-front_inner = [body.x + 2 * gap_shroud_x, body.y + 2 * l_rib_x, front.z];
+front_inner = [body.x + 2 * gap_front_x, body.y + 2 * gap_front_y, front.z];
 
 shroud = [front.x, front.y, z_shroud];
-shroud_inner = [shroud.x - 2 * dxy_shroud, shroud.y - 2 * dxy_shroud, shroud.z];
+shroud_inner = [body.x + 2 * gap_shroud_x, body.y + 2 * gap_shroud_y, shroud.z];
 
 module model() {
 
