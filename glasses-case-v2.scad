@@ -246,6 +246,24 @@ echo(magnet_back_dx=magnet_back_dx);
 magnet_back_dy = int_main.y / (n_magnets_back) - 0.001;
 echo(magnet_back_dy=magnet_back_dy);
 
+dx_pin = [
+  ext_main.x / 2 - w_foldover * 2,
+  0,
+  -ext_main.x / 2 + d_pin / 2,
+];
+echo(dx_pin=dx_pin);
+dx_magnet_side = [
+  dx_pin[0] - d_magnet_side / 2 - d_pin * 3 / 2,
+  -ext_main.x / 2 - ext_main.z / 2 + d_magnet_side / 2 + t_wall * 2,
+];
+echo(dx_magnet_side=dx_magnet_side);
+dx_pin_magnet_side = [
+  dx_pin[0],
+  dx_pin[1],
+  dx_magnet_side[1] + d_magnet_side / 2 + d_pin * 3 / 2,
+];
+echo(dx_pin_magnet_side=dx_pin_magnet_side);
+
 module dbg_stiches() { if (debug_stitches) #children(); else children(); }
 module dbg_hinges() { if (debug_hinges) #children(); else children(); }
 module dbg_magnets() { if (debug_magnets) #children(); else children(); }
@@ -469,7 +487,7 @@ module mask_magnets_wall(ext) {
 module mask_magnets_side(ext) {
   if (magnet_side_disc) {
     for (
-      dx = [ext.x / 2 - d_magnet_side, -ext.x / 2],
+      dx = dx_magnet_side,
       dy = [-ext.y / 2 + t_magnet_side / 2, ext.y / 2 - t_magnet_side / 2],
     )
       translate(v=[dx, dy, 0])
@@ -533,8 +551,8 @@ module mask_pins(ext, int) {
   for (i = [-1, 1]) {
     for (
       x = magnet_side_disc ?
-        [-d_magnet_side * 3 / 2, d_magnet_side / 2]
-      : [-ext.x / 2 + d_pin / 2, 0, ext.x / 2 - w_foldover * 2]
+        dx_pin_magnet_side
+      : dx_pin
     ) {
       translate(v=[x, i * (ext.y + int.y) / 4, -l_pin / 4])
         cylinder(d=d_pin, h=l_pin / 2, center=true);
