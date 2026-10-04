@@ -11,34 +11,29 @@ dy_rib_y = 3.5; // from body
 l_rib_y = 0.85;
 
 w_clip = 6;
+t_clip = 1.8;
 clip_poly = [
   // from body side
   [5, 0],
   [11.5, 0],
-  [8.5, 1.8],
+  [8.5, t_clip],
 ];
 
-gap_front_x = 1.50;
-gap_front_y = l_rib_x;
+t_clip_socket = (t_clip - l_rib_y) * 2 / 3;
 
-z_front = 4.0;
+gap_front_x = l_rib_y;
+
+z_front = 4.25;
 dxy_front = 5.0; // from face
 rounding_front = 1.6;
 
-gap_shroud_x = gap_front_x + 1.5;
-gap_shroud_y = gap_front_y + 1.5;
+gap_sleeve_x = t_clip;
 
-z_shroud = 6;
-dxy_shroud = 1; // from front
-rounding_shroud = rounding_front;
+z_sleeve = 6;
+dxy_sleeve = 1; // from front
+rounding_sleeve = rounding_front;
 
 $fn = 200;
-
-front = [body.x + dxy_front * 2, body.y + dxy_front * 2, z_front];
-front_inner = [body.x + 2 * gap_front_x, body.y + 2 * gap_front_y, front.z];
-
-shroud = [front.x, front.y, z_shroud];
-shroud_inner = [body.x + 2 * gap_shroud_x, body.y + 2 * gap_shroud_y, shroud.z];
 
 module model() {
 
@@ -77,8 +72,20 @@ module model() {
 }
 
 module shroud() {
-  translate(v=[0, 0, body.z - front.z / 2]) {
-    color(c="firebrick") {
+  front = [body.x + dxy_front * 2, body.y + dxy_front * 2, z_front];
+  front_inner = [body.x + 2 * gap_front_x, body.y + 2 * l_rib_x, front.z];
+
+  sleeve = [front.x, front.y, z_sleeve];
+  sleeve_inner = [body.x + 2 * gap_sleeve_x, body.y + 2 * l_rib_x, sleeve.z];
+
+  module mask_clip_socket() {
+    for (i = [-1, 1])
+      translate(v=[i * (front_inner.x + t_clip_socket) / 2, 0, 0])
+        cuboid(size=[t_clip_socket, w_clip, front.z + sleeve.z]);
+  }
+
+  color(c="firebrick") {
+    translate(v=[0, 0, body.z - front.z / 2]) {
       difference() {
         cuboid(
           size=front,
@@ -88,23 +95,31 @@ module shroud() {
         cuboid(
           size=front_inner,
         );
+        mask_clip_socket();
       }
     }
   }
-  translate(v=[0, 0, ( -shroud.z) / 2 + body.z - front.z])
-    color(c="tomato")
+
+  color(c="tomato") {
+    translate(v=[0, 0, ( -sleeve.z) / 2 + body.z - front.z]) {
       difference() {
         cuboid(
-          size=shroud,
-          rounding=rounding_shroud,
+          size=sleeve,
+          rounding=rounding_sleeve,
           except=[TOP, BOTTOM],
         );
         cuboid(
-          size=shroud_inner,
-          chamfer=min((shroud_inner.x - front_inner.x), (shroud_inner.y - front_inner.y)) / 2,
-          except=[BOTTOM],
+          size=sleeve_inner,
+          chamfer=(sleeve_inner.x - front_inner.x) / 2,
+          edges=[
+            TOP + LEFT,
+            TOP + RIGHT,
+          ],
         );
+        mask_clip_socket();
       }
+    }
+  }
 }
 
 render() {
