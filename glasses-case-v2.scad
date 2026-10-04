@@ -463,7 +463,11 @@ module mask_magnets_wall(ext) {
       translate(v=[( -ext.x + d_magnet_wall) / 2 + chamfer_int, 0, 0])
         cylinder(d=d_magnet_wall, h=t_magnet_wall, center=true);
     }
-  } else if (magnet_side_disc) {
+  }
+}
+
+module mask_magnets_side(ext) {
+  if (magnet_side_disc) {
     for (
       dx = [ext.x / 2 - d_magnet_side, -ext.x / 2],
       dy = [-ext.y / 2 + t_magnet_side / 2, ext.y / 2 - t_magnet_side / 2],
@@ -918,6 +922,8 @@ module front() {
 
     dbg_magnets() mask_magnets_front(ext=ext_main, teardrop=55);
 
+	dbg_magnets() mask_magnets_side(ext=ext_main);
+
     mirror(v=[0, 0, 1]) {
       dbg_foldover() mask_foldover_wide(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover);
 
@@ -944,6 +950,8 @@ module back() {
     dbg_foldover() mask_foldover_deep(ext=ext_main, int=int_main, w=w_foldover, t=t_foldover, hinge=true);
 
     dbg_magnets() mask_magnets_wall(ext=ext_main);
+	
+    dbg_magnets() mask_magnets_side(ext=ext_main);
   }
 
   magnet_shroud_back(ext=ext_main, int=int_main, dz=t_foldover / 2);
