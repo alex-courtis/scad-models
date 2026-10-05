@@ -53,6 +53,11 @@ t_wall_bracket = 4.0; // top and bottom, otherwise t_wall_stem
 w_nut = 7.9; // M5
 d_nut = w_nut * 2 / sqrt(3) * 1.015;
 
+t_nub = 3.0;
+w_nub = 4.0;
+l_nub_rat = 0.6; // of channel stem
+n_nubs = 5;
+
 $fn = 200;
 
 module model() {
@@ -110,6 +115,9 @@ module shroud() {
   dy_channel_bracket = dy_bracket + t_wall_bracket / 2;
 
   dy_bolt = dy_stem + stem.y / 2 + dy_bolt;
+
+  nub = [channel_stem.x * l_nub_rat, w_nub, t_nub];
+  dx_nub = (nub.x - channel_stem.x) / 2;
 
   module mask_clip_socket() {
     for (i = [-1, 1])
@@ -217,6 +225,19 @@ module shroud() {
       );
   }
 
+  module nubs() {
+    dy_nub = channel_stem.y / (n_nubs + 1);
+    for (i = [0:n_nubs - 1])
+      translate(
+        v=[
+          i % 2 == 0 ? dx_nub : -dx_nub,
+          sleeve_inner.y / 2 + nub.y / 2 + i * dy_nub,
+          nub.z / 2,
+        ]
+      )
+        cuboid(size=nub);
+  }
+
   translate(v=[0, 0, body.z - z_front - z_sleeve]) {
     difference() {
       union() {
@@ -247,6 +268,9 @@ module shroud() {
       color(c="green")
         mask_nut();
     }
+
+    color(c="violet")
+      nubs();
   }
 }
 
