@@ -1,5 +1,6 @@
 include <BOSL2/std.scad>
 
+/* model */
 face = [47.7, 28.3, 2.7];
 body = [44.3, 25, 14];
 t_rib = 0.9;
@@ -19,19 +20,38 @@ clip_poly = [
   [8.5, t_clip],
 ];
 
+/* shroud */
+
 t_clip_socket = (t_clip - l_rib_y) * 2 / 3;
 
-gap_front_x = l_rib_y;
-
 z_front = 4.25;
-dxy_front = 5.0; // from face
-rounding_front = 1.6;
+dxy_front = 6.0; // from face
+rounding_front = 3;
 
 gap_sleeve_x = t_clip;
 
-z_sleeve = 6;
+z_sleeve = 16;
 dxy_sleeve = 1; // from front
 rounding_sleeve = rounding_front;
+
+stem = [20, 50, 14];
+rounding_stem = rounding_front;
+
+t_wall_stem = 2.4;
+
+bracket = [50, 18, 20];
+d_bolt = 5.1;
+dy_bolt = 5; // from bracket bottom
+
+chamfer_bracket = 4;
+
+t_wall_bracket = 4.0; // top and bottom, otherwise t_wall_stem
+
+w_nut = 7.9; // M5
+d_nut = w_nut * 2 / sqrt(3) * 1.015;
+
+h_nut = 3.85;
+h_nut_hole = 4;
 
 $fn = 200;
 
@@ -73,19 +93,64 @@ module model() {
 
 module shroud() {
   front = [body.x + dxy_front * 2, body.y + dxy_front * 2, z_front];
-  front_inner = [body.x + 2 * gap_front_x, body.y + 2 * l_rib_x, front.z];
+  front_inner = [body.x + 2 * l_rib_y, body.y + 2 * l_rib_x, front.z];
 
   sleeve = [front.x, front.y, z_sleeve];
   sleeve_inner = [body.x + 2 * gap_sleeve_x, body.y + 2 * l_rib_x, sleeve.z];
 
+  dy_stem = stem.y / 2 + sleeve.y / 2;
+
+  channel_stem = [stem.x - 2 * t_wall_stem, stem.y + sleeve.y / 2 + dy_bolt + d_nut / 2, stem.z - t_wall_stem];
+  dy_channel_stem = channel_stem.y / 2;
+
+  channel_bracket = [bracket.x, bracket.y - 2 * t_wall_bracket, channel_stem.z];
+
+  dy_bracket = dy_stem + stem.y / 2 + bracket.y / 2;
+
+  dy_bolt = dy_stem + stem.y / 2 + dy_bolt;
+
   module mask_clip_socket() {
     for (i = [-1, 1])
       translate(v=[i * (front_inner.x + t_clip_socket) / 2, 0, 0])
-        cuboid(size=[t_clip_socket, w_clip, front.z + sleeve.z]);
+        cuboid(size=[t_clip_socket, w_clip, 2 * (front.z + sleeve.z)]);
   }
 
-  color(c="firebrick") {
-    translate(v=[0, 0, body.z - front.z / 2]) {
+  module mask_channel_stem() {
+    translate(v=[0, dy_channel_stem, channel_stem.z / 2])
+      cuboid(
+        size=channel_stem,
+        chamfer=rounding_stem,
+        edges=[
+          TOP + LEFT,
+          TOP + RIGHT,
+        ],
+      );
+  }
+
+  module mask_channel_bracket() {
+    translate(v=[0, dy_bracket, channel_bracket.z / 2])
+      cuboid(
+        size=channel_bracket,
+        chamfer=chamfer_bracket,
+        edges=[
+          FRONT + TOP,
+          BACK + TOP,
+        ],
+      );
+  }
+
+  module mask_bolt() {
+    translate(v=[0, dy_bolt, bracket.z])
+      cylinder(d=d_bolt, h=bracket.z * 2, center=true);
+  }
+
+  module mask_nut() {
+    translate(v=[0, dy_bolt, channel_stem.z + h_nut_hole / 2 - 0.001])
+      cylinder(d=d_nut, h=h_nut_hole, $fn=6, center=true);
+  }
+
+  module front() {
+    translate(v=[0, 0, z_sleeve + z_front / 2]) {
       difference() {
         cuboid(
           size=front,
@@ -95,13 +160,12 @@ module shroud() {
         cuboid(
           size=front_inner,
         );
-        mask_clip_socket();
       }
     }
   }
 
-  color(c="tomato") {
-    translate(v=[0, 0, ( -sleeve.z) / 2 + body.z - front.z]) {
+  module sleeve() {
+    translate(v=[0, 0, sleeve.z / 2]) {
       difference() {
         cuboid(
           size=sleeve,
@@ -116,8 +180,67 @@ module shroud() {
             TOP + RIGHT,
           ],
         );
-        mask_clip_socket();
       }
+    }
+  }
+
+  module stem() {
+    translate(v=[0, dy_stem, stem.z / 2]) {
+      difference() {
+        cuboid(
+          size=stem,
+          rounding=rounding_stem,
+          edges=[
+            TOP + LEFT,
+            TOP + RIGHT,
+          ],
+        );
+      }
+    }
+  }
+
+  module bracket() {
+    translate(v=[0, dy_bracket, bracket.z / 2])
+      cuboid(
+        size=bracket,
+        chamfer=chamfer_bracket,
+        edges=[
+          FRONT + TOP,
+          BACK + TOP,
+        ],
+      );
+  }
+
+  translate(v=[0, 0, body.z - z_front - z_sleeve]) {
+    difference() {
+      union() {
+        color(c="firebrick")
+          front();
+
+        color(c="tomato")
+          sleeve();
+
+        color(c="orangered")
+          stem();
+
+        color(c="red")
+          bracket();
+      }
+
+      color(c="yellow")
+        mask_channel_bracket();
+
+      color(c="blue")
+        mask_clip_socket();
+
+      color(c="pink")
+        mask_channel_stem();
+
+      color(c="black")
+        mask_bolt();
+
+      color(c="green")
+        mask_nut();
     }
   }
 }
