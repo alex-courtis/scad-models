@@ -49,9 +49,8 @@ t_wall_bracket = 4.0; // top and bottom, otherwise t_wall_stem
 
 w_nut = 7.9; // M5
 d_nut = w_nut * 2 / sqrt(3) * 1.015;
-
 h_nut = 3.85;
-h_nut_hole = 4;
+dz_nut = h_nut + 3;
 
 $fn = 200;
 
@@ -119,7 +118,7 @@ module shroud() {
     translate(v=[0, dy_channel_stem, channel_stem.z / 2])
       cuboid(
         size=channel_stem,
-        chamfer=rounding_stem,
+        chamfer=channel_stem.x / 2,
         edges=[
           TOP + LEFT,
           TOP + RIGHT,
@@ -131,7 +130,7 @@ module shroud() {
     translate(v=[0, dy_bracket, channel_bracket.z / 2])
       cuboid(
         size=channel_bracket,
-        chamfer=chamfer_bracket,
+        chamfer=channel_bracket.y / 2,
         edges=[
           FRONT + TOP,
           BACK + TOP,
@@ -145,8 +144,8 @@ module shroud() {
   }
 
   module mask_nut() {
-    translate(v=[0, dy_bolt, channel_stem.z + h_nut_hole / 2 - 0.001])
-      cylinder(d=d_nut, h=h_nut_hole, $fn=6, center=true);
+    translate(v=[0, dy_bolt, bracket.z / 2 - bracket.z + channel_bracket.z])
+      cylinder(d=d_nut, h=bracket.z, $fn=6, center=true);
   }
 
   module front() {
