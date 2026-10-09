@@ -55,7 +55,7 @@ chamfer_int = 1.6; // [0:0.05:5]
 // also rounded r=1.5
 chamfer_ext_hinge = 2.8; // [0:0.05:5]
 
-t_leather = 1.2; // [0.05:0.05:5]
+t_leather = 0.8; // [0.05:0.05:5]
 t_leather_overhang_wall = 0.4; // [0:0.05:5]
 t_leather_overhang_side = 0.4; // [0:0.05:5]
 t_leather_underhang_lid = 0.3; // [0:0.05:5]
@@ -73,7 +73,7 @@ gap_inset_l_end = t_wall + chamfer_int;
 gap_inset_l_open = w_foldover + chamfer_foldover * 2;
 
 /* [Leather Stitch Holes] */
-stitch_shell = [3.0, 2.1];
+stitch_shell = [3.35, 2.1];
 stitch_leather = [3.30, 1.4];
 
 // centre of hole to edge
@@ -82,7 +82,7 @@ stitch_inset_side = 2.5; // [0:0.1:10]
 stitch_inset_front = 2.5; // [0:0.1:10]
 stitch_inset_back = 3.0; // [0:0.1:10]
 
-stitch_spacing = 4.22; // [0:0.01:10]
+stitch_spacing = 4.45; // [0:0.01:10]
 
 // additional shell inset from edge
 shell_stitch_inset = -0.2; // [-10:0.05:10]
