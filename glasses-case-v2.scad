@@ -53,7 +53,7 @@ chamfer_ext = 0.7; // [0:0.05:5]
 chamfer_int = 1.6; // [0:0.05:5]
 
 // also rounded r=1.5
-chamfer_ext_hinge = 2.8; // [0:0.05:5]
+chamfer_ext_hinge = 2.3; // [0:0.05:5]
 
 t_leather = 0.8; // [0.05:0.05:5]
 t_leather_overhang_wall = 0.4; // [0:0.05:5]
