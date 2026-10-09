@@ -127,7 +127,7 @@ d_magnet_side = 21; // [0:0.05:50]
 t_magnet_side = 2.25; // [0:0.05:10]
 
 /* [Hinges] */
-d_hinge = 3.50; // [0:0.05:10]
+d_hinge = 4.0; // [0:0.05:10]
 dd_hinge_pin_main = 0.05; // [0:0.05:1]
 dd_hinge_pin_lid = 0.175; // [0:0.05:1]
 dd_hinge_pin_jig = 0.30; // [0:0.05:1]
@@ -139,7 +139,7 @@ d_hinge_pin_shroud = d_hinge + dr_hinge_pin_shroud * 2;
 
 d_hinge_pin_jig_hole = 2.4; // [0:0.05:5]
 
-l_hinge = 20; // [0:0.05:100]
+l_hinge = 25; // [0:0.05:100]
 dl_hinge_pin_shell = 1.25; // [0:0.05:5]
 dl_hinge_pin_jig = 0.325; // [0:0.05:1]
 dl_hinge_pin_shroud = 1.2; // [0:0.05:5]
@@ -247,7 +247,7 @@ magnet_back_dy = int_main.y / (n_magnets_back) - 0.001;
 echo(magnet_back_dy=magnet_back_dy);
 
 dx_pin = [
-  ext_main.x / 2 - w_foldover * 2,
+  ext_main.x / 2 - w_foldover * 2 - chamfer_foldover,
   0,
   -ext_main.x / 2 + d_pin / 2,
 ];
