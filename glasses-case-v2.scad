@@ -139,7 +139,7 @@ d_hinge_pin_shroud = d_hinge + dr_hinge_pin_shroud * 2;
 
 d_hinge_pin_jig_hole = 2.4; // [0:0.05:5]
 
-l_hinge = 25; // [0:0.05:100]
+l_hinge = 17; // [0:0.05:100]
 dl_hinge_pin_shell = 1.25; // [0:0.05:5]
 dl_hinge_pin_jig = 0.325; // [0:0.05:1]
 dl_hinge_pin_shroud = 1.2; // [0:0.05:5]
