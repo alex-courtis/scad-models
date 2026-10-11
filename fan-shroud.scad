@@ -1,7 +1,8 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
-base = [140, 140];
+length = 140; // x
+width = 140; // y
 h = 40;
 
 // xy only, actual size reduces by inset
@@ -11,43 +12,42 @@ t_bracket = 6;
 round_base = 12;
 
 // clockwise
-round_top = [40, 50, 10, 20];
-inset_top = [-10, -35, 10, 10];
+round_top = [80, 80, 80, 80];
+inset_top = [
+  [-35, -10],
+  [-35, 10],
+  [35, 10],
+  [35, -10],
+];
 
 inset_bolt = 7.5;
 d_bolt = 6;
+
+// clockwise signs for x/y corners
+sxy = [ [1, 1], [1, -1], [-1, -1], [-1, 1], ];
 
 $fn = 120;
 
 module shroud() {
 
-  module top(inner) {
-    rounding = round_top[0] + (inner ? -t_wall : 0);
+  module top(dt) {
+    // some thickness is needed for hull
+    z = 0.0001;
 
-    size =
-      inner ?
-        [base.x - t_wall * 2, base.y - t_wall * 2, 0]
-      : [base.x, base.y, 0];
-
-    translate(v=[0, 0, h - round_base / 2]) {
-      translate(v=[inset_top[1], inset_top[0], 0]) {
-        cuboid(
-          size=size,
-          rounding=rounding,
-          except=[TOP, BOTTOM],
-        );
-      }
-    }
+    for (i = [0:1:3])
+      translate(
+        v=[
+          sxy[i][0] * ( (length - round_top[i]) / 2 + inset_top[i][0]),
+          sxy[i][1] * ( (width - round_top[i]) / 2 + inset_top[i][1]),
+          h - round_base / 2 - z / 2,
+        ]
+      )
+        cylinder(d=round_top[i] - dt * 2, h=z, center=true);
   }
 
-  module bas(inner) {
-    size =
-      inner ?
-        [base.x - t_wall * 2, base.y - t_wall * 2, round_base]
-      : [base.x, base.y, round_base];
-
+  module base(dt) {
     cuboid(
-      size=[size.x, size.y, size.z],
+      size=[length - dt * 2, width - dt * 2, round_base],
       rounding=round_base,
       except=[
         BOTTOM,
@@ -56,7 +56,7 @@ module shroud() {
   }
 
   module bracket() {
-    translate(v=[base.x / 2, base.y / 2, ( -round_base + t_bracket) / 2])
+    translate(v=[length / 2, width / 2, ( -round_base + t_bracket) / 2])
 
       difference() {
         cuboid(
@@ -77,17 +77,15 @@ module shroud() {
 
   module outer() {
     hull() {
-      bas(inner=false);
-
-      top(inner=false);
+      base(dt=0);
+      top(dt=0);
     }
   }
 
   module inner() {
     hull() {
-      bas(inner=true);
-
-      top(inner=true);
+      base(dt=t_wall);
+      top(dt=t_wall);
     }
   }
 
