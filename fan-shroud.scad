@@ -1,9 +1,12 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
-length = 140; // x
-width = 140; // y
-h = 40;
+// base
+x = 140;
+y = 140;
+
+// total from base
+z = 60;
 
 // xy only, actual size reduces by inset
 t_wall = 1.6;
@@ -12,19 +15,24 @@ t_bracket = 6;
 round_base = 12;
 
 // clockwise
-round_top = [80, 80, 80, 80];
+round_top = [60, 80, 60, 60];
 inset_top = [
-  [-35, -10],
-  [-35, 10],
-  [35, 10],
-  [35, -10],
+  [-35, -30],
+  [-35, 5],
+  [5, 5],
+  [5, -30],
 ];
 
 inset_bolt = 7.5;
 d_bolt = 6;
 
+cutout_x = x - 90;
+cutout_y = -y + 25;
+cutout_t = 30;
+cutout_rounding = 3;
+
 // clockwise signs for x/y corners
-sxy = [ [1, 1], [1, -1], [-1, -1], [-1, 1], ];
+sxy = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
 
 $fn = 120;
 
@@ -32,22 +40,22 @@ module shroud() {
 
   module top(dt) {
     // some thickness is needed for hull
-    z = 0.0001;
+    h = 0.0001;
 
     for (i = [0:1:3])
       translate(
         v=[
-          sxy[i][0] * ( (length - round_top[i]) / 2 + inset_top[i][0]),
-          sxy[i][1] * ( (width - round_top[i]) / 2 + inset_top[i][1]),
-          h - round_base / 2 - z / 2,
+          sxy[i][0] * ( (x - round_top[i]) / 2 + inset_top[i][0]),
+          sxy[i][1] * ( (y - round_top[i]) / 2 + inset_top[i][1]),
+          z - round_base / 2 - h / 2,
         ]
       )
-        cylinder(d=round_top[i] - dt * 2, h=z, center=true);
+        cylinder(d=round_top[i] - dt * 2, h=h, center=true);
   }
 
   module base(dt) {
     cuboid(
-      size=[length - dt * 2, width - dt * 2, round_base],
+      size=[x - dt * 2, y - dt * 2, round_base],
       rounding=round_base,
       except=[
         BOTTOM,
@@ -56,7 +64,7 @@ module shroud() {
   }
 
   module bracket() {
-    translate(v=[length / 2, width / 2, ( -round_base + t_bracket) / 2])
+    translate(v=[x / 2, y / 2, ( -round_base + t_bracket) / 2])
 
       difference() {
         cuboid(
@@ -89,20 +97,43 @@ module shroud() {
     }
   }
 
-  difference() {
-    outer();
+  module cutout() {
+    translate(v=[cutout_x, cutout_y, z / 2 - round_base / 2 + cutout_t])
+      cuboid(
+        size=[x, y, z],
+        rounding=cutout_rounding,
+      );
 
-    inner();
+    translate(v=[cutout_x - x / 2, cutout_y, z - round_base / 2])
+      rotate(a=180, v=[0, 0, 1])
+        rotate(a=-90, v=[1, 0, 0])
+          rounding_edge_mask(l=y, r=cutout_rounding, excess=0);
+
+    translate(v=[cutout_x, cutout_y + y / 2, z - round_base / 2])
+      rotate(a=90, v=[0, 0, 1])
+        rotate(a=-90, v=[1, 0, 0])
+          rounding_edge_mask(l=y, r=cutout_rounding, excess=0);
   }
 
-  intersection() {
-    brackets();
+  difference() {
+    union() {
+      difference() {
+        outer();
 
-    outer();
+        inner();
+      }
+
+      intersection() {
+        brackets();
+
+        outer();
+      }
+    }
+
+    cutout();
   }
 }
 
 render() {
-
   shroud();
 }
