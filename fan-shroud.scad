@@ -17,7 +17,7 @@ round_base_corner = inset_bolt;
 round_base_edge = 20;
 
 // clockwise from corner
-round_top = [90, 100, 30, 90];
+round_top = [50, 15, 15, 50];
 inset_top = [
   [-32.5, -35],
   [-32.5, 30],
@@ -40,18 +40,20 @@ sxy = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
 $fn = 200;
 
 module top(dt = 0) {
-  // some thickness is needed for hull
-  h = 0.0001;
+  // some volume is needed for hull
+  eps = 0.0001;
 
   for (i = [0:1:3])
     translate(
       v=[
-        sxy[i].x * ( (base.x - round_top[i]) / 2 + inset_top[i][0]),
-        sxy[i].y * ( (base.y - round_top[i]) / 2 + inset_top[i][1]),
-        height - h / 2,
+        sxy[i].x * (base.x / 2 - round_top[i] + inset_top[i][0]),
+        sxy[i].y * (base.y / 2 - round_top[i] + inset_top[i][1]),
+        height - eps / 2,
       ]
-    )
-      cylinder(d=round_top[i] - dt * 2, h=h, center=true);
+    ) {
+      r = max(round_top[i], t_wall * 2 + eps);
+      pie_slice(ang=90, spin=-90 * i, l=eps, r=r - dt);
+    }
 }
 
 module bottom(dt = 0) {
@@ -137,12 +139,12 @@ module cutouts() {
         translate(v=[sxy[i].x * -base.x / 2, 0, height])
           rotate(a=sxy[i].x == 1 ? 180 : 0, v=[0, 0, 1])
             rotate(a=-90, v=[1, 0, 0])
-              rounding_edge_mask(l=base.y, r=cutout_rounding, excess=0);
+              rounding_edge_mask(l=base.y, r=cutout_rounding);
 
         translate(v=[0, sxy[i].y * -base.y / 2, height])
           rotate(a=sxy[i].y * -90, v=[0, 0, 1])
             rotate(a=-90, v=[1, 0, 0])
-              rounding_edge_mask(l=base.y, r=cutout_rounding, excess=0);
+              rounding_edge_mask(l=base.y, r=cutout_rounding);
       }
     }
   }
@@ -170,4 +172,5 @@ module shroud() {
 
 render() {
   shroud();
+  // top( dt = t_wall);
 }
