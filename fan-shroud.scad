@@ -13,18 +13,18 @@ t_bracket = 6;
 round_base = 12;
 
 // clockwise from corner
-round_top = [60, 80, 60, 60];
+round_top = [90, 100, 50, 90];
 inset_top = [
-  [-35, -30],
-  [-35, 5],
-  [5, 5],
-  [5, -30],
+  [-35, -35],
+  [-35, 30],
+  [0, 30],
+  [0, -35],
 ];
 
 // clockwise from edge
 cutouts = [
   [0, 0, 0],
-  [-90, 25, 30],
+  [-85, 25, 24],
   [0, 0, 0],
   [0, 0, 0],
 ];
@@ -99,31 +99,30 @@ module inner() {
 }
 
 module cutouts() {
-  translate(v=[0, 0, height / 2]) {
-    for (i = [0:1:3]) {
-      if (cutouts[i] != [0, 0, 0]) {
-        translate(
-          v=[
-            sxy[i].x * base.x + cutouts[i].x,
-            sxy[i].y * base.y + cutouts[i].y,
-            cutouts[i].z,
-          ]
-        ) {
+  for (i = [0:1:3]) {
+    if (cutouts[i] != [0, 0, 0]) {
+      translate(
+        v=[
+          sxy[i].x * base.x + cutouts[i].x,
+          sxy[i].y * base.y + cutouts[i].y,
+          0,
+        ]
+      ) {
+        translate(v=[0, 0, cutouts[i].z + height / 2])
           cuboid(
             size=[base.x, base.y, height],
             rounding=cutout_rounding,
           );
 
-          translate(v=[sxy[i].x * -base.x / 2, 0, 0])
-            rotate(a=sxy[i].x == 1 ? 180 : 0, v=[0, 0, 1])
-              rotate(a=-90, v=[1, 0, 0])
-                rounding_edge_mask(l=base.y, r=cutout_rounding, excess=0);
+        translate(v=[sxy[i].x * -base.x / 2, 0, height])
+          rotate(a=sxy[i].x == 1 ? 180 : 0, v=[0, 0, 1])
+            rotate(a=-90, v=[1, 0, 0])
+              rounding_edge_mask(l=base.y, r=cutout_rounding, excess=0);
 
-          translate(v=[0, sxy[i].y * -base.y / 2, 0])
-            rotate(a=sxy[i].y * -90, v=[0, 0, 1])
-              rotate(a=-90, v=[1, 0, 0])
-                rounding_edge_mask(l=base.y, r=cutout_rounding, excess=0);
-        }
+        translate(v=[0, sxy[i].y * -base.y / 2, height])
+          rotate(a=sxy[i].y * -90, v=[0, 0, 1])
+            rotate(a=-90, v=[1, 0, 0])
+              rounding_edge_mask(l=base.y, r=cutout_rounding, excess=0);
       }
     }
   }
