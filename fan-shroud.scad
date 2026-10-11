@@ -1,7 +1,7 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
-base = [140, 140, 12];
+base = [140, 140, 6];
 
 // total from base
 height = 60;
@@ -10,7 +10,11 @@ height = 60;
 t_wall = 1.6;
 t_bracket = 6;
 
-round_base = 12;
+inset_bolt = 7.5;
+d_bolt = 6;
+
+round_base_corner = inset_bolt;
+round_base_edge = 20;
 
 // clockwise from corner
 round_top = [90, 100, 50, 90];
@@ -30,15 +34,12 @@ cutouts = [
 ];
 cutout_rounding = 3;
 
-inset_bolt = 7.5;
-d_bolt = 6;
-
 // clockwise signs for x/y corners
 sxy = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
 
-$fn = 120;
+$fn = 200;
 
-module top(dt) {
+module top(dt = 0) {
   // some thickness is needed for hull
   h = 0.0001;
 
@@ -53,15 +54,34 @@ module top(dt) {
       cylinder(d=round_top[i] - dt * 2, h=h, center=true);
 }
 
-module bottom(dt) {
-  translate(v=[0, 0, base.z / 2])
-    cuboid(
-      size=base - [2 * dt, 2 * dt, 0],
-      rounding=round_base,
-      except=[
-        BOTTOM,
-      ],
-    );
+module bottom(dt = 0) {
+  // some thickness is needed for hull
+  h = 0.01;
+
+  for (i = [0:1:3]) {
+    translate(
+      v=[
+        sxy[i].x * (base.x / 2 - round_base_corner),
+        sxy[i].y * (base.y / 2 - round_base_corner),
+        h / 2,
+      ]
+    )
+      cylinder(r=max(round_base_corner - dt, h), h=h, center=true);
+
+    intersection() {
+      translate(
+        v=[
+          sxy[i].x * (base.x / 2 - round_base_edge),
+          sxy[i].y * (base.y / 2 - round_base_edge),
+          h / 2 + base.z,
+        ]
+      )
+        sphere(r=round_base_edge - dt);
+
+      translate(v=[0, 0, height / 2])
+        cuboid(size=[base.x, base.y, height]);
+    }
+  }
 }
 
 module bracket() {
@@ -86,8 +106,8 @@ module brackets() {
 
 module outer() {
   hull() {
-    bottom(dt=0);
-    top(dt=0);
+    bottom();
+    top();
   }
 }
 
