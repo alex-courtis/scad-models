@@ -14,7 +14,7 @@ t_bracket = 6;
 
 round_base = 12;
 
-// clockwise
+// clockwise from corner
 round_top = [60, 80, 60, 60];
 inset_top = [
   [-35, -30],
@@ -23,13 +23,17 @@ inset_top = [
   [5, -30],
 ];
 
+// clockwise from centre
+cutouts = [
+  [0, 0, 0],
+  [x / 2 - 90, -y / 2 + 25, 30],
+  [0, 0, 0],
+  [0, 0, 0],
+];
+cutout_rounding = 3;
+
 inset_bolt = 7.5;
 d_bolt = 6;
-
-cutout_x = x - 90;
-cutout_y = -y + 25;
-cutout_t = 30;
-cutout_rounding = 3;
 
 // clockwise signs for x/y corners
 sxy = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
@@ -45,8 +49,8 @@ module shroud() {
     for (i = [0:1:3])
       translate(
         v=[
-          sxy[i][0] * ( (x - round_top[i]) / 2 + inset_top[i][0]),
-          sxy[i][1] * ( (y - round_top[i]) / 2 + inset_top[i][1]),
+          sxy[i].x * ( (x - round_top[i]) / 2 + inset_top[i][0]),
+          sxy[i].y * ( (y - round_top[i]) / 2 + inset_top[i][1]),
           z - round_base / 2 - h / 2,
         ]
       )
@@ -98,21 +102,34 @@ module shroud() {
   }
 
   module cutout() {
-    translate(v=[cutout_x, cutout_y, z / 2 - round_base / 2 + cutout_t])
-      cuboid(
-        size=[x, y, z],
-        rounding=cutout_rounding,
-      );
+    translate(v=[0, 0, z / 2 - round_base / 2]) {
+      for (i = [0:1:3]) {
+        if (cutouts[i] != [0, 0, 0]) {
+          translate(
+            v=[
+              sxy[i].x * x / 2 + cutouts[i].x,
+              sxy[i].y * y / 2 + cutouts[i].y,
+              cutouts[i].z,
+            ]
+          ) {
+            cuboid(
+              size=[x, y, z],
+              rounding=cutout_rounding,
+            );
 
-    translate(v=[cutout_x - x / 2, cutout_y, z - round_base / 2])
-      rotate(a=180, v=[0, 0, 1])
-        rotate(a=-90, v=[1, 0, 0])
-          rounding_edge_mask(l=y, r=cutout_rounding, excess=0);
+            translate(v=[sxy[i].x * -x / 2, 0, 0])
+              rotate(a=sxy[i].x == 1 ? 180 : 0, v=[0, 0, 1])
+                rotate(a=-90, v=[1, 0, 0])
+                  rounding_edge_mask(l=y, r=cutout_rounding, excess=0);
 
-    translate(v=[cutout_x, cutout_y + y / 2, z - round_base / 2])
-      rotate(a=90, v=[0, 0, 1])
-        rotate(a=-90, v=[1, 0, 0])
-          rounding_edge_mask(l=y, r=cutout_rounding, excess=0);
+            translate(v=[0, sxy[i].y * -y / 2, 0])
+              rotate(a=sxy[i].y * -90, v=[0, 0, 1])
+                rotate(a=-90, v=[1, 0, 0])
+                  rounding_edge_mask(l=y, r=cutout_rounding, excess=0);
+          }
+        }
+      }
+    }
   }
 
   difference() {
