@@ -17,10 +17,10 @@ round_base_corner = inset_bolt;
 round_base_edge = 20;
 
 // clockwise from corner
-round_top = [90, 100, 50, 90];
+round_top = [90, 100, 30, 90];
 inset_top = [
-  [-35, -35],
-  [-35, 30],
+  [-32.5, -35],
+  [-32.5, 30],
   [0, 30],
   [0, -35],
 ];
