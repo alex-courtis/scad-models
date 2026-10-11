@@ -1,7 +1,7 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
-base = [140, 140, 6];
+base = [140, 140, 12];
 
 // total from base
 height = 60;
@@ -11,7 +11,13 @@ t_wall = 1.6;
 t_bracket = 6;
 
 inset_bolt = 7.5;
-d_bolt = 6;
+
+// TODO M4
+d_bolt = 5.5;
+
+w_nut = 7.1; // M4
+d_nut = w_nut * 2 / sqrt(3);
+t_nut = 3;
 
 round_base_corner = inset_bolt;
 round_base_edge = 20;
@@ -95,8 +101,19 @@ module bracket() {
         rounding=inset_bolt,
         edges=[FRONT + LEFT],
       );
+
       translate(v=[-inset_bolt, -inset_bolt, 0])
         cyl(d=d_bolt, h=t_bracket);
+
+      translate(v=[0, 0, (t_bracket - t_nut) / 2]) {
+        translate(v=[-inset_bolt, -inset_bolt, 0])
+          rotate(a=15, v=[0, 0, 1])
+            cyl(d=d_nut, h=t_nut, $fn=6);
+
+        translate(v=[-inset_bolt - d_nut * sqrt(2) / 4, -inset_bolt - d_nut * sqrt(2) / 4, 0])
+          rotate(a=-45, v=[0, 0, 1])
+            cuboid(size=[d_nut, d_nut, t_nut]);
+      }
     }
 }
 
