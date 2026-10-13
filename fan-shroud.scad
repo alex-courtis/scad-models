@@ -7,9 +7,6 @@ debug_points = false;
 
 base = [120, 120, 6];
 
-// total from base
-height = 50;
-
 // xy only, actual size changes with curved hulls
 t_wall = 1.6;
 t_bracket = 6;
@@ -60,23 +57,23 @@ sections = [
     ],
     height=50,
   ),
-  // object(
-  //   round_corner=[5, 5, 5, 5],
-  //   round_edge=[0, 0, 0, 0],
-  //   inset=[
-  //     [0, 0],
-  //     [0, 0],
-  //     [0, 0],
-  //     [0, 0],
-  //   ],
-  //   height=100,
-  // ),
+  object(
+    round_corner=[20, 20, 30, 30],
+    round_edge=[0, 0, 0, 0],
+    inset=[
+      [-50, -40],
+      [-50, 45],
+      [15, 45],
+      [15, -40],
+    ],
+    height=350,
+  ),
 ];
 
 // clockwise from edge
 cutouts = [
   [0, 0, 0],
-  [0, 0, 0],
+  [-100, -30, 80],
   [0, 0, 0],
   [0, 0, 0],
 ];
@@ -125,21 +122,22 @@ module top(section, dt = 0) {
 
     r_edge = section.round_edge[i] < t_wall * 2 ? eps : section.round_edge[i] - dt;
     if (r_edge > eps) {
-      intersection() {
-        translate(
-          v=[
-            sxy[i].x * (base.x / 2 - r_edge - dt),
-            sxy[i].y * (base.y / 2 - r_edge - dt),
-            // TODO allow this to be variable
-            base.z,
-          ]
-        )
+      translate(
+        v=[
+          sxy[i].x * (base.x / 2 - r_edge - dt),
+          sxy[i].y * (base.y / 2 - r_edge - dt),
+          // TODO allow this to be variable
+          base.z,
+        ]
+      ) {
+        intersection() {
           dbg_edges()
             sphere(r=r_edge);
 
-        // TODO intersect with current and previous section?
-        translate(v=[0, 0, height / 2])
-          cuboid(size=[base.x, base.y, height]);
+          // TODO intersect with current and previous section?
+          translate(v=[0, 0, r_edge - base.z])
+            cuboid(size=[r_edge * 2, r_edge * 2, r_edge * 2]);
+        }
       }
     }
   }
@@ -195,6 +193,8 @@ module inner() {
 }
 
 module cutouts() {
+  height = sections[len(sections) - 1].height;
+
   for (i = [0:1:3]) {
     if (cutouts[i] != [0, 0, 0]) {
       translate(
