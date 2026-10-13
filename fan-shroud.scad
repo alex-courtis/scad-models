@@ -27,6 +27,7 @@ sections = [
   object(
     round_corner=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
     round_edge=[15, 15, 0, 15],
+    // round_edge=[0, 0, 0, 0],
     inset=[
       [0, 0],
       [0, 0],
@@ -38,6 +39,7 @@ sections = [
   // object(
   //   round_corner=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
   //   round_edge=[15, 15, 0, 15],
+  //   round_edge_bottom=[15, 15, 0, 15],
   //   inset=[
   //     [0, 0],
   //     [0, 0],
@@ -124,18 +126,16 @@ module top(section, dt = 0) {
     if (r_edge > eps) {
       translate(
         v=[
-          sxy[i].x * (base.x / 2 - r_edge - dt),
-          sxy[i].y * (base.y / 2 - r_edge - dt),
-          // TODO allow this to be variable
-          base.z,
+          sxy[i].x * (base.x / 2 - r_edge + section.inset[i][0] - dt),
+          sxy[i].y * (base.y / 2 - r_edge + section.inset[i][1] - dt),
+          section.height == 0 ? base.z : section.height,
         ]
       ) {
         intersection() {
           dbg_edges()
             sphere(r=r_edge);
 
-          // TODO intersect with current and previous section?
-          translate(v=[0, 0, r_edge - base.z])
+          translate(v=[0, 0, r_edge])
             cuboid(size=[r_edge * 2, r_edge * 2, r_edge * 2]);
         }
       }
