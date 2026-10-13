@@ -19,8 +19,8 @@ w_nut = 7.1; // M4
 d_nut = w_nut * 2 / sqrt(3);
 t_nut = 3;
 
-round_base_corner = inset_bolt;
-round_base_edge = 20;
+round_base_corner = [inset_bolt, inset_bolt, inset_bolt, inset_bolt];
+round_base_edge = [20, 20, 20, 20];
 
 // clockwise from corner
 round_top = [50, 15, 15, 50];
@@ -49,42 +49,53 @@ module top(dt = 0) {
   // some volume is needed for hull
   eps = 0.0001;
 
-  for (i = [0:1:3])
+  for (i = [0:1:3]) {
+    // square when rounding less than wall
+    r = round_top[i] < t_wall * 2 ? eps : round_top[i] - dt;
     translate(
       v=[
-        sxy[i].x * (base.x / 2 - round_top[i] + inset_top[i][0]),
-        sxy[i].y * (base.y / 2 - round_top[i] + inset_top[i][1]),
+        sxy[i].x * (base.x / 2 - r + inset_top[i][0] - dt),
+        sxy[i].y * (base.y / 2 - r + inset_top[i][1] - dt),
         height - eps / 2,
       ]
     ) {
-      r = max(round_top[i], t_wall * 2 + eps);
-      pie_slice(ang=90, spin=-90 * i, l=eps, r=r - dt);
+      if (r == eps)
+        cube(size=[r * 2, r * 2, eps], center=true);
+      else
+        pie_slice(ang=90, spin=-90 * i, l=eps, r=r, anchor=CENTER);
     }
+  }
 }
 
 module bottom(dt = 0) {
   // some thickness is needed for hull
-  h = 0.01;
+  eps = 0.0001;
 
   for (i = [0:1:3]) {
+    r_corner = round_base_corner[i] < t_wall * 2 ? eps : round_base_corner[i] - dt;
     translate(
       v=[
-        sxy[i].x * (base.x / 2 - round_base_corner),
-        sxy[i].y * (base.y / 2 - round_base_corner),
-        h / 2,
+        sxy[i].x * (base.x / 2 - r_corner - dt),
+        sxy[i].y * (base.y / 2 - r_corner - dt),
+        eps / 2,
       ]
-    )
-      cylinder(r=max(round_base_corner - dt, h), h=h, center=true);
+    ) {
+      if (r_corner == eps)
+        cube(size=[r_corner * 2, r_corner * 2, eps], center=true);
+      else
+        pie_slice(ang=90, spin=-90 * i, l=eps, r=r_corner, anchor=CENTER);
+    }
 
+    r_edge = round_base_edge[i] < t_wall * 2 ? eps : round_base_edge[i] - dt;
     intersection() {
       translate(
         v=[
-          sxy[i].x * (base.x / 2 - round_base_edge),
-          sxy[i].y * (base.y / 2 - round_base_edge),
-          h / 2 + base.z,
+          sxy[i].x * (base.x / 2 - r_edge - dt),
+          sxy[i].y * (base.y / 2 - r_edge - dt),
+          base.z,
         ]
       )
-        sphere(r=round_base_edge - dt);
+        sphere(r=r_edge);
 
       translate(v=[0, 0, height / 2])
         cuboid(size=[base.x, base.y, height]);
