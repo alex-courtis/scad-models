@@ -3,6 +3,7 @@ include <lib/geom.scad>
 
 debug_corners = false;
 debug_edges = false;
+debug_points = false;
 
 base = [120, 120, 6];
 
@@ -22,16 +23,54 @@ w_nut = 7.0; // M4
 d_nut = w_nut * 2 / sqrt(3);
 t_nut = 3;
 
-round_base_corner = [inset_bolt, inset_bolt, inset_bolt, inset_bolt];
-round_base_edge = [15, 15, 0, 15];
+// all quads are clockwise
+// inset is from corner
 
-// clockwise from corner
-round_top = [20, 20, 30, 30];
-inset_top = [
-  [-50, -40],
-  [-50, 30],
-  [15, 45],
-  [15, -40],
+sections = [
+  object(
+    round_corner=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
+    round_edge=[15, 15, 0, 15],
+    inset=[
+      [0, 0],
+      [0, 0],
+      [0, 0],
+      [0, 0],
+    ],
+    height=0,
+  ),
+  // object(
+  //   round_corner=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
+  //   round_edge=[15, 15, 0, 15],
+  //   inset=[
+  //     [0, 0],
+  //     [0, 0],
+  //     [0, 0],
+  //     [0, 0],
+  //   ],
+  //   height=base.z,
+  // ),
+  object(
+    round_corner=[20, 20, 30, 30],
+    round_edge=[0, 0, 0, 0],
+    inset=[
+      [-50, -40],
+      [-50, 30],
+      [15, 45],
+      [15, -40],
+    ],
+    height=50,
+  ),
+  // object(
+  //   round_corner=[5, 5, 5, 5],
+  //   round_edge=[0, 0, 0, 0],
+  //   inset=[
+  //     [0, 0],
+  //     [0, 0],
+  //     [0, 0],
+  //     [0, 0],
+  //   ],
+  //   height=100,
+  // ),
 ];
 
 // clockwise from edge
@@ -62,18 +101,18 @@ module dbg_edges() {
     children();
 }
 
-module top(dt = 0) {
+module top(section, dt = 0) {
   // some volume is needed for hull
   eps = 0.0001;
 
   for (i = [0:1:3]) {
     // square when rounding less than wall
-    r = round_top[i] < t_wall * 2 ? eps : round_top[i] - dt;
+    r = section.round_corner[i] < t_wall * 2 ? eps : section.round_corner[i] - dt;
     translate(
       v=[
-        sxy[i].x * (base.x / 2 - r + inset_top[i][0] - dt),
-        sxy[i].y * (base.y / 2 - r + inset_top[i][1] - dt),
-        height - eps / 2,
+        sxy[i].x * (base.x / 2 - r + section.inset[i][0] - dt),
+        sxy[i].y * (base.y / 2 - r + section.inset[i][1] - dt),
+        section.height - eps / 2,
       ]
     ) {
       dbg_corners() {
@@ -83,43 +122,22 @@ module top(dt = 0) {
           cyl(r=r, h=eps);
       }
     }
-  }
-}
 
-module bottom(dt = 0) {
-  // some thickness is needed for hull
-  eps = 0.0001;
-
-  for (i = [0:1:3]) {
-    r_corner = round_base_corner[i] < t_wall * 2 ? eps : round_base_corner[i] - dt;
-    translate(
-      v=[
-        sxy[i].x * (base.x / 2 - r_corner - dt),
-        sxy[i].y * (base.y / 2 - r_corner - dt),
-        eps / 2,
-      ]
-    ) {
-      dbg_corners() {
-        if (r_corner == eps)
-          cube(size=[r_corner * 2, r_corner * 2, eps], center=true);
-        else
-          cyl(r=r_corner, h=eps);
-      }
-    }
-
-    r_edge = round_base_edge[i] < t_wall * 2 ? eps : round_base_edge[i] - dt;
+    r_edge = section.round_edge[i] < t_wall * 2 ? eps : section.round_edge[i] - dt;
     if (r_edge > eps) {
       intersection() {
         translate(
           v=[
             sxy[i].x * (base.x / 2 - r_edge - dt),
             sxy[i].y * (base.y / 2 - r_edge - dt),
+            // TODO allow this to be variable
             base.z,
           ]
         )
           dbg_edges()
             sphere(r=r_edge);
 
+        // TODO intersect with current and previous section?
         translate(v=[0, 0, height / 2])
           cuboid(size=[base.x, base.y, height]);
       }
@@ -159,16 +177,20 @@ module brackets() {
 }
 
 module outer() {
-  hull() {
-    bottom();
-    top();
+  for (i = [1:1:len(sections) - 1]) {
+    hull() {
+      top(section=sections[i - 1]);
+      top(section=sections[i]);
+    }
   }
 }
 
 module inner() {
-  hull() {
-    bottom(dt=t_wall);
-    top(dt=t_wall);
+  for (i = [1:1:len(sections) - 1]) {
+    hull() {
+      top(section=sections[i - 1], dt=t_wall);
+      top(section=sections[i], dt=t_wall);
+    }
   }
 }
 
@@ -225,13 +247,7 @@ module shroud() {
 render() {
   shroud();
 
-  point_marker(P=[30,-60,40], h=5, r=1, t="B");
-
-  // outer();
-  // inner();
-  // hull()
-  // top(dt=t_wall);
-  // top(dt=0);
-  // bottom(dt=0);
-  // bottom(dt=t_wall);
+  if (debug_points) {
+    point_marker(P=[30, -60, 40], h=5, r=1, t="B");
+  }
 }
