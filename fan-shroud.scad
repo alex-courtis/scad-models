@@ -1,12 +1,15 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
-base = [140, 140, 12];
+debug_corners = false;
+debug_edges = false;
+
+base = [120, 120, 6];
 
 // total from base
-height = 60;
+height = 50;
 
-// xy only, actual size reduces by inset
+// xy only, actual size changes with curved hulls
 t_wall = 1.6;
 t_bracket = 6;
 
@@ -15,26 +18,26 @@ inset_bolt = 7.5;
 // TODO M4
 d_bolt = 5.5;
 
-w_nut = 7.1; // M4
+w_nut = 7.0; // M4
 d_nut = w_nut * 2 / sqrt(3);
 t_nut = 3;
 
 round_base_corner = [inset_bolt, inset_bolt, inset_bolt, inset_bolt];
-round_base_edge = [20, 20, 20, 20];
+round_base_edge = [15, 15, 0, 15];
 
 // clockwise from corner
-round_top = [50, 15, 15, 50];
+round_top = [20, 20, 30, 30];
 inset_top = [
-  [-32.5, -35],
-  [-32.5, 30],
-  [0, 30],
-  [0, -35],
+  [-50, -40],
+  [-50, 30],
+  [15, 45],
+  [15, -40],
 ];
 
 // clockwise from edge
 cutouts = [
   [0, 0, 0],
-  [-85, 25, 24],
+  [0, 0, 0],
   [0, 0, 0],
   [0, 0, 0],
 ];
@@ -44,6 +47,20 @@ cutout_rounding = 3;
 sxy = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
 
 $fn = 200;
+
+module dbg_corners() {
+  if (debug_corners)
+    #children();
+  else
+    children();
+}
+
+module dbg_edges() {
+  if (debug_edges)
+    #children();
+  else
+    children();
+}
 
 module top(dt = 0) {
   // some volume is needed for hull
@@ -59,10 +76,12 @@ module top(dt = 0) {
         height - eps / 2,
       ]
     ) {
-      if (r == eps)
-        cube(size=[r * 2, r * 2, eps], center=true);
-      else
-        pie_slice(ang=90, spin=-90 * i, l=eps, r=r, anchor=CENTER);
+      dbg_corners() {
+        if (r == eps)
+          cube(size=[r * 2, r * 2, eps], center=true);
+        else
+          cyl(r=r, h=eps);
+      }
     }
   }
 }
@@ -80,25 +99,30 @@ module bottom(dt = 0) {
         eps / 2,
       ]
     ) {
-      if (r_corner == eps)
-        cube(size=[r_corner * 2, r_corner * 2, eps], center=true);
-      else
-        pie_slice(ang=90, spin=-90 * i, l=eps, r=r_corner, anchor=CENTER);
+      dbg_corners() {
+        if (r_corner == eps)
+          cube(size=[r_corner * 2, r_corner * 2, eps], center=true);
+        else
+          cyl(r=r_corner, h=eps);
+      }
     }
 
     r_edge = round_base_edge[i] < t_wall * 2 ? eps : round_base_edge[i] - dt;
-    intersection() {
-      translate(
-        v=[
-          sxy[i].x * (base.x / 2 - r_edge - dt),
-          sxy[i].y * (base.y / 2 - r_edge - dt),
-          base.z,
-        ]
-      )
-        sphere(r=r_edge);
+    if (r_edge > eps) {
+      intersection() {
+        translate(
+          v=[
+            sxy[i].x * (base.x / 2 - r_edge - dt),
+            sxy[i].y * (base.y / 2 - r_edge - dt),
+            base.z,
+          ]
+        )
+          dbg_edges()
+            sphere(r=r_edge);
 
-      translate(v=[0, 0, height / 2])
-        cuboid(size=[base.x, base.y, height]);
+        translate(v=[0, 0, height / 2])
+          cuboid(size=[base.x, base.y, height]);
+      }
     }
   }
 }
@@ -200,5 +224,14 @@ module shroud() {
 
 render() {
   shroud();
-  // top( dt = t_wall);
+
+  point_marker(P=[30,-60,40], h=5, r=1, t="B");
+
+  // outer();
+  // inner();
+  // hull()
+  // top(dt=t_wall);
+  // top(dt=0);
+  // bottom(dt=0);
+  // bottom(dt=t_wall);
 }
