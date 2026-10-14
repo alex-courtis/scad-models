@@ -21,36 +21,31 @@ t_nut = 3;
 
 // all quads are clockwise
 // inset is from corner
-// sphere >> circle
-// rounding radii must be greater than t_wall * 2
+// corner radii must be greater than t_wall * 2
 
-sections = [
+cross_sections = [
   object(
-    corner_circle=[inset_bolt, inset_bolt, inset_bolt, 0],
-    corner_sphere=[0, 0, 0, 0],
+    corner_sphere=[20, 20, inset_bolt, inset_bolt],
     inset=[
-      [0, 0],
-      [0, 0],
+      [10, 10],
+      [10, 10],
       [0, 0],
       [0, 0],
     ],
     height=0,
   ),
   object(
-    corner_circle=[inset_bolt, inset_bolt, inset_bolt, 0],
-    corner_sphere=[0, 0, 0, 0],
+    corner_sphere=[20, 20, inset_bolt, inset_bolt],
     inset=[
-      [0, 0],
-      [0, 0],
+      [10, 10],
+      [10, 10],
       [0, 0],
       [0, 0],
     ],
     height=base.z,
   ),
   object(
-    corner_circle=[0, 0, 0, 0],
     corner_sphere=[20, 20, 30, 30],
-    round_edge=[0, 0, 0, 0],
     inset=[
       [-50, -40],
       [-50, 30],
@@ -60,8 +55,7 @@ sections = [
     height=50,
   ),
   object(
-    corner_circle=[20, 20, 30, 30],
-    corner_sphere=[0, 0, 0, 0],
+    corner_sphere=[20, 20, 30, 30],
     inset=[
       [-50, -40],
       [-50, 45],
@@ -93,37 +87,30 @@ module dbg_corners(dbg = debug_corners) {
     children();
 }
 
-module top(section, dt = 0, upper = false) {
+module cross_section(n, dt = 0, upper = false) {
+  sec = cross_sections[n];
 
   // some volume is needed for hull
   eps = 0.0001;
 
   for (i = [0:1:3]) {
-    r =
-      section.corner_sphere[i] > 0 ?
-        section.corner_sphere[i] - dt
-      : section.corner_circle[i] > 0 ?
-        section.corner_circle[i] - dt
-      : 0;
+    r = sec.corner_sphere[i] > 0 ? sec.corner_sphere[i] - dt : 0;
 
     dbg_corners()
       translate(
         v=[
-          sxy[i].x * (base.x / 2 - r + section.inset[i][0] - dt),
-          sxy[i].y * (base.y / 2 - r + section.inset[i][1] - dt),
-          section.height - eps / 2,
+          sxy[i].x * (base.x / 2 - r + sec.inset[i][0] - dt),
+          sxy[i].y * (base.y / 2 - r + sec.inset[i][1] - dt),
+          sec.height - eps / 2,
         ]
       ) {
-        if (section.corner_sphere[i] > 0) {
+        if (sec.corner_sphere[i] > 0) {
           intersection() {
             sphere(r=r);
 
-			// TODO cut to section height above / below
             translate(v=[0, 0, upper ? -r : r])
               cuboid(size=[r * 2, r * 2, r * 2]);
           }
-        } else if (section.corner_circle[i] > 0) {
-          cyl(r=r, h=eps);
         } else {
           cube(size=[eps, eps, eps], center=true);
         }
@@ -162,26 +149,19 @@ module brackets() {
       bracket();
 }
 
-module outer() {
-  for (i = [1:1:len(sections) - 1]) {
-    hull() {
-      top(section=sections[i - 1], upper=false);
-      top(section=sections[i], upper=true);
-    }
-  }
-}
-
-module inner() {
-  for (i = [1:1:len(sections) - 1]) {
-    hull() {
-      top(section=sections[i - 1], dt=t_wall, upper=false);
-      top(section=sections[i], dt=t_wall, upper=true);
-    }
+module sections(dt) {
+  for (i = [1:1:len(cross_sections) - 1]) {
+    top_half(s=1000, z=cross_sections[i - 1].height)
+      bottom_half(s=1000, z=cross_sections[i].height)
+        hull() {
+          cross_section(n=i - 1, dt=dt, upper=false);
+          cross_section(n=i, dt=dt, upper=true);
+        }
   }
 }
 
 module cutouts() {
-  height = sections[len(sections) - 1].height;
+  height = cross_sections[len(cross_sections) - 1].height;
 
   for (i = [0:1:3]) {
     if (cutouts[i] != [0, 0, 0]) {
@@ -216,15 +196,15 @@ module shroud() {
   difference() {
     union() {
       difference() {
-        outer();
+        sections(dt=0);
 
-        inner();
+        sections(dt=t_wall);
       }
 
       intersection() {
         brackets();
 
-        outer();
+        sections(dt=0);
       }
     }
 
@@ -236,6 +216,10 @@ render() {
   shroud();
 
   if (debug_points) {
-    point_marker(P=[30, -60, 40], h=5, r=1, t="B");
+    point_marker(P=[30, -60, 40], h=5, r=1, t="mem");
+
+    for (i = [0:1:len(cross_sections) - 1]) {
+      point_marker(P=[-100, 0, cross_sections[i].height], h=200, r=0.5, t=str(i), a_rot=90, v_rot=[0, 1, 0]);
+    }
   }
 }

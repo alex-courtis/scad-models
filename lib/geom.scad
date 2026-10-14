@@ -22,19 +22,19 @@ function vector_add_scalar(v, n) = [for (i = [0:1:len(v) - 1]) v[i] + n];
 function vector_sum(v, i = 0) = i < len(v) ? v[i] + vector_sum(v, i + 1) : 0;
 
 // round all elements in a vecton to nearest
-function vector_round_nearest(v, dv) = [ for (i = [0:1:len(v) - 1]) round(v[i] / dv[i]) * dv[i], ];
+function vector_round_nearest(v, dv) = [for (i = [0:1:len(v) - 1]) round(v[i] / dv[i]) * dv[i]];
 
 // round a number to nearest
 function round_nearest(n, dn) = round(n / dn) * dn;
 
 // chord straight length
-function chord_len(a, r) = r * 2 * sin(a/2);
+function chord_len(a, r) = r * 2 * sin(a / 2);
 
 // chord angle from radius
 function chord_angle(c, r) = 2 * asin(c / (2 * r));
 
 // radius from chord
-function chord_radius(a, c) = c / (2 * sin(a/2));
+function chord_radius(a, c) = c / (2 * sin(a / 2));
 
 // arc from radius
 function arc_len(a, r) = 2 * r * sin(a / 2);
@@ -159,14 +159,15 @@ function circle_centre(A, B, r) =
   ) [c1, c2];
 
 // white cylinder marking a point, text size based on r
-module point_marker(P, r, h, t) {
+module point_marker(P, r, h, t, a_rot, v_rot) {
   color(c="white") {
     translate(v=P) {
-      cylinder(h=h, r=r, center=false);
-
-      translate(v=[0, 0, h])
-        linear_extrude(h=r)
-          text(size=r * 10, text=t);
+      rotate(a=a_rot ? a_rot : 0, v=v_rot) {
+        cylinder(h=h, r=r, center=false);
+        translate(v=[0, 0, h])
+          linear_extrude(h=r)
+            text(size=r * 10, text=t);
+      }
     }
   }
 }
