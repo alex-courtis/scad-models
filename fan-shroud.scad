@@ -3,6 +3,7 @@ include <lib/geom.scad>
 
 debug_corners = false;
 debug_points = false;
+debug_cutouts = false;
 
 base = [120, 120];
 
@@ -26,8 +27,8 @@ t_nut = 3;
 
 cross_sections = [
   object(
-    corner_circle=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
-    corner_sphere=[0, 0, 0, 0],
+    corner_sphere=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
+    corner_circle=[0, 0, 0, 0],
     inset=[
       [0, 0],
       [0, 0],
@@ -37,7 +38,8 @@ cross_sections = [
     height=0,
   ),
   object(
-    corner_sphere=[15, 15, 0, 15],
+    // corner_sphere=[0, 0, 0, 0],
+    corner_sphere=[8, 8, inset_bolt, inset_bolt],
     corner_circle=[0, 0, 0, 0],
     inset=[
       [0, 0],
@@ -45,31 +47,32 @@ cross_sections = [
       [0, 0],
       [0, 0],
     ],
-    height=6,
+    height=2,
   ),
   object(
-    corner_circle=[20, 20, 30, 30],
-    corner_sphere=[0, 0, 0, 0],
+    corner_circle=[0, 0, 0, 0],
+    corner_sphere=[10, 10, 14, 14],
     inset=[
-      [-50, -40],
-      [-50, 30],
-      [15, 45],
-      [15, -40],
+      [-70, -10],
+      [-70, 10],
+      [20, 10],
+      [20, -10],
     ],
     lower=0,
-    height=50,
+    height=20,
   ),
-  // object(
-  //   corner_sphere=[20, 20, 30, 30],
-  //   corner_circle=[0, 0, 0, 0],
-  //   inset=[
-  //     [-50, -40],
-  //     [-50, 45],
-  //     [15, 45],
-  //     [15, -40],
-  //   ],
-  //   height=350,
-  // ),
+  object(
+    // corner_sphere=[20, 20, 30, 30],
+    corner_circle=[0, 0, 0, 0],
+    corner_sphere=[20, 20, 25, 25],
+    inset=[
+      [-70, -20],
+      [-70, 20],
+      [20, 20],
+      [20, -20],
+    ],
+    height=80,
+  ),
 ];
 
 // clockwise from edge
@@ -88,10 +91,11 @@ sxy = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
 $fn = 200;
 
 module dbg_corners(dbg = debug_corners) {
-  if (dbg)
-    #children();
-  else
-    children();
+  if (dbg) #children(); else children();
+}
+
+module dbg_cutouts(dbg = debug_cutouts) {
+  if (dbg) #children(); else children();
 }
 
 module cross_section(n, dt = 0) {
@@ -101,8 +105,8 @@ module cross_section(n, dt = 0) {
   eps = 0.0001;
 
   for (i = [0:1:3]) {
-    r_sphere = sec.corner_sphere[i] > 0 ? sec.corner_sphere[i] - dt : undef;
-    r_circle = sec.corner_circle[i] > 0 ? sec.corner_circle[i] - dt : undef;
+    r_sphere = is_list(sec.corner_sphere) && sec.corner_sphere[i] > 0 ? sec.corner_sphere[i] - dt : undef;
+    r_circle = is_list(sec.corner_circle) && sec.corner_circle[i] > 0 ? sec.corner_circle[i] - dt : undef;
 
     dbg_corners()
       translate(
@@ -175,30 +179,32 @@ module sections(dt) {
 module cutouts() {
   height = cross_sections[len(cross_sections) - 1].height;
 
-  for (i = [0:1:3]) {
-    if (cutouts[i] != [0, 0, 0]) {
-      translate(
-        v=[
-          sxy[i].x * base.x + cutouts[i].x,
-          sxy[i].y * base.y + cutouts[i].y,
-          0,
-        ]
-      ) {
-        translate(v=[0, 0, cutouts[i].z + height / 2])
-          cuboid(
-            size=[base.x, base.y, height],
-            rounding=cutout_rounding,
-          );
+  dbg_cutouts() {
+    for (i = [0:1:3]) {
+      if (cutouts[i] != [0, 0, 0]) {
+        translate(
+          v=[
+            sxy[i].x * base.x + cutouts[i].x,
+            sxy[i].y * base.y + cutouts[i].y,
+            0,
+          ]
+        ) {
+          translate(v=[0, 0, cutouts[i].z + height / 2])
+            cuboid(
+              size=[base.x, base.y, height],
+              rounding=cutout_rounding,
+            );
 
-        translate(v=[sxy[i].x * -base.x / 2, 0, height])
-          rotate(a=sxy[i].x == 1 ? 180 : 0, v=[0, 0, 1])
-            rotate(a=-90, v=[1, 0, 0])
-              rounding_edge_mask(l=base.y, r=cutout_rounding);
+          translate(v=[sxy[i].x * -base.x / 2, 0, height])
+            rotate(a=sxy[i].x == 1 ? 180 : 0, v=[0, 0, 1])
+              rotate(a=-90, v=[1, 0, 0])
+                rounding_edge_mask(l=base.y, r=cutout_rounding);
 
-        translate(v=[0, sxy[i].y * -base.y / 2, height])
-          rotate(a=sxy[i].y * -90, v=[0, 0, 1])
-            rotate(a=-90, v=[1, 0, 0])
-              rounding_edge_mask(l=base.y, r=cutout_rounding);
+          translate(v=[0, sxy[i].y * -base.y / 2, height])
+            rotate(a=sxy[i].y * -90, v=[0, 0, 1])
+              rotate(a=-90, v=[1, 0, 0])
+                rounding_edge_mask(l=base.y, r=cutout_rounding);
+        }
       }
     }
   }
