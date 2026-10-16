@@ -8,7 +8,7 @@ debug_cutouts = false;
 base = [120, 120];
 
 // xy only, actual size changes with curved hulls
-t_wall = 1.6;
+t_wall = 2.4;
 t_bracket = 6;
 
 inset_bolt = 7.5;
@@ -45,7 +45,7 @@ cross_sections = [
       [0, 0],
       [0, 0],
     ],
-    height=8,
+    height=4,
   ),
   object(
     corner_circle=[15, 15, 15, 15],
