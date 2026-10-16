@@ -13,12 +13,13 @@ t_bracket = 6;
 
 inset_bolt = 7.5;
 
-// TODO M4
-d_bolt = 5.5;
-
 w_nut = 7.0; // M4
 d_nut = w_nut * 2 / sqrt(3);
 t_nut = 3;
+
+// TODO M4
+// d_bolt = 5.5;
+d_bolt = d_nut + 2;
 
 // all quads are clockwise
 // inset is from corner
@@ -27,8 +28,7 @@ t_nut = 3;
 
 cross_sections = [
   object(
-    corner_sphere=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
-    corner_circle=[0, 0, 0, 0],
+    corner_circle=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
     inset=[
       [0, 0],
       [0, 0],
@@ -38,38 +38,33 @@ cross_sections = [
     height=0,
   ),
   object(
-    // corner_sphere=[0, 0, 0, 0],
-    corner_sphere=[8, 8, inset_bolt, inset_bolt],
-    corner_circle=[0, 0, 0, 0],
+    corner_sphere=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
     inset=[
       [0, 0],
       [0, 0],
       [0, 0],
       [0, 0],
     ],
-    height=2,
+    height=8,
   ),
   object(
-    corner_circle=[0, 0, 0, 0],
-    corner_sphere=[10, 10, 14, 14],
+    corner_circle=[15, 15, 15, 15],
     inset=[
-      [-70, -10],
-      [-70, 10],
-      [20, 10],
-      [20, -10],
+      [-50, -10],
+      [-50, 20],
+      [25, 20],
+      [25, -10],
     ],
     lower=0,
-    height=20,
+    height=35,
   ),
   object(
-    // corner_sphere=[20, 20, 30, 30],
-    corner_circle=[0, 0, 0, 0],
-    corner_sphere=[20, 20, 25, 25],
+    corner_circle=[40, 20, 20, 40],
     inset=[
-      [-70, -20],
-      [-70, 20],
-      [20, 20],
-      [20, -20],
+      [-50, -30],
+      [-50, 30],
+      [25, 30],
+      [25, -30],
     ],
     height=80,
   ),
@@ -131,33 +126,41 @@ module cross_section(n, dt = 0) {
 
 module bracket() {
   translate(v=[base.x / 2, base.y / 2, (t_bracket) / 2])
-
-    difference() {
-      cuboid(
-        size=[inset_bolt * 4, inset_bolt * 4, t_bracket],
-        rounding=inset_bolt,
-        edges=[FRONT + LEFT],
-      );
-
-      translate(v=[-inset_bolt, -inset_bolt, 0])
-        cyl(d=d_bolt, h=t_bracket);
-
-      translate(v=[0, 0, (t_bracket - t_nut) / 2]) {
-        translate(v=[-inset_bolt, -inset_bolt, 0])
-          rotate(a=15, v=[0, 0, 1])
-            cyl(d=d_nut, h=t_nut, $fn=6);
-
-        translate(v=[-inset_bolt - d_nut * sqrt(2) / 4, -inset_bolt - d_nut * sqrt(2) / 4, 0])
-          rotate(a=-45, v=[0, 0, 1])
-            cuboid(size=[d_nut, d_nut, t_nut]);
-      }
-    }
+    cuboid(
+      size=[inset_bolt * 4, inset_bolt * 4, t_bracket],
+      rounding=inset_bolt,
+      edges=[FRONT + LEFT],
+    );
 }
 
 module brackets() {
   for (a = [0, 90, 180, 270])
     rotate(a=a, v=[0, 0, 1])
       bracket();
+}
+
+module nut_bolt() {
+  translate(v=[base.x / 2, base.y / 2, (t_bracket) / 2]) {
+
+    translate(v=[-inset_bolt, -inset_bolt, 0])
+      cyl(d=d_bolt, h=t_bracket);
+
+    translate(v=[0, 0, (t_bracket - t_nut) / 2]) {
+      translate(v=[-inset_bolt, -inset_bolt, 0])
+        rotate(a=15, v=[0, 0, 1])
+          cyl(d=d_nut, h=t_nut, $fn=6);
+
+      translate(v=[-inset_bolt - d_nut * sqrt(2) / 4, -inset_bolt - d_nut * sqrt(2) / 4, 0])
+        rotate(a=-45, v=[0, 0, 1])
+          cuboid(size=[d_nut, d_nut, t_nut]);
+    }
+  }
+}
+
+module nut_bolts() {
+  for (a = [0, 90, 180, 270])
+    rotate(a=a, v=[0, 0, 1])
+      nut_bolt();
 }
 
 module sections(dt) {
@@ -225,6 +228,8 @@ module shroud() {
         sections(dt=0);
       }
     }
+
+    nut_bolts();
 
     cutouts();
   }
