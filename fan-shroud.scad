@@ -8,7 +8,7 @@ debug_cutouts = false;
 base = [120, 120];
 
 // xy only, actual size changes with curved hulls
-t_wall = 2.4;
+t_wall = 1.6;
 t_bracket = 6;
 
 inset_bolt = 7.5;
@@ -45,29 +45,29 @@ cross_sections = [
       [0, 0],
       [0, 0],
     ],
-    height=4,
+    height=2,
   ),
   object(
-    corner_circle=[15, 15, 15, 15],
-    inset=[
-      [-30, -30],
-      [-60, 0],
-      [25, 10],
-      [25, -30],
+    corner_circle=[35, 35, 15, 15],
+    inset =[
+      [-20, -20],
+      [-55, 0],
+      [25, 0],
+      [25, -20],
     ],
     lower=0,
     height=35,
   ),
-  object(
-    corner_circle=[40, 20, 20, 40],
-    inset=[
-      [-50, -60],
-      [-50, 40],
-      [25, 40],
-      [25, -60],
-    ],
-    height=65,
-  ),
+  // object(
+  //   corner_circle=[40, 20, 20, 40],
+  //   inset=[
+  //     [-50, -60],
+  //     [-50, 40],
+  //     [25, 40],
+  //     [25, -60],
+  //   ],
+  //   height=65,
+  // ),
 ];
 
 // clockwise from edge
@@ -236,6 +236,7 @@ module shroud() {
 }
 
 render() {
+echo(foo="barbaz")
   shroud();
 
   if (debug_points) {
