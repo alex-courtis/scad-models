@@ -49,7 +49,7 @@ cross_sections = [
   ),
   object(
     corner_circle=[35, 35, 15, 15],
-    inset =[
+    inset=[
       [-20, -20],
       [-55, 0],
       [25, 0],
@@ -168,13 +168,14 @@ module sections(dt) {
     hull() {
       lower = is_num(cross_sections[n].lower) ? cross_sections[n].lower : n - 1;
 
-      top_half(s=1000, z=cross_sections[lower].height) {
-        bottom_half(s=1000, z=cross_sections[n].height) {
-          for (i = [lower:1:n]) {
-            cross_section(n=i, dt=dt);
-          }
-        }
+      for (m = [lower:1:n - 1]) {
+        bottom_half(s=base.x * 2, z=cross_sections[m + 1].height)
+          top_half(s=base.x * 2, z=cross_sections[m].height)
+            cross_section(n=m, dt=dt);
       }
+      bottom_half(s=base.x * 2, z=cross_sections[n].height)
+        top_half(s=base.x * 2, z=cross_sections[n - 1].height)
+          cross_section(n=n, dt=dt);
     }
   }
 }
@@ -236,7 +237,6 @@ module shroud() {
 }
 
 render() {
-echo(foo="barbaz")
   shroud();
 
   if (debug_points) {
