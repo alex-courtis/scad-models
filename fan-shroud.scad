@@ -164,18 +164,16 @@ module nut_bolts() {
 }
 
 module sections(dt) {
-  for (n = [1:1:len(cross_sections) - 1]) {
-    hull() {
-      lower = is_num(cross_sections[n].lower) ? cross_sections[n].lower : n - 1;
-
-      for (m = [lower:1:n - 1]) {
-        bottom_half(s=base.x * 2, z=cross_sections[m + 1].height)
-          top_half(s=base.x * 2, z=cross_sections[m].height)
+  top_half(s=base.x * 2, z=0) {
+    bottom_half(s=base.x * 2, z=cross_sections[len(cross_sections) - 1].height) {
+      for (n = [1:1:len(cross_sections) - 1]) {
+        lower = is_num(cross_sections[n].lower) ? cross_sections[n].lower : n - 1;
+        hull() {
+          for (m = [lower:1:n - 1])
             cross_section(n=m, dt=dt);
-      }
-      bottom_half(s=base.x * 2, z=cross_sections[n].height)
-        top_half(s=base.x * 2, z=cross_sections[n - 1].height)
           cross_section(n=n, dt=dt);
+        }
+      }
     }
   }
 }
