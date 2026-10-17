@@ -9,17 +9,17 @@ base = [120, 120];
 
 // xy only, actual size changes with curved hulls
 t_wall = 1.6;
-t_bracket = 6;
+t_bracket = 10;
 
 inset_bolt = 7.5;
 
-w_nut = 7.0; // M4
+w_nut = 0; //7.0; // M4
 d_nut = w_nut * 2 / sqrt(3);
 t_nut = 3;
 
 // TODO M4
-// d_bolt = 5.5;
-d_bolt = d_nut + 2;
+d_bolt = 9; //5.5;
+l_bolt = 25; //t_bracket;
 
 // all quads are clockwise
 // inset is from corner
@@ -38,36 +38,38 @@ cross_sections = [
     height=0,
   ),
   object(
-    corner_sphere=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
-    inset=[
-      [0, 0],
-      [0, 0],
-      [0, 0],
-      [0, 0],
-    ],
-    height=2,
-  ),
-  object(
-    corner_circle=[35, 35, 15, 15],
+    corner_circle=[5, 5, 0, 0],
+    corner_sphere=[0, 0, 5, 5],
     inset=[
       [-20, -20],
-      [-55, 0],
-      [25, 0],
-      [25, -20],
+      [-65, 10],
+      [20, 10],
+      [20, -20],
     ],
-    lower=0,
+    // lower=0,
     height=35,
   ),
-  // object(
-  //   corner_circle=[40, 20, 20, 40],
-  //   inset=[
-  //     [-50, -60],
-  //     [-50, 40],
-  //     [25, 40],
-  //     [25, -60],
-  //   ],
-  //   height=65,
-  // ),
+  object(
+    corner_circle=[5, 5, 5, 5],
+    inset=[
+      [-65, -40],
+      [-65, 20],
+      [20, 20],
+      [20, -40],
+    ],
+    // lower=0,
+    height=35 + 35, // - 2,
+  ),
+  object(
+    corner_circle=[5, 5, 5, 5],
+    inset=[
+      [-65, -40],
+      [-65, 20],
+      [20, 20],
+      [20, -40],
+    ],
+    height=20 + 35 + 35 - 2,
+  ),
 ];
 
 // clockwise from edge
@@ -142,8 +144,8 @@ module brackets() {
 module nut_bolt() {
   translate(v=[base.x / 2, base.y / 2, (t_bracket) / 2]) {
 
-    translate(v=[-inset_bolt, -inset_bolt, 0])
-      cyl(d=d_bolt, h=t_bracket);
+    translate(v=[-inset_bolt, -inset_bolt, (l_bolt - t_bracket) / 2])
+      cyl(d=d_bolt, h=l_bolt);
 
     translate(v=[0, 0, (t_bracket - t_nut) / 2]) {
       translate(v=[-inset_bolt, -inset_bolt, 0])
