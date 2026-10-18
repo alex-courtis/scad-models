@@ -9,22 +9,24 @@ debug_no_round = false;
 // xy only, actual size changes with curved hulls
 t_wall = 1.6;
 t_bracket = 6;
+t_surround = 2.0;
 
 gap_surround = 1;
-r_surround = 6 + t_wall + gap_surround;
+r_surround = 6 + t_surround + gap_surround;
 l_surround = 8;
 
 base = [120, 120];
 
 inset_bolt = 7.5;
 
-w_nut = 7.0; // M4
+// w_nut = 7.0; // M4
+w_nut = 0.0; // M4
 d_nut = w_nut * 2 / sqrt(3);
 t_nut = 3;
 
 // TODO M4
-d_bolt = 5.5;
-// d_bolt = 9;
+// d_bolt = 5.5;
+d_bolt = 9;
 l_bolt = 25; //t_bracket;
 
 // all quads are clockwise
@@ -32,36 +34,26 @@ l_bolt = 25; //t_bracket;
 // corner radii must be greater than t_wall * 2
 // lower hulls down through all cross sections to lower, otherwise n - 1
 
-inset_surround = t_wall + gap_surround;
+inset_surround = t_surround + gap_surround;
 
 cross_sections = [
-  // object(
-  //   corner_circle=[r_surround, r_surround, r_surround, r_surround],
-  //   inset=[
-  //     [inset_surround, inset_surround],
-  //     [inset_surround, inset_surround],
-  //     [inset_surround, inset_surround],
-  //     [inset_surround, inset_surround],
-  //   ],
-  //   height=-l_surround,
-  // ),
-  // object(
-  //   corner_sphere=[r_surround, r_surround, r_surround, r_surround],
-  //   inset=[
-  //     [inset_surround, inset_surround],
-  //     [inset_surround, inset_surround],
-  //     [inset_surround, inset_surround],
-  //     [inset_surround, inset_surround],
-  //   ],
-  //   height=0,
-  // ),
   object(
-    corner_circle=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
+    corner_circle=[r_surround, r_surround, r_surround, r_surround],
     inset=[
-      [0, 0],
-      [0, 0],
-      [0, 0],
-      [0, 0],
+      [inset_surround, inset_surround],
+      [inset_surround, inset_surround],
+      [inset_surround, inset_surround],
+      [inset_surround, inset_surround],
+    ],
+    height=-l_surround,
+  ),
+  object(
+    corner_sphere=[r_surround, r_surround, r_surround, r_surround],
+    inset=[
+      [inset_surround, inset_surround],
+      [inset_surround, inset_surround],
+      [inset_surround, inset_surround],
+      [inset_surround, inset_surround],
     ],
     height=0,
   ),
@@ -69,7 +61,7 @@ cross_sections = [
     corner_circle=[0, 0, 0, 0],
     corner_sphere=[5, 5, 5, 5],
     inset=[
-      [-20, -20],
+      [-40, -20],
       [-65, 20],
       [20, 20],
       [20, -20],
@@ -90,20 +82,20 @@ cross_sections = [
   object(
     corner_circle=[5, 5, 5, 5],
     inset=[
-      [-65, -60],
-      [-65, 60],
-      [20, 60],
-      [20, -60],
+      [-65, -40 - (122.5 / 32.5) * 20],
+      [-65, 40],
+      [20, 40],
+      [20, -40 - (122.5 / 32.5) * 20],
     ],
-    height=32.5 + 32.5 + 32.5,
+    height=32.5 + 32.5 + 122.5,
   ),
 ];
 
 // clockwise from edge
 cutouts = [
   [0, 0, 0],
-  [0, 0, 0],
-  // [-100, -30, 80],
+  [-base.x - 20 + 5 + 5, -20, 32.5],
+  // [0, 0, 0],
   [0, 0, 0],
   [0, 0, 0],
 ];
@@ -160,7 +152,7 @@ module bracket() {
   translate(v=[base.x / 2, base.y / 2, (t_bracket) / 2])
     cuboid(
       size=[inset_bolt * 4, inset_bolt * 4, t_bracket],
-      rounding=inset_bolt * 2,
+      rounding=inset_bolt,
       edges=[FRONT + LEFT],
     );
 }
