@@ -5,20 +5,25 @@ debug_corners = false;
 debug_points = false;
 debug_cutouts = false;
 
-base = [120, 120];
-
 // xy only, actual size changes with curved hulls
 t_wall = 1.6;
-t_bracket = 10;
+t_bracket = 6;
+
+gap_surround = 1;
+r_surround = 6 + t_wall + gap_surround;
+l_surround = 8;
+
+base = [120, 120];
 
 inset_bolt = 7.5;
 
-w_nut = 0; //7.0; // M4
+w_nut = 7.0; // M4
 d_nut = w_nut * 2 / sqrt(3);
 t_nut = 3;
 
 // TODO M4
-d_bolt = 9; //5.5;
+d_bolt = 5.5;
+// d_bolt = 9;
 l_bolt = 25; //t_bracket;
 
 // all quads are clockwise
@@ -26,7 +31,29 @@ l_bolt = 25; //t_bracket;
 // corner radii must be greater than t_wall * 2
 // lower hulls down through all cross sections to lower, otherwise n - 1
 
+inset_surround = t_wall + gap_surround;
+
 cross_sections = [
+  // object(
+  //   corner_circle=[r_surround, r_surround, r_surround, r_surround],
+  //   inset=[
+  //     [inset_surround, inset_surround],
+  //     [inset_surround, inset_surround],
+  //     [inset_surround, inset_surround],
+  //     [inset_surround, inset_surround],
+  //   ],
+  //   height=-l_surround,
+  // ),
+  // object(
+  //   corner_circle=[r_surround, r_surround, r_surround, r_surround],
+  //   inset=[
+  //     [inset_surround, inset_surround],
+  //     [inset_surround, inset_surround],
+  //     [inset_surround, inset_surround],
+  //     [inset_surround, inset_surround],
+  //   ],
+  //   height=0,
+  // ),
   object(
     corner_circle=[inset_bolt, inset_bolt, inset_bolt, inset_bolt],
     inset=[
@@ -129,31 +156,37 @@ module bracket() {
   translate(v=[base.x / 2, base.y / 2, (t_bracket) / 2])
     cuboid(
       size=[inset_bolt * 4, inset_bolt * 4, t_bracket],
-      rounding=inset_bolt,
+      rounding=inset_bolt * 2,
       edges=[FRONT + LEFT],
     );
 }
 
 module brackets() {
-  for (a = [0, 90, 180, 270])
-    rotate(a=a, v=[0, 0, 1])
-      bracket();
+  difference() {
+    for (a = [0, 90, 180, 270])
+      rotate(a=a, v=[0, 0, 1])
+        bracket();
+
+    nut_bolts();
+  }
 }
 
 module nut_bolt() {
+  module nut() {
+    translate(v=[-inset_bolt, -inset_bolt, 0])
+      rotate(a=-15, v=[0, 0, 1])
+        cyl(d=d_nut, h=t_nut, $fn=6);
+  }
+
   translate(v=[base.x / 2, base.y / 2, (t_bracket) / 2]) {
 
-    translate(v=[-inset_bolt, -inset_bolt, (l_bolt - t_bracket) / 2])
-      cyl(d=d_bolt, h=l_bolt);
+    translate(v=[-inset_bolt, -inset_bolt, 0])
+      cyl(d=d_bolt, h=t_bracket);
 
     translate(v=[0, 0, (t_bracket - t_nut) / 2]) {
-      translate(v=[-inset_bolt, -inset_bolt, 0])
-        rotate(a=15, v=[0, 0, 1])
-          cyl(d=d_nut, h=t_nut, $fn=6);
-
-      translate(v=[-inset_bolt - d_nut * sqrt(2) / 4, -inset_bolt - d_nut * sqrt(2) / 4, 0])
-        rotate(a=-45, v=[0, 0, 1])
-          cuboid(size=[d_nut, d_nut, t_nut]);
+      nut();
+      translate(v=[-w_nut / 4, -w_nut / 4, 0])
+        nut();
     }
   }
 }
@@ -165,7 +198,7 @@ module nut_bolts() {
 }
 
 module sections(dt) {
-  top_half(s=base.x * 2, z=0) {
+  top_half(s=base.x * 2, z=cross_sections[0].height) {
     bottom_half(s=base.x * 2, z=cross_sections[len(cross_sections) - 1].height) {
       for (n = [1:1:len(cross_sections) - 1]) {
         lower = is_num(cross_sections[n].lower) ? cross_sections[n].lower : n - 1;
@@ -228,8 +261,6 @@ module shroud() {
         sections(dt=0);
       }
     }
-
-    nut_bolts();
 
     cutouts();
   }
