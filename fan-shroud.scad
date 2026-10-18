@@ -38,37 +38,36 @@ cross_sections = [
     height=0,
   ),
   object(
-    corner_circle=[5, 5, 0, 0],
-    corner_sphere=[0, 0, 5, 5],
+    corner_circle=[0, 0, 0, 0],
+    corner_sphere=[5, 5, 5, 5],
     inset=[
       [-20, -20],
-      [-65, 10],
-      [20, 10],
+      [-65, 20],
+      [20, 20],
       [20, -20],
     ],
+    height=32.5,
+  ),
+  object(
+    corner_sphere=[5, 5, 5, 5],
+    inset=[
+      [-65, -40],
+      [-65, 40],
+      [20, 40],
+      [20, -40],
+    ],
     // lower=0,
-    height=35,
+    height=32.5 + 32.5,
   ),
   object(
     corner_circle=[5, 5, 5, 5],
     inset=[
-      [-65, -40],
-      [-65, 20],
-      [20, 20],
-      [20, -40],
+      [-65, -60],
+      [-65, 60],
+      [20, 60],
+      [20, -60],
     ],
-    // lower=0,
-    height=35 + 35, // - 2,
-  ),
-  object(
-    corner_circle=[5, 5, 5, 5],
-    inset=[
-      [-65, -40],
-      [-65, 20],
-      [20, 20],
-      [20, -40],
-    ],
-    height=20 + 35 + 35 - 2,
+    height=32.5 + 32.5 + 32.5,
   ),
 ];
 
