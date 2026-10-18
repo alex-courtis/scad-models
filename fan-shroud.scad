@@ -4,6 +4,7 @@ include <lib/geom.scad>
 debug_corners = false;
 debug_points = false;
 debug_cutouts = false;
+debug_no_round = false;
 
 // xy only, actual size changes with curved hulls
 t_wall = 1.6;
@@ -45,7 +46,7 @@ cross_sections = [
   //   height=-l_surround,
   // ),
   // object(
-  //   corner_circle=[r_surround, r_surround, r_surround, r_surround],
+  //   corner_sphere=[r_surround, r_surround, r_surround, r_surround],
   //   inset=[
   //     [inset_surround, inset_surround],
   //     [inset_surround, inset_surround],
@@ -74,6 +75,7 @@ cross_sections = [
       [20, -20],
     ],
     height=32.5,
+    // lower=0,
   ),
   object(
     corner_sphere=[5, 5, 5, 5],
@@ -83,7 +85,6 @@ cross_sections = [
       [20, 40],
       [20, -40],
     ],
-    // lower=0,
     height=32.5 + 32.5,
   ),
   object(
@@ -139,14 +140,17 @@ module cross_section(n, dt = 0) {
           sec.height,
         ]
       ) {
-        if (r_sphere) {
-          translate(v=[sxy[i].x * -r_sphere, sxy[i].y * -r_sphere, 0])
-            sphere(r=r_sphere);
-        } else if (r_circle) {
-          translate(v=[sxy[i].x * -r_circle, sxy[i].y * -r_circle, 0])
-            cyl(r=r_circle, h=eps);
-        } else {
+        if (debug_no_round || (!r_sphere && !r_circle)) {
           cube(size=[eps, eps, eps], center=true);
+        } else {
+          if (r_sphere) {
+            translate(v=[sxy[i].x * -r_sphere, sxy[i].y * -r_sphere, 0])
+              sphere(r=r_sphere);
+          }
+          if (r_circle) {
+            translate(v=[sxy[i].x * -r_circle, sxy[i].y * -r_circle, 0])
+              cyl(r=r_circle, h=eps);
+          }
         }
       }
   }
