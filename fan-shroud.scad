@@ -1,7 +1,7 @@
 include <BOSL2/std.scad>
 include <lib/geom.scad>
 
-debug_corners = false;
+debug_hull_children = false;
 debug_points = false;
 debug_cutouts = false;
 debug_no_round = false;
@@ -38,56 +38,79 @@ inset_surround = t_surround + gap_surround;
 
 cross_sections = [
   object(
-    corner_circle=[r_surround, r_surround, r_surround, r_surround],
-    inset=[
-      [inset_surround, inset_surround],
-      [inset_surround, inset_surround],
-      [inset_surround, inset_surround],
-      [inset_surround, inset_surround],
-    ],
+    corners=object(
+      circles=[r_surround, r_surround, r_surround, r_surround],
+      insets=[
+        [inset_surround, inset_surround],
+        [inset_surround, inset_surround],
+        [inset_surround, inset_surround],
+        [inset_surround, inset_surround],
+      ],
+    ),
     height=-l_surround,
   ),
   object(
-    corner_sphere=[r_surround, r_surround, r_surround, r_surround],
-    inset=[
-      [inset_surround, inset_surround],
-      [inset_surround, inset_surround],
-      [inset_surround, inset_surround],
-      [inset_surround, inset_surround],
-    ],
+    corners=object(
+      spheres=[r_surround, r_surround, r_surround, r_surround],
+      insets=[
+        [inset_surround, inset_surround],
+        [inset_surround, inset_surround],
+        [inset_surround, inset_surround],
+        [inset_surround, inset_surround],
+      ],
+    ),
     height=0,
+    colour="red",
   ),
   object(
-    corner_circle=[0, 0, 0, 0],
-    corner_sphere=[5, 5, 5, 5],
-    inset=[
-      [-40, -20],
-      [-65, 20],
-      [20, 20],
-      [20, -20],
-    ],
+    mid=object(
+      circ=base.x / 2 + t_surround + gap_surround,
+      // sph=base.x / 2 + t_surround + gap_surround,
+      centre=[0, 0, 0],
+    ),
+    height=0,
+    colour="yellow",
+  ),
+  object(
+    corners=object(
+      circles=[0, 0, 0, 0],
+      spheres=[5, 5, 5, 5],
+      insets=[
+        [-40, -20],
+        [-65, 20],
+        [20, 20],
+        [20, -20],
+      ],
+    ),
     height=32.5,
     // lower=0,
+    colour="pink",
   ),
   object(
-    corner_sphere=[5, 5, 5, 5],
-    inset=[
-      [-65, -40],
-      [-65, 30],
-      [20, 30],
-      [20, -40],
-    ],
+    corners=object(
+      spheres=[5, 5, 5, 5],
+      insets=[
+        [-65, -40],
+        [-65, 30],
+        [20, 30],
+        [20, -40],
+      ],
+    ),
     height=32.5 + 32.5,
+    colour="orange",
   ),
   object(
-    corner_circle=[5, 5, 5, 5],
-    inset=[
-      [-65, -40 - (100 / 32.5) * 20],
-      [-65, 30],
-      [20, 30],
-      [20, -40 - (100 / 32.5) * 20],
-    ],
+    corners=object(
+      circles=[5, 5, 5, 5],
+      insets=[
+        [-65, -40 - (100 / 32.5) * 20],
+        [-65, 30],
+        [20, 30],
+        [20, -40 - (100 / 32.5) * 20],
+      ],
+    ),
     height=32.5 + 32.5 + 100,
+    colour="limegreen",
   ),
 ];
 
@@ -106,7 +129,7 @@ sxy = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
 
 $fn = 200;
 
-module dbg_corners(dbg = debug_corners) {
+module dbg_hull_children(dbg = debug_hull_children) {
   if (dbg) #children(); else children();
 }
 
@@ -120,31 +143,53 @@ module cross_section(n, dt = 0) {
   // some volume is needed for hull
   eps = 0.0001;
 
-  for (i = [0:1:3]) {
-    r_sphere = is_list(sec.corner_sphere) && sec.corner_sphere[i] > 0 ? sec.corner_sphere[i] - dt : undef;
-    r_circle = is_list(sec.corner_circle) && sec.corner_circle[i] > 0 ? sec.corner_circle[i] - dt : undef;
-
-    dbg_corners()
-      translate(
-        v=[
-          sxy[i].x * (base.x / 2 + sec.inset[i][0] - dt),
-          sxy[i].y * (base.y / 2 + sec.inset[i][1] - dt),
-          sec.height,
-        ]
-      ) {
-        if (debug_no_round || (!r_sphere && !r_circle)) {
-          cube(size=[eps, eps, eps], center=true);
+  module mid() {
+    mid = sec.mid;
+    dbg_hull_children() {
+      translate(v=mid.centre) {
+        if (mid.sph) {
+          sphere(r=mid.circ - dt);
         } else {
-          if (r_sphere) {
-            translate(v=[sxy[i].x * -r_sphere, sxy[i].y * -r_sphere, 0])
-              sphere(r=r_sphere);
-          }
-          if (r_circle) {
-            translate(v=[sxy[i].x * -r_circle, sxy[i].y * -r_circle, 0])
-              cyl(r=r_circle, h=eps);
-          }
+          cyl(r=mid.circ - dt, h=eps);
         }
       }
+    }
+  }
+
+  module corners() {
+    corners = sec.corners;
+    for (i = [0:1:3]) {
+      r_sphere = is_list(sec.corners.spheres) && sec.corners.spheres[i] > 0 ? sec.corners.spheres[i] - dt : undef;
+      r_circle = is_list(sec.corners.circles) && sec.corners.circles[i] > 0 ? sec.corners.circles[i] - dt : undef;
+
+      dbg_hull_children()
+        translate(
+          v=[
+            sxy[i].x * (base.x / 2 + sec.corners.insets[i][0] - dt),
+            sxy[i].y * (base.y / 2 + sec.corners.insets[i][1] - dt),
+            sec.height,
+          ]
+        ) {
+          if (debug_no_round || (!r_sphere && !r_circle)) {
+            cube(size=[eps, eps, eps], center=true);
+          } else {
+            if (r_sphere) {
+              translate(v=[sxy[i].x * -r_sphere, sxy[i].y * -r_sphere, 0])
+                sphere(r=r_sphere);
+            }
+            if (r_circle) {
+              translate(v=[sxy[i].x * -r_circle, sxy[i].y * -r_circle, 0])
+                cyl(r=r_circle, h=eps);
+            }
+          }
+        }
+    }
+  }
+
+  if (sec.mid) {
+    mid();
+  } else if (sec.corners) {
+    corners();
   }
 }
 
@@ -198,11 +243,12 @@ module sections(dt) {
     bottom_half(s=base.x * 2, z=cross_sections[len(cross_sections) - 1].height) {
       for (n = [1:1:len(cross_sections) - 1]) {
         lower = is_num(cross_sections[n].lower) ? cross_sections[n].lower : n - 1;
-        hull() {
-          for (m = [lower:1:n - 1])
-            cross_section(n=m, dt=dt);
-          cross_section(n=n, dt=dt);
-        }
+        color(c=cross_sections[n].colour)
+          hull() {
+            for (m = [lower:1:n - 1])
+              cross_section(n=m, dt=dt);
+            cross_section(n=n, dt=dt);
+          }
       }
     }
   }
@@ -266,7 +312,7 @@ render() {
   shroud();
 
   if (debug_points) {
-    point_marker(P=[30, -60, 40], h=5, r=1, t="mem");
+    // point_marker(P=[30, -60, 40], h=5, r=1, t="mem");
 
     for (i = [0:1:len(cross_sections) - 1]) {
       point_marker(P=[-100, 0, cross_sections[i].height], h=200, r=0.5, t=str(i), a_rot=90, v_rot=[0, 1, 0]);
