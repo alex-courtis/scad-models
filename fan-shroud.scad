@@ -8,26 +8,24 @@ debug_no_round = false;
 
 // xy only, actual size changes with curved hulls
 t_wall = 1.6;
-t_bracket = 6;
-t_surround = 2.0;
-
-gap_surround = 1;
-r_surround = 6 + t_surround + gap_surround;
-l_surround = 8;
 
 base = [120, 120];
 
+gap_surround = 1;
+rounding_surround = 5;
+h_surround = 8;
+t_surround = 2.0;
+
+h_roof = 6;
+
 inset_bolt = 7.5;
 
-// w_nut = 7.0; // M4
-w_nut = 0.0; // M4
+w_nut = 7.0; // M4
+// w_nut = 0.0; // M4
 d_nut = w_nut * 2 / sqrt(3);
-t_nut = 3;
+t_nut = 4;
 
-// TODO M4
-// d_bolt = 5.5;
-d_bolt = 9;
-l_bolt = 25; //t_bracket;
+d_bolt = 5.5;
 
 // all quads are clockwise
 // inset is from corner
@@ -37,31 +35,6 @@ l_bolt = 25; //t_bracket;
 inset_surround = t_surround + gap_surround;
 
 cross_sections = [
-  object(
-    corners=object(
-      circles=[r_surround, r_surround, r_surround, r_surround],
-      insets=[
-        [inset_surround, inset_surround],
-        [inset_surround, inset_surround],
-        [inset_surround, inset_surround],
-        [inset_surround, inset_surround],
-      ],
-    ),
-    height=-l_surround,
-  ),
-  object(
-    corners=object(
-      spheres=[r_surround, r_surround, r_surround, r_surround],
-      insets=[
-        [inset_surround, inset_surround],
-        [inset_surround, inset_surround],
-        [inset_surround, inset_surround],
-        [inset_surround, inset_surround],
-      ],
-    ),
-    height=0,
-    colour="red",
-  ),
   object(
     mid=object(
       circ=base.x / 2 + t_surround + gap_surround,
@@ -193,62 +166,21 @@ module cross_section(n, dt = 0) {
   }
 }
 
-module bracket() {
-  translate(v=[base.x / 2, base.y / 2, (t_bracket) / 2])
-    cuboid(
-      size=[inset_bolt * 4, inset_bolt * 4, t_bracket],
-      rounding=inset_bolt,
-      edges=[FRONT + LEFT],
-    );
-}
-
-module brackets() {
-  difference() {
-    for (a = [0, 90, 180, 270])
-      rotate(a=a, v=[0, 0, 1])
-        bracket();
-
-    nut_bolts();
-  }
-}
-
-module nut_bolt() {
-  module nut() {
-    translate(v=[-inset_bolt, -inset_bolt, 0])
-      rotate(a=-15, v=[0, 0, 1])
-        cyl(d=d_nut, h=t_nut, $fn=6);
-  }
-
-  translate(v=[base.x / 2, base.y / 2, (t_bracket) / 2]) {
-
-    translate(v=[-inset_bolt, -inset_bolt, 0])
-      cyl(d=d_bolt, h=t_bracket);
-
-    translate(v=[0, 0, (t_bracket - t_nut) / 2]) {
-      nut();
-      translate(v=[-w_nut / 4, -w_nut / 4, 0])
-        nut();
+module section(n, dt) {
+  lower = is_num(cross_sections[n].lower) ? cross_sections[n].lower : n - 1;
+  color(c=cross_sections[n].colour)
+    hull() {
+      for (m = [lower:1:n - 1])
+        cross_section(n=m, dt=dt);
+      cross_section(n=n, dt=dt);
     }
-  }
-}
-
-module nut_bolts() {
-  for (a = [0, 90, 180, 270])
-    rotate(a=a, v=[0, 0, 1])
-      nut_bolt();
 }
 
 module sections(dt) {
   top_half(s=base.x * 2, z=cross_sections[0].height) {
     bottom_half(s=base.x * 2, z=cross_sections[len(cross_sections) - 1].height) {
       for (n = [1:1:len(cross_sections) - 1]) {
-        lower = is_num(cross_sections[n].lower) ? cross_sections[n].lower : n - 1;
-        color(c=cross_sections[n].colour)
-          hull() {
-            for (m = [lower:1:n - 1])
-              cross_section(n=m, dt=dt);
-            cross_section(n=n, dt=dt);
-          }
+        section(n, dt);
       }
     }
   }
@@ -296,26 +228,82 @@ module shroud() {
 
         sections(dt=t_wall);
       }
-
-      intersection() {
-        brackets();
-
-        sections(dt=0);
-      }
     }
 
     cutouts();
   }
 }
 
+module base() {
+  inner = [base.x + 2 * gap_surround, base.y + 2 * gap_surround, h_surround];
+  outer = inner + [2 * t_surround, 2 * t_surround, 0];
+
+  module mask_nuts_bolts() {
+    #for(a=[0, 90, 180, 270]) {
+      rotate(a=a, v=[0, 0, 1]) {
+        translate(v=[base.x / 2 - inset_bolt, base.y / 2 - inset_bolt, (h_roof) / 2]) {
+
+          cyl(d=d_bolt, h=h_roof);
+
+          translate(v=[0, 0, (h_roof - t_nut) / 2])
+            rotate(a=-15, v=[0, 0, 1])
+              cyl(d=d_nut, h=t_nut, $fn=6);
+        }
+      }
+    }
+  }
+
+  module surround() {
+    translate(v=[0, 0, -h_surround / 2]) {
+      difference() {
+        cuboid(
+          size=outer,
+          rounding=rounding_surround,
+          except=[TOP, BOTTOM],
+        );
+        cuboid(
+          size=inner,
+          rounding=rounding_surround,
+          except=[TOP, BOTTOM],
+        );
+      }
+    }
+  }
+
+  module roof() {
+    translate(v=[0, 0, h_roof / 2]) {
+      cuboid(
+        size=[outer.x, outer.y, h_roof],
+        rounding=rounding_surround,
+        except=[BOTTOM],
+      );
+    }
+  }
+
+  difference() {
+    union() {
+      color(c="green")
+        surround();
+
+      color(c="blue")
+        roof();
+    }
+
+    section(n=1, dt=t_wall);
+
+    mask_nuts_bolts();
+  }
+}
+
 render() {
+  base();
+
   shroud();
 
   if (debug_points) {
     // point_marker(P=[30, -60, 40], h=5, r=1, t="mem");
 
-    for (i = [0:1:len(cross_sections) - 1]) {
+    for (i = [0:1:len(cross_sections) - 1])
       point_marker(P=[-100, 0, cross_sections[i].height], h=200, r=0.5, t=str(i), a_rot=90, v_rot=[0, 1, 0]);
-    }
   }
 }
