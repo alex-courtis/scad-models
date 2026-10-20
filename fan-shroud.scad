@@ -25,73 +25,70 @@ w_nut = 7.0; // M4
 d_nut = w_nut * 2 / sqrt(3);
 t_nut = 4;
 
-d_bolt = 5.5;
+// d_bolt = 5.5;
+d_bolt = 9.5;
 
 // all quads are clockwise
 // inset is from corner
 // corner radii must be greater than t_wall * 2
 // lower hulls down through all cross sections to lower, otherwise n - 1
 
-inset_surround = t_surround + gap_surround;
+d_fan = 116;
+r_fan = d_fan / 2;
 
 cross_sections = [
   object(
     mid=object(
-      circ=base.x / 2 + t_surround + gap_surround,
-      // sph=base.x / 2 + t_surround + gap_surround,
+      circ=r_fan + t_wall,
       centre=[0, 0, 0],
+      scal=[1, 1, 1],
     ),
     height=0,
     colour="yellow",
   ),
   object(
-    corners=object(
-      circles=[0, 0, 0, 0],
-      spheres=[5, 5, 5, 5],
-      insets=[
-        [-40, -20],
-        [-65, 20],
-        [20, 20],
-        [20, -20],
-      ],
+    mid=object(
+      circ=r_fan,
+      centre=[-40, -20],
+      scal=[0.7, 1.2, 1],
     ),
-    height=32.5,
-    // lower=0,
-    colour="pink",
+    height=40,
+    colour="limegreen",
   ),
   object(
-    corners=object(
-      spheres=[5, 5, 5, 5],
-      insets=[
-        [-65, -40],
-        [-65, 30],
-        [20, 30],
-        [20, -40],
-      ],
+    mid=object(
+      circ=r_fan,
+      centre=[-38, -40],
+      scal=[0.725, 1.1, 1],
     ),
-    height=32.5 + 32.5,
+    height=70,
     colour="orange",
   ),
   object(
-    corners=object(
-      circles=[5, 5, 5, 5],
-      insets=[
-        [-65, -40 - (100 / 32.5) * 20],
-        [-65, 30],
-        [20, 30],
-        [20, -40 - (100 / 32.5) * 20],
-      ],
+    mid=object(
+      sph=r_fan * 0.725,
+      centre=[-38, -85],
+      scal=[1, 1, 1],
     ),
-    height=32.5 + 32.5 + 100,
-    colour="limegreen",
+    height=130,
+    colour="violet",
+  ),
+  object(
+    mid=object(
+      circ=0.001,
+      centre=[-38, -85],
+      scal=[1, 1, 1],
+    ),
+    height=130 + r_fan * 0.725,
+    colour="pink",
   ),
 ];
 
 // clockwise from edge
 cutouts = [
   [0, 0, 0],
-  [-base.x - 20 + 5 + 8, -10, 32.5],
   // [0, 0, 0],
+  [-160, -10, 30],
   [0, 0, 0],
   [0, 0, 0],
 ];
@@ -119,11 +116,15 @@ module cross_section(n, dt = 0) {
   module mid() {
     mid = sec.mid;
     dbg_hull_children() {
-      translate(v=mid.centre) {
-        if (mid.sph) {
-          sphere(r=mid.circ - dt);
-        } else {
-          cyl(r=mid.circ - dt, h=eps);
+      translate(v=[0, 0, sec.height]) {
+        translate(v=mid.centre) {
+          scale(mid.scal ? mid.scal : [1, 1, 1]) {
+            if (mid.sph) {
+              sphere(r=mid.sph - dt);
+            } else {
+              cyl(r=mid.circ - dt, h=eps);
+            }
+          }
         }
       }
     }
@@ -177,8 +178,8 @@ module section(n, dt) {
 }
 
 module sections(dt) {
-  top_half(s=base.x * 2, z=cross_sections[0].height) {
-    bottom_half(s=base.x * 2, z=cross_sections[len(cross_sections) - 1].height) {
+  top_half(s=base.x * 3, z=cross_sections[0].height) {
+    bottom_half(s=base.x * 3, z=cross_sections[len(cross_sections) - 1].height) {
       for (n = [1:1:len(cross_sections) - 1]) {
         section(n, dt);
       }
@@ -239,7 +240,7 @@ module base() {
   outer = inner + [2 * t_surround, 2 * t_surround, 0];
 
   module mask_nuts_bolts() {
-    #for(a=[0, 90, 180, 270]) {
+    for (a = [0, 90, 180, 270]) {
       rotate(a=a, v=[0, 0, 1]) {
         translate(v=[base.x / 2 - inset_bolt, base.y / 2 - inset_bolt, (h_roof) / 2]) {
 
