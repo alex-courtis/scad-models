@@ -4,7 +4,6 @@ include <lib/geom.scad>
 debug_hull_children = false;
 debug_points = false;
 debug_cutouts = false;
-debug_no_round = false;
 
 // xy only, actual size changes with curved hulls
 t_wall = 1.6;
@@ -47,48 +46,44 @@ cross_sections = [
     colour="yellow",
   ),
   object(
-    mid=object(
-      circ=r_fan,
-      centre=[-40, -20],
-      scal=[0.7, 1.2, 1],
+    corners=object(
+      spheres=[r_fan * 0.5, 0, r_fan * 0.5, r_fan * 0.5],
+	  // TODO use same origin as mid
+      insets=[
+        [-40, -20],
+        [0, 0],
+        [10, 20],
+        [10, -20],
+      ],
     ),
     height=40,
+    colour="pink",
+  ),
+  object(
+    mid=object(
+      sph=r_fan * 0.5,
+      centre=[-40, -60],
+      scal=[1, 1, 1],
+    ),
+    height=155,
     colour="limegreen",
   ),
   object(
     mid=object(
-      circ=r_fan,
-      centre=[-38, -40],
-      scal=[0.725, 1.1, 1],
-    ),
-    height=70,
-    colour="orange",
-  ),
-  object(
-    mid=object(
-      sph=r_fan * 0.725,
-      centre=[-38, -85],
-      scal=[1, 1, 1],
-    ),
-    height=130,
-    colour="violet",
-  ),
-  object(
-    mid=object(
       circ=0.001,
-      centre=[-38, -85],
+      centre=[-40, -60],
       scal=[1, 1, 1],
     ),
-    height=130 + r_fan * 0.725,
-    colour="pink",
+    height=155 + r_fan * 0.5,
+    colour="red",
   ),
 ];
 
 // clockwise from edge
 cutouts = [
   [0, 0, 0],
-  // [0, 0, 0],
-  [-160, -10, 30],
+  [0, 0, 0],
+  // [-160, -10, 30],
   [0, 0, 0],
   [0, 0, 0],
 ];
@@ -144,18 +139,12 @@ module cross_section(n, dt = 0) {
             sec.height,
           ]
         ) {
-          if (debug_no_round || (!r_sphere && !r_circle)) {
-            cube(size=[eps, eps, eps], center=true);
-          } else {
-            if (r_sphere) {
-              translate(v=[sxy[i].x * -r_sphere, sxy[i].y * -r_sphere, 0])
-                sphere(r=r_sphere);
-            }
-            if (r_circle) {
-              translate(v=[sxy[i].x * -r_circle, sxy[i].y * -r_circle, 0])
-                cyl(r=r_circle, h=eps);
-            }
-          }
+          if (r_sphere)
+            translate(v=[sxy[i].x * -r_sphere, sxy[i].y * -r_sphere, 0])
+              sphere(r=r_sphere);
+          if (r_circle)
+            translate(v=[sxy[i].x * -r_circle, sxy[i].y * -r_circle, 0])
+              cyl(r=r_circle, h=eps);
         }
     }
   }
