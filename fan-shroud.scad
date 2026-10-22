@@ -10,12 +10,14 @@ t_wall = 1.6;
 
 base = [120, 120];
 
+enable_surround = false;
 gap_surround = 1;
 rounding_surround = 5;
 h_surround = 8;
 t_surround = 2.0;
 
-h_roof = 6;
+h_roof = 7;
+rounding_roof = 3;
 
 inset_bolt = 7.5;
 
@@ -24,8 +26,8 @@ w_nut = 7.0; // M4
 d_nut = w_nut * 2 / sqrt(3);
 t_nut = 4;
 
-// d_bolt = 5.5;
-d_bolt = 9.5;
+d_bolt = 5.5;
+// d_bolt = 9.5;
 
 // all quads are conventionally clockwise and contain 4
 // inset is from origin
@@ -260,10 +262,11 @@ module base() {
   }
 
   module roof() {
+    b = enable_surround ? [outer.x, outer.y, h_roof] : [base.x, base.y, h_roof];
     translate(v=[0, 0, h_roof / 2]) {
       cuboid(
-        size=[outer.x, outer.y, h_roof],
-        rounding=rounding_surround,
+        size=b,
+        rounding=rounding_roof,
         except=[BOTTOM],
       );
     }
@@ -271,8 +274,9 @@ module base() {
 
   difference() {
     union() {
-      color(c="green")
-        surround();
+      if (enable_surround)
+        color(c="green")
+          surround();
 
       color(c="blue")
         roof();
