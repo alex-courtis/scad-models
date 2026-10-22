@@ -27,13 +27,15 @@ t_nut = 4;
 // d_bolt = 5.5;
 d_bolt = 9.5;
 
-// all quads are clockwise
-// inset is from corner
+// all quads are conventionally clockwise and contain 4
+// inset is from origin
 // corner radii must be greater than t_wall * 2
 // lower hulls down through all cross sections to lower, otherwise n - 1
 
 d_fan = 116;
 r_fan = d_fan / 2;
+
+z_bot = -82;
 
 cross_sections = [
   object(
@@ -47,13 +49,12 @@ cross_sections = [
   ),
   object(
     corners=object(
-      spheres=[r_fan * 0.5, 0, r_fan * 0.5, r_fan * 0.5],
-	  // TODO use same origin as mid
+      spheres=[30, 0, 25, 30],
       insets=[
-        [-40, -20],
+        [-20, 10],
         [0, 0],
-        [10, 20],
-        [10, -20],
+        [-40, -60],
+        [-35, 10],
       ],
     ),
     height=40,
@@ -61,20 +62,20 @@ cross_sections = [
   ),
   object(
     mid=object(
-      sph=r_fan * 0.5,
-      centre=[-40, -60],
-      scal=[1, 1, 1],
+      sph=30,
+      centre=[-35 + (30 * 0.7 - 30), -95],
+      scal=[0.7, 1, 1],
     ),
-    height=155,
+    height=130,
     colour="limegreen",
   ),
   object(
     mid=object(
       circ=0.001,
-      centre=[-40, -60],
+      centre=[-35 + (30 * 0.6 - 30), -95],
       scal=[1, 1, 1],
     ),
-    height=155 + r_fan * 0.5,
+    height=160,
     colour="red",
   ),
 ];
@@ -89,7 +90,7 @@ cutouts = [
 ];
 cutout_rounding = 3;
 
-// clockwise signs for x/y corners
+// clockwise signs for x/y cutout corners
 sxy = [[1, 1], [1, -1], [-1, -1], [-1, 1]];
 
 $fn = 200;
@@ -134,17 +135,15 @@ module cross_section(n, dt = 0) {
       dbg_hull_children()
         translate(
           v=[
-            sxy[i].x * (base.x / 2 + sec.corners.insets[i][0] - dt),
-            sxy[i].y * (base.y / 2 + sec.corners.insets[i][1] - dt),
+            sec.corners.insets[i][0],
+            sec.corners.insets[i][1],
             sec.height,
           ]
         ) {
           if (r_sphere)
-            translate(v=[sxy[i].x * -r_sphere, sxy[i].y * -r_sphere, 0])
-              sphere(r=r_sphere);
+            sphere(r=r_sphere);
           if (r_circle)
-            translate(v=[sxy[i].x * -r_circle, sxy[i].y * -r_circle, 0])
-              cyl(r=r_circle, h=eps);
+            cyl(r=r_circle, h=eps);
         }
     }
   }
@@ -286,9 +285,11 @@ module base() {
 }
 
 render() {
-  base();
+  back_half(s=cross_sections[len(cross_sections) - 1].height * 2, y=z_bot) {
+    base();
 
-  shroud();
+    shroud();
+  }
 
   if (debug_points) {
     // point_marker(P=[30, -60, 40], h=5, r=1, t="mem");
