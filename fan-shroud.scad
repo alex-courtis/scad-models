@@ -2,7 +2,7 @@ include <BOSL2/std.scad>
 include <lib/geom.scad>
 
 debug_hull_children = false;
-debug_points = false;
+debug_sections = false;
 debug_cutouts = false;
 
 // xy only, actual size changes with curved hulls
@@ -12,12 +12,11 @@ base = [120, 120];
 
 enable_surround = false;
 gap_surround = 1;
-rounding_surround = 5;
+rounding_surround = 5.5;
 h_surround = 8;
 t_surround = 2.0;
 
 h_roof = 7;
-rounding_roof = 3;
 
 inset_bolt = 7.5;
 
@@ -37,7 +36,7 @@ d_bolt = 5.5;
 d_fan = 116;
 r_fan = d_fan / 2;
 
-z_bot = -82;
+y_slice = -82;
 
 cross_sections = [
   object(
@@ -266,8 +265,8 @@ module base() {
     translate(v=[0, 0, h_roof / 2]) {
       cuboid(
         size=b,
-        rounding=rounding_roof,
-        except=[BOTTOM],
+        rounding=rounding_surround,
+        except=[TOP, BOTTOM],
       );
     }
   }
@@ -288,16 +287,24 @@ module base() {
   }
 }
 
+module slice() {
+  if (is_undef(y_slice)) {
+    children();
+  } else {
+    back_half(s=cross_sections[len(cross_sections) - 1].height * 2, y=y_slice) {
+      children();
+    }
+  }
+}
+
 render() {
-  back_half(s=cross_sections[len(cross_sections) - 1].height * 2, y=z_bot) {
+  slice() {
     base();
 
     shroud();
   }
 
-  if (debug_points) {
-    // point_marker(P=[30, -60, 40], h=5, r=1, t="mem");
-
+  if (debug_sections) {
     for (i = [0:1:len(cross_sections) - 1])
       point_marker(P=[-100, 0, cross_sections[i].height], h=200, r=0.5, t=str(i), a_rot=90, v_rot=[0, 1, 0]);
   }
