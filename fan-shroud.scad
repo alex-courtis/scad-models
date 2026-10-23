@@ -6,7 +6,7 @@ debug_sections = false;
 debug_cutouts = false;
 
 // xy only, actual size changes with curved hulls
-t_wall = 1.6;
+t_wall = 2.0;
 
 base = [120, 120];
 
@@ -16,14 +16,14 @@ rounding_surround = 5.5;
 h_surround = 8;
 t_surround = 2.0;
 
-h_roof = 7;
+h_roof = 5;
 
 inset_bolt = 7.5;
 
 w_nut = 7.0; // M4
 // w_nut = 0.0; // M4
 d_nut = w_nut * 2 / sqrt(3);
-t_nut = 4;
+t_nut = 3;
 
 d_bolt = 5.5;
 // d_bolt = 9.5;
@@ -36,7 +36,7 @@ d_bolt = 5.5;
 d_fan = 116;
 r_fan = d_fan / 2;
 
-y_slice = -82;
+y_slice = -95;
 
 cross_sections = [
   object(
@@ -50,34 +50,29 @@ cross_sections = [
   ),
   object(
     corners=object(
-      spheres=[30, 0, 25, 30],
+      spheres=[35, 0, 25, 35],
       insets=[
-        [-20, 10],
+        [-15, 10],
         [0, 0],
-        [-40, -60],
-        [-35, 10],
+        [-35, -60],
+        [-25, 10],
       ],
     ),
     height=40,
     colour="pink",
   ),
   object(
-    mid=object(
-      sph=30,
-      centre=[-35 + (30 * 0.7 - 30), -95],
-      scal=[0.7, 1, 1],
+    corners=object(
+      spheres=[35, 0, 0, 35],
+      insets=[
+        [-25, 10 - 160],
+        [0, 0],
+        [0, 0],
+        [-25, -60 - 160],
+      ],
     ),
-    height=130,
-    colour="limegreen",
-  ),
-  object(
-    mid=object(
-      circ=0.001,
-      centre=[-35 + (30 * 0.6 - 30), -95],
-      scal=[1, 1, 1],
-    ),
-    height=160,
-    colour="red",
+    height=210,
+    colour="orange",
   ),
 ];
 
@@ -167,8 +162,8 @@ module section(n, dt) {
 }
 
 module sections(dt) {
-  top_half(s=base.x * 3, z=cross_sections[0].height) {
-    bottom_half(s=base.x * 3, z=cross_sections[len(cross_sections) - 1].height) {
+  top_half(s=base.x * 5, z=cross_sections[0].height) {
+    bottom_half(s=base.x * 5, z=cross_sections[len(cross_sections) - 1].height) {
       for (n = [1:1:len(cross_sections) - 1]) {
         section(n, dt);
       }
@@ -291,7 +286,7 @@ module slice() {
   if (is_undef(y_slice)) {
     children();
   } else {
-    back_half(s=cross_sections[len(cross_sections) - 1].height * 2, y=y_slice) {
+    back_half(s=cross_sections[len(cross_sections) - 1].height * 5, y=y_slice) {
       children();
     }
   }
