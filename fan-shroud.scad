@@ -36,7 +36,7 @@ d_bolt = 5.5;
 d_fan = 116;
 r_fan = d_fan / 2;
 
-y_slice = -95;
+y_slice = -100;
 
 cross_sections = [
   object(
@@ -50,28 +50,28 @@ cross_sections = [
   ),
   object(
     corners=object(
-      spheres=[35, 0, 25, 35],
+      spheres=[0, 0, 30, 30],
       insets=[
-        [-15, 10],
         [0, 0],
-        [-35, -60],
-        [-25, 10],
+        [0, 0],
+        [-27.5, -30],
+        [-27.5, 10],
       ],
     ),
-    height=40,
+    height=35,
     colour="pink",
   ),
   object(
     corners=object(
-      spheres=[0, 0, 35, 35],
+      spheres=[0, 0, 30, 30],
       insets=[
         [0, 0],
         [0, 0],
-        [-25, -60 - 160],
-        [-25, 10 - 160],
+        [-27.5, -30 - 117],
+        [-27.5, 10 - 235],
       ],
     ),
-    height=210,
+    height=160,
     colour="orange",
   ),
 ];
