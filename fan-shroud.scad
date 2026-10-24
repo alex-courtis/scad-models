@@ -63,12 +63,12 @@ cross_sections = [
   ),
   object(
     corners=object(
-      spheres=[35, 0, 0, 35],
+      spheres=[0, 0, 35, 35],
       insets=[
-        [-25, 10 - 160],
         [0, 0],
         [0, 0],
         [-25, -60 - 160],
+        [-25, 10 - 160],
       ],
     ),
     height=210,
