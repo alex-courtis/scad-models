@@ -50,7 +50,7 @@ cross_sections = [
   ),
   object(
     corners=object(
-      spheres=[0, 0, 30, 30],
+      spheres=[0, 0, 27.5, 27.5],
       insets=[
         [0, 0],
         [0, 0],
@@ -63,15 +63,15 @@ cross_sections = [
   ),
   object(
     corners=object(
-      spheres=[0, 0, 30, 30],
+      spheres=[0, 0, 27.5, 27.5],
       insets=[
         [0, 0],
         [0, 0],
-        [-27.5, -30 - 117],
+        [-27.5, -30 - 112],
         [-27.5, 10 - 235],
       ],
     ),
-    height=160,
+    height=155,
     colour="orange",
   ),
 ];
