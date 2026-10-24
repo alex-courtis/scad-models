@@ -155,8 +155,7 @@ module shroud() {
 
   module mask_nut() {
     translate(v=[0, dy_bolt, -dz_nut])
-      rotate(a=30, v=[0, 0, 1])
-        cylinder(d=d_nut, h=bracket.z, $fn=6);
+      cylinder(d=d_nut, h=bracket.z, $fn=6);
   }
 
   module front() {
