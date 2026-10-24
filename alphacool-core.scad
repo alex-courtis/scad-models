@@ -53,9 +53,9 @@ t_wall_bracket = 4.0; // top and bottom, otherwise t_wall_stem
 w_nut = 7.9; // M5
 d_nut = w_nut * 2 / sqrt(3) * 1.015;
 
-t_nub = 3.0;
-w_nub = 4.0;
-l_nub_rat = 0.6; // of channel stem
+t_nub = 2.0;
+w_nub = 3.0;
+l_nub_rat = 0.5; // of channel stem
 n_nubs = 5;
 
 $fn = 200;
