@@ -30,19 +30,25 @@ rounding_front = 3;
 
 gap_sleeve_x = t_clip;
 
-z_sleeve = 16;
+z_sleeve = 18;
 rounding_sleeve = rounding_front;
 
 /* stem */
 
-stem = [20, 50, 14];
+stem = [20, 40, 14];
 rounding_stem = rounding_front;
 
 t_wall_stem = 2.4;
 
 /* bracket */
 
-/* nutbolt */
+bracket = [40, 13.5, 29];
+dy_nut_bolt = 8; // from top of bracket
+dz_nut = 11; // from front of bracket
+
+y_bracket_channel = 7;
+
+chamfer_bracket = 2.4;
 
 d_bolt = 5.1;
 
@@ -54,7 +60,7 @@ d_nut = w_nut * 2 / sqrt(3) * 1.015;
 t_nub = 2.0;
 w_nub = 3.0;
 l_nub_rat = 0.5; // of channel
-n_nubs = 5;
+n_nubs = 4;
 
 $fn = 200;
 
@@ -101,8 +107,16 @@ module shroud() {
   sleeve = [front.x, front.y, z_sleeve];
   sleeve_inner = [body.x + 2 * gap_sleeve_x, body.y + 2 * l_rib_x, sleeve.z];
 
-  channel = [stem.x - 2 * t_wall_stem, stem.y + (sleeve.y - sleeve_inner.y) / 2, stem.z - t_wall_stem];
-  dy_channel = channel.y / 2 + sleeve_inner.y / 2;
+  channel_stem = [stem.x - 2 * t_wall_stem, stem.y + (sleeve.y - sleeve_inner.y) / 2 + bracket.y / 2, stem.z - t_wall_stem];
+  dy_channel_stem = channel_stem.y / 2 + sleeve_inner.y / 2;
+
+  channel_bracket = [bracket.x, y_bracket_channel, channel_stem.z]; // hex side t is major radius R
+
+  dy_stem = sleeve.y / 2 + stem.y / 2;
+
+  dy_bracket = sleeve.y / 2 + stem.y + bracket.y / 2;
+
+  dy_bolt = dy_bracket + bracket.y / 2 - dy_nut_bolt;
 
   module mask_clip_socket() {
     for (i = [-1, 1])
@@ -110,16 +124,39 @@ module shroud() {
         cuboid(size=[t_clip_socket, w_clip, 2 * (front.z + sleeve.z)]);
   }
 
-  module mask_channel() {
-    translate(v=[0, dy_channel, channel.z / 2])
+  module mask_channel_stem() {
+    translate(v=[0, dy_channel_stem, channel_stem.z / 2])
       cuboid(
-        size=channel,
-        chamfer=channel.x / 2,
+        size=channel_stem,
+        chamfer=channel_stem.x / 2,
         edges=[
           TOP + LEFT,
           TOP + RIGHT,
         ],
       );
+  }
+
+  module mask_channel_bracket() {
+    translate(v=[0, dy_bracket, channel_bracket.z / 2])
+      cuboid(
+        size=channel_bracket,
+        chamfer=channel_bracket.y / 2,
+        edges=[
+          TOP + FRONT,
+          TOP + BACK,
+        ],
+      );
+  }
+
+  module mask_bolt() {
+    translate(v=[0, dy_bolt, 0])
+      cylinder(d=d_bolt, h=bracket.z);
+  }
+
+  module mask_nut() {
+    translate(v=[0, dy_bolt, -dz_nut])
+      rotate(a=30, v=[0, 0, 1])
+        cylinder(d=d_nut, h=bracket.z, $fn=6);
   }
 
   module front() {
@@ -158,7 +195,6 @@ module shroud() {
   }
 
   module stem() {
-    dy_stem = stem.y / 2 + sleeve.y / 2;
 
     translate(v=[0, dy_stem, stem.z / 2]) {
       difference() {
@@ -174,10 +210,22 @@ module shroud() {
     }
   }
 
-  module nubs() {
-    nub = [channel.x * l_nub_rat, w_nub, t_nub];
-    dx_nub = (nub.x - channel.x) / 2;
-    dy_nub = (channel.y - nub.y) / (n_nubs - 1);
+  module bracket() {
+    translate(v=[0, dy_bracket, bracket.z / 2])
+      cuboid(
+        size=bracket,
+        chamfer=chamfer_bracket,
+        edges=[
+          TOP + FRONT,
+          TOP + BACK,
+        ],
+      );
+  }
+
+  module nubs_stem() {
+    nub = [channel_stem.x * l_nub_rat, w_nub, t_nub];
+    dx_nub = (nub.x - channel_stem.x) / 2;
+    dy_nub = (channel_stem.y - bracket.y / 2 - nub.y) / (n_nubs - 1);
 
     for (i = [0:n_nubs - 1])
       translate(
@@ -201,17 +249,29 @@ module shroud() {
 
         color(c="orangered")
           stem();
+
+        color(c="chocolate")
+          bracket();
       }
+
+      color(c="limegreen")
+        mask_bolt();
+
+      color(c="purple")
+        mask_nut();
 
       color(c="blue")
         mask_clip_socket();
 
       color(c="pink")
-        mask_channel();
+        mask_channel_stem();
+
+      color(c="blue")
+        mask_channel_bracket();
     }
 
     color(c="violet")
-      nubs();
+      nubs_stem();
   }
 }
 
