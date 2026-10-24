@@ -36,7 +36,8 @@ d_bolt = 5.5;
 d_fan = 116;
 r_fan = d_fan / 2;
 
-y_slice = -100;
+y_slice = -103;
+z_slice = 170.5;
 
 cross_sections = [
   object(
@@ -50,11 +51,11 @@ cross_sections = [
   ),
   object(
     corners=object(
-      spheres=[0, 0, 27.5, 27.5],
+      spheres=[0, 0, 25, 25],
       insets=[
         [0, 0],
         [0, 0],
-        [-27.5, -30],
+        [-27.5, -45],
         [-27.5, 10],
       ],
     ),
@@ -63,15 +64,15 @@ cross_sections = [
   ),
   object(
     corners=object(
-      spheres=[0, 0, 27.5, 27.5],
+      spheres=[0, 0, 25, 25],
       insets=[
         [0, 0],
         [0, 0],
-        [-27.5, -30 - 112],
-        [-27.5, 10 - 235],
+        [-27.5, -45 - 170],
+        [-27.5, 10 - 170],
       ],
     ),
-    height=155,
+    height=190,
     colour="orange",
   ),
 ];
@@ -282,7 +283,7 @@ module base() {
   }
 }
 
-module slice() {
+module y_slice() {
   if (is_undef(y_slice)) {
     children();
   } else {
@@ -292,11 +293,23 @@ module slice() {
   }
 }
 
-render() {
-  slice() {
-    base();
+module z_slice() {
+  if (is_undef(z_slice)) {
+    children();
+  } else {
+    bottom_half(s=cross_sections[len(cross_sections) - 1].height * 5, z=z_slice) {
+      children();
+    }
+  }
+}
 
-    shroud();
+render() {
+  y_slice() {
+    z_slice() {
+      base();
+
+      shroud();
+    }
   }
 
   if (debug_sections) {
