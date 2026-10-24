@@ -48,7 +48,7 @@ dz_nut = 11; // from front of bracket
 
 y_bracket_channel = 7;
 
-chamfer_bracket = 2.4;
+chamfer_bracket = 3.2;
 
 d_bolt = 5.1;
 
