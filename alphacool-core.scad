@@ -42,18 +42,20 @@ t_wall_stem = 2.4;
 
 /* bracket */
 
-bracket = [40, 13.5, 29];
-dy_nut_bolt = 8; // from top of bracket
+bracket = [body.x + dxy_front * 2, 13.5 + 2 + 3, 29];
+dy_nut_bolt = 8 + 2; // from top of bracket
 dz_nut = 11; // from front of bracket
 
 y_bracket_channel = 7;
 
-chamfer_bracket = 3.2;
+rounding_bracket = 0;
 
-d_bolt = 5.1;
+d_bolt = 5.15;
+chamfer_bolt = 2;
 
 w_nut = 7.9; // M5
 d_nut = w_nut * 2 / sqrt(3) * 1.015;
+t_nut = 3.9;
 
 /* nubs */
 
@@ -110,7 +112,7 @@ module shroud() {
   channel_stem = [stem.x - 2 * t_wall_stem, stem.y + (sleeve.y - sleeve_inner.y) / 2 + bracket.y / 2, stem.z - t_wall_stem];
   dy_channel_stem = channel_stem.y / 2 + sleeve_inner.y / 2;
 
-  channel_bracket = [bracket.x, y_bracket_channel, channel_stem.z]; // hex side t is major radius R
+  channel_bracket = [bracket.x, y_bracket_channel, bracket.z - dz_nut - t_nut / 2]; // hex side t is major radius R
 
   dy_stem = sleeve.y / 2 + stem.y / 2;
 
@@ -149,8 +151,12 @@ module shroud() {
   }
 
   module mask_bolt() {
-    translate(v=[0, dy_bolt, 0])
+    translate(v=[0, dy_bolt, 0]) {
       cylinder(d=d_bolt, h=bracket.z);
+
+      translate(v=[0, 0, bracket.z - chamfer_bolt])
+        cylinder(d1=d_bolt, d2=d_bolt + chamfer_bolt * 2, h=chamfer_bolt);
+    }
   }
 
   module mask_nut() {
@@ -213,10 +219,9 @@ module shroud() {
     translate(v=[0, dy_bracket, bracket.z / 2])
       cuboid(
         size=bracket,
-        chamfer=chamfer_bracket,
-        edges=[
-          TOP + FRONT,
-          TOP + BACK,
+        rounding=rounding_bracket,
+        except=[
+          BOTTOM,
         ],
       );
   }
