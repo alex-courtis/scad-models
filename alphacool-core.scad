@@ -61,7 +61,7 @@ t_nut = 3.9;
 
 t_nub = 2.0;
 w_nub = 3.0;
-l_nub_rat = 0.5; // of channel
+l_nub_rat = 0.6; // of channel
 n_nubs = 4;
 
 $fn = 200;
