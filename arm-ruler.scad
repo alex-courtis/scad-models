@@ -12,7 +12,7 @@ w_short = 1.6;
 
 margin = 2;
 
-body = [200 + (w_long / 2 + margin) * 2, l_long + margin * 2, 0.8];
+body = [200 + (w_long / 2 + margin) * 2, l_long + margin * 2, 1];
 
 module holes() {
   for (i = [-1, 1]) {
