@@ -27,22 +27,17 @@ module clamp() {
 
     // chamfer the 45 degree edges to half the depth of the 90 degree edges
     // this still isn't quite right; the width of the chamfer should match
-    d = chamfer_clamp / sqrt(2);
-    a = 22.5;
+    d = chamfer_clamp / sqrt(2) / 2;
 
-    x1 = d / sin(90 - a);
-    z1 = d / sin(a);
-    translate(v=[0, 0, b_clamp.z / 2 + z1 / 2])
-      rotate(a=-90, v=[1, 0, 0])
-        linear_extrude(h=b_clamp.y, center=true)
-          mask2d_chamfer(x=x1, y=z1);
+    translate(v=[b_clamp.z / 2, 0, b_clamp.z])
+      rotate(a=-22.5, v=[0, 1, 0])
+        translate(v=[0, 0, b_clamp.z / 2 - d])
+          cuboid(size=b_clamp);
 
-    x2 = d / sin(a);
-    z2 = d / sin(90 - a);
-    translate(v=[b_clamp.z / 2 - x2 / 2, 0, b_clamp.z])
-      rotate(a=-90, v=[1, 0, 0])
-        linear_extrude(h=b_clamp.y, center=true)
-          mask2d_chamfer(x=x2, y=z2);
+    translate(v=[0, 0, b_clamp.z / 2])
+      rotate(a=-90 + 22.5, v=[0, 1, 0])
+        translate(v=[0, 0, b_clamp.z / 2 - d])
+          cuboid(size=b_clamp);
   }
 
   module mask_holes() {
