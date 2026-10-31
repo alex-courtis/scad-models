@@ -25,9 +25,9 @@ module clamp() {
             chamfer=chamfer_clamp,
           );
 
-    // chamfer the 45 degree edges to half the depth of the 90 degree edges
-    // this still isn't quite right; the width of the chamfer should match
-    d = chamfer_clamp / sqrt(2) / 2;
+    // chamfer the 45 degree edges to the same width as the 90 degree edges
+    w = chamfer_clamp * sqrt(2);
+    d = w / 2 * tan(22.5);
 
     translate(v=[b_clamp.z / 2, 0, b_clamp.z])
       rotate(a=-22.5, v=[0, 1, 0])
