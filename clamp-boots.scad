@@ -11,8 +11,13 @@ t_leather = 0.8; // [0.05:0.05:5]
 overhang_leather = 0.3; // [0:0.05:5]
 
 l_boot = 65;
+w_tab = 8;
+a_tab = 40;
+gap_tab = 0.4;
 
 fold = true;
+show_clamp = false;
+show_sides = false;
 
 $fn = 120;
 
@@ -94,6 +99,11 @@ module leather() {
     b_clamp.z + overhang_leather * 2,
     b_bottom.z,
   ];
+  b_top_tab = [
+    b_top.x,
+    w_tab + overhang_leather,
+    b_bottom.z,
+  ];
 
   module fold_unfold(tr_fold, tr_pos, a_rot, v_rot) {
     if (fold)
@@ -109,7 +119,7 @@ module leather() {
                 children();
   }
 
-  module leather_bottom() {
+  module bottom() {
     cuboid(
       size=b_bottom,
       anchor=LEFT + TOP,
@@ -120,7 +130,7 @@ module leather() {
     );
   }
 
-  module leather_front() {
+  module front() {
     tr_fold = [l_boot + t_leather / 2, 0, -overhang_leather];
     tr_pos = [b_bottom.x, 0, -t_leather / 2];
 
@@ -135,7 +145,7 @@ module leather() {
       );
   }
 
-  module leather_chamfer() {
+  module chamfer() {
     tr_fold = [l_boot - b_clamp.z / 4 + t_leather / 2 / sqrt(2), 0, b_clamp.z * 3 / 4 + t_leather / 2 / sqrt(2)];
     tr_pos = [b_bottom.x + b_front.x + b_chamfer.x / 2, 0, -t_leather / 2];
 
@@ -149,7 +159,7 @@ module leather() {
       );
   }
 
-  module leather_top() {
+  module top() {
     tr_fold = [0, 0, b_clamp.z + t_leather / 2];
     tr_pos = [b_bottom.x + b_front.x + b_chamfer.x, 0, -t_leather / 2];
 
@@ -164,7 +174,7 @@ module leather() {
       );
   }
 
-  module leather_side() {
+  module side() {
     tr_fold = [0, b_clamp.y / 2 + t_leather / 2, b_clamp.z / 2];
     tr_pos = [0, (b_bottom.y + b_side.y) / 2, -t_leather / 2];
 
@@ -184,30 +194,63 @@ module leather() {
     ;
   }
 
+  module top_tab() {
+    tr_fold = [0, b_clamp.y / 2 + t_leather / 2, -b_top_tab.y / 2 + overhang_leather + b_clamp.z];
+    tr_pos = [b_bottom.x + b_front.x + b_chamfer.x, (b_top.y + b_top_tab.y) / 2, -t_leather / 2];
+
+    fold_unfold(tr_fold, tr_pos, 90, [1, 0, 0])
+      diff()
+        cuboid(
+          size=b_top_tab,
+          anchor=LEFT,
+          chamfer=overhang_leather,
+          edges=[
+            TOP,
+          ]
+        )
+          edge_profile(
+            fold ? [FRONT + RIGHT] : [BACK + LEFT]
+          ) {
+            mask2d_chamfer(h=b_top_tab.y + gap_tab / sqrt(2));
+          }
+    ;
+  }
+
   color(c=brown_pair(1)[0])
-    leather_bottom();
+    bottom();
 
   color(c=brown_pair(1)[1])
-    leather_front();
+    front();
 
   color(c=brown_pair(2)[0])
-    leather_chamfer();
+    chamfer();
 
   color(c=brown_pair(2)[1])
-    leather_top();
+    top();
 
-  color(c=brown_pair(3)[0])
-    leather_side();
+  if (show_sides) {
+    color(c=brown_pair(3)[0])
+      side();
 
-  color(c=brown_pair(3)[1])
+    color(c=brown_pair(3)[1])
+      mirror(v=[0, 1, 0])
+        side();
+  }
+
+  color(c=brown_pair(4)[1])
+    top_tab();
+
+  color(c=brown_pair(4)[0])
     mirror(v=[0, 1, 0])
-      leather_side();
+      top_tab();
 }
 
 render() {
-  color(c=brown_pair(0)[0])
-    translate(v=[-b_clamp.x + l_boot, -b_clamp.y / 2, 0])
-      clamp();
+  if (show_clamp) {
+    color(c="darkgreen")
+      translate(v=[-b_clamp.x + l_boot, -b_clamp.y / 2, 0])
+        clamp();
+  }
 
   leather();
 }
