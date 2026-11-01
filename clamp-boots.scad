@@ -1,6 +1,5 @@
 include <BOSL2/std.scad>
 include <lib/colours.scad>
-include <lib/geom.scad>
 
 b_clamp = [150, 35, 20];
 chamfer_clamp = 0.8;
@@ -32,7 +31,7 @@ module clamp() {
 
     for (dy = [0, b_clamp.y])
       translate(v=[b_clamp.x, dy, b_clamp.z / 2])
-        rotate(a=-45, v=[0, 1, 0])
+        rotate(a=[0, -45, 0])
           chamfer_edge_mask(
             l=b_clamp.z * 2,
             chamfer=chamfer_clamp,
@@ -43,12 +42,12 @@ module clamp() {
     d = w / 2 * tan(22.5);
 
     translate(v=[b_clamp.x - b_clamp.z / 2, b_clamp.y / 2, b_clamp.z])
-      rotate(a=22.5, v=[0, 1, 0])
+      rotate(a=[0, 22.5, 0])
         translate(v=[0, 0, b_clamp.z / 2 - d])
           cuboid(size=b_clamp);
 
     translate(v=[b_clamp.x, b_clamp.y / 2, b_clamp.z / 2])
-      rotate(a=90 - 22.5, v=[0, 1, 0])
+      rotate(a=[0, 90 - 22.5, 0])
         translate(v=[0, 0, b_clamp.z / 2 - d])
           cuboid(size=b_clamp);
   }
@@ -104,19 +103,27 @@ module leather() {
     w_tab + overhang_leather,
     b_bottom.z,
   ];
+  b_front_tab = [
+    b_front.x,
+    w_tab + overhang_leather,
+    b_bottom.z,
+  ];
 
-  module fold_unfold(tr_fold, tr_pos, a_rot, v_rot) {
+  module fold_unfold(tr_fold, tr_pos, a1, a2 = [0, 0, 0]) {
     if (fold)
       translate(v=tr_fold)
-        rotate(a=a_rot, v=v_rot)
-          children();
+        rotate(a=a2)
+          rotate(a=a1)
+            children();
     else
       translate(v=tr_pos)
-        rotate(a=-a_rot, v=v_rot)
-          translate(v=vector_multiply_vector(tr_fold, [-1, -1, -1]))
-            translate(v=tr_fold)
-              rotate(a=a_rot, v=v_rot)
-                children();
+        rotate(a=-a1)
+          rotate(a=-a2)
+            translate(v=-tr_fold)
+              translate(v=tr_fold)
+                rotate(a=a2)
+                  rotate(a=a1)
+                    children();
   }
 
   module bottom() {
@@ -134,7 +141,7 @@ module leather() {
     tr_fold = [l_boot + t_leather / 2, 0, -overhang_leather];
     tr_pos = [b_bottom.x, 0, -t_leather / 2];
 
-    fold_unfold(tr_fold, tr_pos, -90, [0, 1, 0])
+    fold_unfold(tr_fold, tr_pos, [0, -90, 0])
       cuboid(
         size=b_front,
         anchor=LEFT,
@@ -149,7 +156,7 @@ module leather() {
     tr_fold = [l_boot - b_clamp.z / 4 + t_leather / 2 / sqrt(2), 0, b_clamp.z * 3 / 4 + t_leather / 2 / sqrt(2)];
     tr_pos = [b_bottom.x + b_front.x + b_chamfer.x / 2, 0, -t_leather / 2];
 
-    fold_unfold(tr_fold, tr_pos, -135, [0, 1, 0])
+    fold_unfold(tr_fold, tr_pos, [0, -135, 0])
       cuboid(
         size=b_chamfer,
         chamfer=overhang_leather,
@@ -163,7 +170,7 @@ module leather() {
     tr_fold = [0, 0, b_clamp.z + t_leather / 2];
     tr_pos = [b_bottom.x + b_front.x + b_chamfer.x, 0, -t_leather / 2];
 
-    fold_unfold(tr_fold, tr_pos, 180, [1, 0, 0])
+    fold_unfold(tr_fold, tr_pos, [180, 0, 0])
       cuboid(
         size=b_top,
         anchor=LEFT,
@@ -178,7 +185,7 @@ module leather() {
     tr_fold = [0, b_clamp.y / 2 + t_leather / 2, b_clamp.z / 2];
     tr_pos = [0, (b_bottom.y + b_side.y) / 2, -t_leather / 2];
 
-    fold_unfold(tr_fold, tr_pos, 90, [1, 0, 0])
+    fold_unfold(tr_fold, tr_pos, [90, 0, 0])
       diff()
         cuboid(
           size=b_side,
@@ -198,7 +205,7 @@ module leather() {
     tr_fold = [0, b_clamp.y / 2 + t_leather / 2, -b_top_tab.y / 2 + overhang_leather + b_clamp.z];
     tr_pos = [b_bottom.x + b_front.x + b_chamfer.x, (b_top.y + b_top_tab.y) / 2, -t_leather / 2];
 
-    fold_unfold(tr_fold, tr_pos, 90, [1, 0, 0])
+    fold_unfold(tr_fold, tr_pos, [90, 0, 0])
       diff()
         cuboid(
           size=b_top_tab,
@@ -214,6 +221,23 @@ module leather() {
             mask2d_chamfer(h=b_top_tab.y + gap_tab / sqrt(2));
           }
     ;
+  }
+
+  module front_tab() {
+    tr_fold = [b_bottom.x - (b_front_tab.x - overhang_leather) / 2, b_clamp.y / 2 + t_leather / 2, -overhang_leather];
+
+    tr_pos = [b_bottom.x, (b_front.y + b_front_tab.y) / 2, -t_leather / 2];
+
+    fold_unfold(tr_fold, tr_pos, [90, 0, 0], [0, -90, 0])
+      cuboid(
+        size=b_front_tab,
+        anchor=LEFT,
+        chamfer=3,
+        edges=[
+          BACK + RIGHT,
+          BACK + LEFT,
+        ],
+      );
   }
 
   color(c=brown_pair(1)[0])
@@ -243,6 +267,20 @@ module leather() {
   color(c=brown_pair(4)[0])
     mirror(v=[0, 1, 0])
       top_tab();
+
+  color(c=brown_pair(5)[0])
+    front_tab();
+
+  color(c=brown_pair(5)[1])
+    mirror(v=[0, 1, 0])
+      front_tab();
+
+  // color(c=brown_pair(6)[1])
+  //   chamfer_tab();
+
+  // color(c=brown_pair(6)[0])
+  //   mirror(v=[0, 1, 0])
+  //     chamfer_tab();
 }
 
 render() {
