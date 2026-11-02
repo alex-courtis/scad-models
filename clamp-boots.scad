@@ -202,25 +202,21 @@ module leather() {
   }
 
   module top_tab() {
-    tr_fold = [0, b_clamp.y / 2 + t_leather / 2, -b_top_tab.y / 2 + overhang_leather + b_clamp.z];
-    tr_pos = [b_bottom.x + b_front.x + b_chamfer.x, (b_top.y + b_top_tab.y) / 2, -t_leather / 2];
+    tr_fold = [b_top_tab.x, b_clamp.y / 2 + t_leather / 2, b_clamp.z + overhang_leather];
+    tr_pos = [b_bottom.x + b_front.x + b_chamfer.x, b_top.y / 2 + b_top_tab.y, -t_leather / 2];
 
-    fold_unfold(tr_fold, tr_pos, [90, 0, 0])
-      diff()
-        cuboid(
-          size=b_top_tab,
-          anchor=LEFT,
-          chamfer=overhang_leather,
-          edges=[
-            TOP,
-          ]
-        )
-          edge_profile(
-            fold ? [FRONT + RIGHT] : [BACK + LEFT]
-          ) {
-            mask2d_chamfer(h=b_top_tab.y + gap_tab / sqrt(2));
-          }
-    ;
+    // centre this before using, as the center is offset
+
+    fold_unfold(tr_fold, tr_pos, [90, 180, 0])
+      // fold_unfold(tr_fold, tr_pos, [0, 0, 0])
+      linear_extrude(h=t_leather, center=true) {
+        trapezoid(
+          h=w_tab,
+          w1=b_top_tab.x,
+          ang=[a_tab, 90],
+          anchor=LEFT + FRONT,
+        );
+      }
   }
 
   module front_tab() {
@@ -264,9 +260,9 @@ module leather() {
   color(c=brown_pair(4)[1])
     top_tab();
 
-  color(c=brown_pair(4)[0])
-    mirror(v=[0, 1, 0])
-      top_tab();
+  // color(c=brown_pair(4)[0])
+  //   mirror(v=[0, 1, 0])
+  //     top_tab();
 
   color(c=brown_pair(5)[0])
     front_tab();
