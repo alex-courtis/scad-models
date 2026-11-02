@@ -7,7 +7,7 @@ d_holes = [8, 8];
 dx_holes = [18, 70];
 
 t_leather = 0.8; // [0.05:0.05:5]
-overhang_leather = 0.3; // [0:0.05:5]
+overhang_leather = 0; // [0:0.05:5]
 
 l_boot = 65;
 w_tab = 8;
@@ -15,8 +15,8 @@ a_tab = 40;
 gap_tab = 0.4;
 
 fold = true;
-show_clamp = false;
-show_sides = false;
+show_clamp = true;
+show_sides = true;
 
 $fn = 120;
 
@@ -71,6 +71,17 @@ module clamp() {
   }
 }
 
+module mask_stitches() {
+  for (
+    x = [0:5:l_boot],
+    y = [-b_clamp.y / 2, b_clamp.y / 2]
+  ) {
+    translate(v=[x, y, b_clamp.z * 3 / 4])
+      rotate(a=[90, 0, 0])
+        #cylinder(h=t_leather * 5, r=0.5, center=true);
+  }
+}
+
 module leather() {
 
   b_bottom = [
@@ -109,174 +120,102 @@ module leather() {
     b_bottom.z,
   ];
 
-  module fold_unfold(tr_fold, tr_pos, a1, a2 = [0, 0, 0]) {
-    if (fold)
-      translate(v=tr_fold)
-        rotate(a=a2)
-          rotate(a=a1)
-            children();
-    else
-      translate(v=tr_pos)
-        rotate(a=-a1)
-          rotate(a=-a2)
-            translate(v=-tr_fold)
-              translate(v=tr_fold)
-                rotate(a=a2)
-                  rotate(a=a1)
-                    children();
-  }
-
-  module bottom() {
+  module piece(size, anchor) {
     cuboid(
-      size=b_bottom,
-      anchor=LEFT + TOP,
-      chamfer=overhang_leather,
+      size=size,
+      anchor=anchor,
+      chamfer=t_leather,
       edges=[
         TOP,
       ],
     );
   }
 
-  module front() {
-    tr_fold = [l_boot + t_leather / 2, 0, -overhang_leather];
-    tr_pos = [b_bottom.x, 0, -t_leather / 2];
-
-    fold_unfold(tr_fold, tr_pos, [0, -90, 0])
-      cuboid(
-        size=b_front,
-        anchor=LEFT,
-        chamfer=overhang_leather,
-        edges=[
-          TOP,
-        ],
-      );
+  module fold_unfold(a, cp) {
+    unfold(a, cp)
+      fold(a, cp)
+        children();
   }
 
-  module chamfer() {
-    tr_fold = [l_boot - b_clamp.z / 4 + t_leather / 2 / sqrt(2), 0, b_clamp.z * 3 / 4 + t_leather / 2 / sqrt(2)];
-    tr_pos = [b_bottom.x + b_front.x + b_chamfer.x / 2, 0, -t_leather / 2];
-
-    fold_unfold(tr_fold, tr_pos, [0, -135, 0])
-      cuboid(
-        size=b_chamfer,
-        chamfer=overhang_leather,
-        edges=[
-          TOP,
-        ],
-      );
+  module fold(a, cp) {
+    rot(a=a, cp=cp)
+      translate(v=cp)
+        children();
   }
 
-  module top() {
-    tr_fold = [0, 0, b_clamp.z + t_leather / 2];
-    tr_pos = [b_bottom.x + b_front.x + b_chamfer.x, 0, -t_leather / 2];
-
-    fold_unfold(tr_fold, tr_pos, [180, 0, 0])
-      cuboid(
-        size=b_top,
-        anchor=LEFT,
-        chamfer=overhang_leather,
-        edges=[
-          TOP,
-        ],
-      );
+  module unfold(a, cp) {
+    rot(a=fold ? [0, 0, 0] : -a, cp=cp)
+      children();
   }
 
-  module side() {
-    tr_fold = [0, b_clamp.y / 2 + t_leather / 2, b_clamp.z / 2];
-    tr_pos = [0, (b_bottom.y + b_side.y) / 2, -t_leather / 2];
+  module bottom() {
+    color(c=brown_pair(1)[0])
+      piece(b_bottom, LEFT + TOP);
 
-    fold_unfold(tr_fold, tr_pos, [90, 0, 0])
-      diff()
-        cuboid(
-          size=b_side,
-          anchor=LEFT,
-          chamfer=overhang_leather,
-          edges=[
-            TOP,
-          ],
-        )
-          edge_profile([BACK + RIGHT]) {
-            mask2d_chamfer(h=b_side.y / 2 - overhang_leather);
-          }
-    ;
+    front(par=b_bottom);
+
+    side_left(par=b_bottom);
+
+    side_right(par=b_bottom);
   }
 
-  module top_tab() {
-    tr_fold = [b_top_tab.x, b_clamp.y / 2 + t_leather / 2, b_clamp.z + overhang_leather];
-    tr_pos = [b_bottom.x + b_front.x + b_chamfer.x, b_top.y / 2 + b_top_tab.y, -t_leather / 2];
+  module front(par) {
+    a = [0, -90, 0];
+    cp = [par.x, 0, 0];
 
-    // centre this before using, as the center is offset
+    fold_unfold(a, cp) {
+      color(c=brown_pair(1)[1])
+        piece(b_front, LEFT + TOP);
 
-    fold_unfold(tr_fold, tr_pos, [90, 180, 0])
-      // fold_unfold(tr_fold, tr_pos, [0, 0, 0])
-      linear_extrude(h=t_leather, center=true) {
-        trapezoid(
-          h=w_tab,
-          w1=b_top_tab.x,
-          ang=[a_tab, 90],
-          anchor=LEFT + FRONT,
-        );
-      }
+      chamfer(par=b_front);
+    }
   }
 
-  module front_tab() {
-    tr_fold = [b_bottom.x - (b_front_tab.x - overhang_leather) / 2, b_clamp.y / 2 + t_leather / 2, -overhang_leather];
+  module chamfer(par) {
+    a = [0, -45, 0];
+    cp = [par.x, 0, 0];
 
-    tr_pos = [b_bottom.x, (b_front.y + b_front_tab.y) / 2, -t_leather / 2];
+    fold_unfold(a, cp) {
+      color(c=brown_pair(2)[0])
+        piece(b_chamfer, LEFT + TOP);
 
-    fold_unfold(tr_fold, tr_pos, [90, 0, 0], [0, -90, 0])
-      cuboid(
-        size=b_front_tab,
-        anchor=LEFT,
-        chamfer=3,
-        edges=[
-          BACK + RIGHT,
-          BACK + LEFT,
-        ],
-      );
+      top(par=b_chamfer);
+    }
   }
 
-  color(c=brown_pair(1)[0])
+  module top(par) {
+    a = [0, -45, 0];
+    cp = [par.x, 0, 0];
+
+    fold_unfold(a, cp)
+      color(c=brown_pair(2)[1])
+        piece(b_top, LEFT + TOP);
+  }
+
+  module side_left(par) {
+    a = [90, 0, 0];
+    cp = [0, par.y / 2, 0];
+
+    if (show_sides)
+      fold_unfold(a, cp)
+        color(c=brown_pair(3)[0])
+          piece(b_side, LEFT + TOP + FRONT);
+  }
+
+  module side_right(par) {
+    a = [-90, 0, 0];
+    cp = [0, -par.y / 2, 0];
+
+    if (show_sides)
+      fold_unfold(a, cp)
+        color(c=brown_pair(3)[1])
+          piece(b_side, LEFT + TOP + BACK);
+  }
+
+  difference() {
     bottom();
-
-  color(c=brown_pair(1)[1])
-    front();
-
-  color(c=brown_pair(2)[0])
-    chamfer();
-
-  color(c=brown_pair(2)[1])
-    top();
-
-  if (show_sides) {
-    color(c=brown_pair(3)[0])
-      side();
-
-    color(c=brown_pair(3)[1])
-      mirror(v=[0, 1, 0])
-        side();
+    mask_stitches();
   }
-
-  color(c=brown_pair(4)[1])
-    top_tab();
-
-  // color(c=brown_pair(4)[0])
-  //   mirror(v=[0, 1, 0])
-  //     top_tab();
-
-  color(c=brown_pair(5)[0])
-    front_tab();
-
-  color(c=brown_pair(5)[1])
-    mirror(v=[0, 1, 0])
-      front_tab();
-
-  // color(c=brown_pair(6)[1])
-  //   chamfer_tab();
-
-  // color(c=brown_pair(6)[0])
-  //   mirror(v=[0, 1, 0])
-  //     chamfer_tab();
 }
 
 render() {
