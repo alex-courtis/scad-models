@@ -131,6 +131,20 @@ module leather() {
     );
   }
 
+  module piece_trap(size, anchor, ang, anchor_trap) {
+    intersection() {
+      translate(v=[0, 0, -t_leather])
+        linear_extrude(h=t_leather)
+          trapezoid(
+            h=size.y,
+            w1=size.x,
+            ang=ang,
+            anchor=anchor_trap,
+          );
+      piece(size, anchor);
+    }
+  }
+
   module fold_unfold(a, cp) {
     unfold(a, cp)
       fold(a, cp)
@@ -154,9 +168,9 @@ module leather() {
 
     front(par=b_bottom);
 
-    side_left(par=b_bottom);
+    side(par=b_bottom, left=true);
 
-    side_right(par=b_bottom);
+    side(par=b_bottom, left=false);
   }
 
   module front(par) {
@@ -192,14 +206,15 @@ module leather() {
         piece(b_top, LEFT + TOP);
   }
 
-  module side_left(par) {
-    a = [90, 0, 0];
-    cp = [0, par.y / 2, 0];
+  module side(par, left) {
+    a = [left ? 90 : -90, 0, 0];
+    cp = [0, left ? par.y / 2 : -par.y / 2, 0];
 
     if (show_sides)
       fold_unfold(a, cp)
-        color(c=brown_pair(3)[0])
-          piece(b_side, LEFT + TOP + FRONT);
+        mirror(v=left ? [0, 0, 0] : [0, 1, 0])
+          color(c=brown_pair(3)[left ? 0 : 1])
+            piece_trap(b_side, LEFT + TOP + FRONT, ang=[90, a_tab], anchor_trap=LEFT + BOTTOM);
   }
 
   module side_right(par) {
