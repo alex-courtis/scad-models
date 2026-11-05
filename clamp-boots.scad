@@ -1,5 +1,6 @@
 include <BOSL2/std.scad>
 include <lib/colours.scad>
+include <lib/geom.scad>
 
 b_clamp = [150, 35, 20];
 chamfer_clamp = 0.8;
@@ -15,6 +16,7 @@ a_tab = 40;
 gap_tab = 0.4;
 
 fold = true;
+show_chamfers = true;
 show_clamp = true;
 show_sides = true;
 
@@ -72,13 +74,33 @@ module clamp() {
 }
 
 module mask_stitches() {
-  for (
-    x = [0:5:l_boot],
-    y = [-b_clamp.y / 2, b_clamp.y / 2]
-  ) {
-    translate(v=[x, y, b_clamp.z * 3 / 4])
-      rotate(a=[90, 0, 0])
-        #cylinder(h=t_leather * 5, r=0.5, center=true);
+  translate(v=[-l_boot, 0, 0]) {
+    for (
+      x = [0:5:l_boot],
+      y = [-b_clamp.y / 2, b_clamp.y / 2]
+    ) {
+      translate(v=[x, y, b_clamp.z * 3 / 4])
+        rotate(a=[90, 0, 0])
+          cylinder(h=t_leather * 5, r=0.5, center=true);
+    }
+
+    for (
+      y = [-b_clamp.y / 2:5:b_clamp.y / 2],
+      z = [b_clamp.z * 1 / 4, b_clamp.z * 2 / 4, b_clamp.z * 3 / 5]
+    ) {
+      translate(v=[l_boot, y, z])
+        rotate(a=[0, 90, 0])
+          cylinder(h=t_leather * 5, r=0.5, center=true);
+    }
+
+    for (
+      x = [0:5:l_boot],
+      y = [b_clamp.y * -1 / 3, b_clamp.y * 1 / 3]
+    ) {
+      translate(v=[x, y, b_clamp.z])
+        rotate(a=[0, 0, 90])
+          cylinder(h=t_leather * 5, r=0.5, center=true);
+    }
   }
 }
 
@@ -124,7 +146,7 @@ module leather() {
     cuboid(
       size=size,
       anchor=anchor,
-      chamfer=t_leather,
+      chamfer=show_chamfers ? t_leather : 0,
       edges=[
         TOP,
       ],
@@ -229,8 +251,67 @@ module leather() {
 
   difference() {
     bottom();
-    mask_stitches();
+    // mask_stitches();
   }
+
+  cp_bottom = [overhang_leather, overhang_leather, 0];
+  point_marker(cp_bottom, r=0.1, h=50, t="cp_bottom", a_rot=90, v_rot=[1, 0, 0]);
+
+  cp_front = cp_bottom + [b_bottom.x, 0, 0];
+  point_marker(cp_front, r=0.1, h=50, t="cp_front", a_rot=90, v_rot=[1, 0, 0]);
+
+  cp_chamfer = cp_front + [b_front.x, 0, 0];
+  point_marker(cp_chamfer, r=0.1, h=50, t="cp_chamfer", a_rot=90, v_rot=[1, 0, 0]);
+
+  cp_top = cp_chamfer + [b_chamfer.x, 0, 0];
+  point_marker(cp_top, r=0.1, h=50, t="cp_top", a_rot=90, v_rot=[1, 0, 0]);
+
+  cp_side = cp_bottom + [0, b_bottom.y / 2, 0];
+  point_marker(cp_side, r=0.1, h=50, t="cp_side", a_rot=-90, v_rot=[0, 1, 0]);
+
+  module m_bottom(dy) {
+    translate(v=[b_bottom.x - overhang_leather, dy, 0])
+      translate(v=[-b_clamp.x, -b_clamp.y / 2, 0])
+        clamp();
+  }
+
+  module m_front(dy) {
+    rot(a=[0, 90, 0], cp=cp_front)
+      translate(v=[overhang_leather * 2, 0, 0])
+        m_bottom(dy=dy);
+  }
+
+  module m_chamfer(dy) {
+    rot(a=[0, 45, 0], cp=cp_chamfer)
+      translate(v=[overhang_leather * 2, 0, 0])
+        m_front(dy=dy);
+  }
+
+  module m_top(dy) {
+    rot(a=[0, 45, 0], cp=cp_top)
+      translate(v=[overhang_leather * 2, 0, 0])
+        m_chamfer(dy=dy);
+  }
+
+  module m_side(dir) {
+    rot(a=[dir * -90, 0, 0], cp=dir * cp_side)
+      translate(v=[0, dir * overhang_leather * 2, 0])
+        m_bottom(dy=0);
+  }
+
+  clamp();
+
+  m_bottom(dy=0);
+
+  m_front(dy=-20);
+
+  m_chamfer(dy=-10);
+
+  m_top(dy=-30);
+
+  m_side(1);
+
+  m_side(-1);
 }
 
 render() {
