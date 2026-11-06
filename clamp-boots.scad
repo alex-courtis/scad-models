@@ -5,14 +5,15 @@ include <lib/geom.scad>
 fold = false;
 show_chamfers = true;
 show_clamp = false;
-show_sides = false;
+show_sides = true;
 
 debug_stitches = false;
+debug_clamp = false;
 
 chamfer_clamp = 0.8; // [0.05:0.05:5]
 
 t_leather = 0.8; // [0.05:0.05:5]
-overhang_leather = 1.6; // [0:0.05:5]
+overhang_leather = 0.4; // [0:0.05:5]
 
 l_boot = 65; // [1:1:100]
 w_tab = 8; // [1:1:20]
@@ -25,7 +26,7 @@ dx_holes = [18, 70];
 
 $fn = 120;
 
-module dbg_stiches() { if (debug_stitches) #children(); else children(); }
+module dbg_stitches() { if (debug_stitches) #children(); else children(); }
 
 // origin at x=l_boot, y=b_clamp.y/2, z=-b_clamp.z/2
 module clamp() {
@@ -82,8 +83,10 @@ module clamp() {
 }
 
 module mask_stitches() {
-  dbg_stiches() {
-    clamp();
+  if (debug_clamp)
+    #clamp();
+
+  dbg_stitches() {
     for (
       x = [0:5:l_boot],
       y = [-b_clamp.y / 2, b_clamp.y / 2]
@@ -155,13 +158,14 @@ module leather() {
     cuboid(
       size=size,
       anchor=anchor,
-      chamfer=show_chamfers ? t_leather : 0,
+      chamfer=show_chamfers ? min(overhang_leather, t_leather) : 0,
       edges=[
         TOP,
       ],
     );
   }
 
+  // fold/unfold a piece
   module fold_unfold(a) {
     x =
       a.y > 0 ? -1
@@ -181,37 +185,37 @@ module leather() {
             children();
   }
 
-  // piece folds
+  // specific piece fold/unfold, does not perform previous folds first
 
-  module tr_piece_bottom() {
+  module tr_bottom() {
     children();
   }
 
-  module tr_piece_front() {
+  module tr_front() {
     translate(v=[b_bottom.x, 0, 0])
       fold_unfold(a=[0, -90, 0])
         children();
   }
 
-  module tr_piece_side(dir) {
+  module tr_side(dir) {
     translate(v=[0, dir * b_bottom.y / 2, 0])
       fold_unfold(a=[dir * 90, 0, 0])
         children();
   }
 
-  module tr_piece_chamfer() {
+  module tr_chamfer() {
     translate(v=[b_front.x, 0, 0])
       fold_unfold(a=[0, -45, 0])
         children();
   }
 
-  module tr_piece_top() {
+  module tr_top() {
     translate(v=[b_chamfer.x, 0, 0])
       fold_unfold(a=[0, -45, 0])
         children();
   }
 
-  // stitch mask folds
+  // specific stitch mask folds, performs previous transforms first
 
   module tr_mask_bottom() {
     children();
@@ -245,76 +249,90 @@ module leather() {
 
   // pieces
 
-  module piece_bottom() {
-    difference() {
-      color(c=brown_pair(1)[0])
+  module bottom() {
+    tr_bottom()
+      difference() {
         piece(b_bottom);
-      tr_mask_bottom()
-        mask_stitches();
-    }
+        tr_mask_bottom()
+          mask_stitches();
+      }
   }
 
-  module piece_front() {
-    difference() {
-      color(c=brown_pair(1)[1])
+  module front() {
+    tr_front()
+      difference() {
         piece(b_front);
-      translate(v=[overhang_leather, 0, 0])
-        tr_mask_front()
-          mask_stitches();
-    }
+        translate(v=[overhang_leather, 0, 0])
+          tr_mask_front()
+            mask_stitches();
+      }
   }
 
-  module piece_chamfer() {
-    difference() {
-      color(c=brown_pair(0)[0])
-        piece(b_chamfer);
-      translate(v=[overhang_leather, 0, 0])
-        tr_mask_chamfer()
-          mask_stitches();
-    }
+  module chamfer() {
+    tr_front()
+      tr_chamfer()
+        difference() {
+          piece(b_chamfer);
+          translate(v=[overhang_leather, 0, 0])
+            tr_mask_chamfer()
+              mask_stitches();
+        }
   }
 
-  module piece_top() {
-    difference() {
-      color(c=brown_pair(2)[1])
-        piece(b_top);
-      translate(v=[overhang_leather, 0, 0])
-        tr_mask_top()
-          mask_stitches();
-    }
+  module top() {
+    tr_front()
+      tr_chamfer()
+        tr_top()
+          difference() {
+            piece(b_top);
+            translate(v=[overhang_leather, 0, 0])
+              tr_mask_top()
+                mask_stitches();
+          }
   }
 
-  module piece_side(dir) {
-    difference() {
-      color(c=brown_pair(3)[max(dir, 0)])
+  module side(dir) {
+    tr_side(dir=dir)
+      difference() {
         piece(b_side, LEFT + TOP + (dir == 1 ? FRONT : BACK));
-
-      translate(v=[0, dir * overhang_leather, 0])
-        tr_mask_side(dir)
-          mask_stitches();
-    }
+        translate(v=[0, dir * overhang_leather, 0])
+          tr_mask_side(dir)
+            mask_stitches();
+      }
   }
 
-  tr_piece_bottom()
-    piece_bottom();
+  // module side2(dir) {
+  //   tr_side(dir=dir)
+  //     difference() {
+  //       piece(b_side, LEFT + TOP + (dir == 1 ? FRONT : BACK));
+  //       translate(v=[0, dir * overhang_leather, 0])
+  //         tr_mask_side(dir)
+  //           mask_stitches();
+  //     }
+  // }
 
-  tr_piece_front()
-    piece_front();
+  color(c=brown_pair(1)[0])
+    bottom();
 
-  tr_piece_front()
-    tr_piece_chamfer()
-      piece_chamfer();
+  color(c=brown_pair(1)[1])
+    front();
 
-  tr_piece_front()
-    tr_piece_chamfer()
-      tr_piece_top()
-        piece_top();
+  color(c=brown_pair(0)[0])
+    chamfer();
 
-  tr_piece_side(dir=1)
-    piece_side(dir=1);
+  color(c=brown_pair(2)[1])
+    top();
 
-  tr_piece_side(dir=-1)
-    piece_side(dir=-1);
+  if (show_sides) {
+    color(c=brown_pair(3)[0])
+      side(dir=1);
+
+    color(c=brown_pair(3)[1])
+      side(dir=-1);
+  }
+
+  // color(c=brown_pair(4)[1])
+  //   side2(dir=1);
 }
 
 render() {
