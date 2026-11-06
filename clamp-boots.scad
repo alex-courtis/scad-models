@@ -84,7 +84,7 @@ module clamp() {
 }
 
 module mask_stitches() {
-  translate(v=[-l_boot, 0, 0]) {
+  dbg_stiches() {
     for (
       x = [0:5:l_boot],
       y = [-b_clamp.y / 2, b_clamp.y / 2]
@@ -152,7 +152,7 @@ module leather() {
     b_bottom.z,
   ];
 
-  module piece(size, anchor) {
+  module piece(size, anchor = LEFT + TOP) {
     cuboid(
       size=size,
       anchor=anchor,
@@ -260,7 +260,7 @@ module leather() {
   }
 
   difference() {
-    bottom();
+    // bottom();
     // mask_stitches();
   }
 
@@ -282,7 +282,8 @@ module leather() {
 
   module m_bottom(dy) {
     color(c="blue", alpha=0.5)
-      clamp();
+      mask_stitches();
+    // clamp();
   }
 
   module m_front(dy) {
@@ -309,7 +310,7 @@ module leather() {
         m_bottom(dy=0);
   }
 
-  m_bottom(dy=0);
+  // m_bottom(dy=0);
 
   // m_front(dy=-20);
   //
@@ -320,6 +321,86 @@ module leather() {
   // m_side(1);
   //
   // m_side(-1);
+
+  module fu(a) {
+    rot(a=fold ? [0, 0, 0] : -a, cp=fold ? [0, 0, 0] : [overhang_leather, 0, 0])
+      translate(v=fold ? [0, 0, 0] : [overhang_leather * 2, 0, 0])
+
+        translate(v=[-overhang_leather * 2, 0, 0])
+          rot(a=a, cp=[overhang_leather, 0, 0])
+
+            children();
+  }
+
+  module p_bottom() {
+    difference() {
+      color(c=brown_pair(1)[0])
+        piece(b_bottom);
+      m_bottom();
+    }
+  }
+
+  module p_front() {
+    translate(v=[-b_bottom.x, 0, 0])
+      difference() {
+        translate(v=[b_bottom.x, 0, 0])
+          color(c=brown_pair(1)[1])
+            piece(b_front);
+        m_front();
+      }
+  }
+
+  module tr_front() {
+    translate(v=[b_bottom.x, 0, 0])
+      fu(a=[0, -90, 0])
+        children();
+  }
+
+  module p_chamfer() {
+    translate(v=[-b_bottom.x - b_front.x, 0, 0])
+      difference() {
+        translate(v=[b_bottom.x + b_front.x, 0, 0])
+          color(c=brown_pair(0)[0])
+            piece(b_chamfer);
+        m_chamfer();
+      }
+  }
+
+  module tr_chamfer() {
+    translate(v=[b_front.x, 0, 0])
+      fu(a=[0, -45, 0])
+        children();
+  }
+
+  module p_top() {
+    translate(v=[-b_bottom.x - b_front.x - b_chamfer.x, 0, 0])
+      difference() {
+        translate(v=[b_bottom.x + b_front.x + b_chamfer.x, 0, 0])
+          color(c=brown_pair(2)[1])
+            piece(b_top);
+        m_top();
+      }
+  }
+
+  module tr_top() {
+    translate(v=[b_chamfer.x, 0, 0])
+      fu(a=[0, -45, 0])
+        children();
+  }
+
+  p_bottom();
+
+  tr_front()
+    p_front();
+
+  tr_front()
+    tr_chamfer()
+      p_chamfer();
+
+  tr_front()
+    tr_chamfer()
+      tr_top()
+        p_top();
 }
 
 render() {
