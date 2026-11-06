@@ -295,21 +295,17 @@ module leather() {
     tr_side(dir=dir)
       difference() {
         piece(b_side, LEFT + TOP + (dir == 1 ? FRONT : BACK));
+
+        translate(v=[b_side.x - b_clamp.z / 2 + overhang_leather * 2 / sqrt(2), dir * b_clamp.z, 0])
+          rotate(a=[0, 0, dir * 45])
+            translate(v=[l_boot / 2, 0, 0])
+              cuboid(size=l_boot);
+
         translate(v=[0, dir * overhang_leather, 0])
           tr_mask_side(dir)
             mask_stitches();
       }
   }
-
-  // module side2(dir) {
-  //   tr_side(dir=dir)
-  //     difference() {
-  //       piece(b_side, LEFT + TOP + (dir == 1 ? FRONT : BACK));
-  //       translate(v=[0, dir * overhang_leather, 0])
-  //         tr_mask_side(dir)
-  //           mask_stitches();
-  //     }
-  // }
 
   color(c=brown_pair(1)[0])
     bottom();
@@ -330,9 +326,6 @@ module leather() {
     color(c=brown_pair(3)[1])
       side(dir=-1);
   }
-
-  // color(c=brown_pair(4)[1])
-  //   side2(dir=1);
 }
 
 render() {
