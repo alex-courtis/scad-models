@@ -2,75 +2,85 @@ include <BOSL2/std.scad>
 include <lib/colours.scad>
 include <lib/geom.scad>
 
+fold = false;
+show_chamfers = true;
+show_clamp = false;
+show_sides = false;
+show_points = false;
+
+debug_stitches = false;
+
+chamfer_clamp = 0.8; // [0.05:0.05:5]
+
+t_leather = 0.8; // [0.05:0.05:5]
+overhang_leather = 1.6; // [0:0.05:5]
+
+l_boot = 65; // [1:1:100]
+w_tab = 8; // [1:1:20]
+a_tab = 40; // [0:1:90]
+gap_tab = 0.4; // [0.05:0.05:5]
+
 b_clamp = [150, 35, 20];
-chamfer_clamp = 0.8;
 d_holes = [8, 8];
 dx_holes = [18, 70];
 
-t_leather = 0.8; // [0.05:0.05:5]
-overhang_leather = 0; // [0:0.05:5]
-
-l_boot = 65;
-w_tab = 8;
-a_tab = 40;
-gap_tab = 0.4;
-
-fold = true;
-show_chamfers = true;
-show_clamp = true;
-show_sides = true;
-
 $fn = 120;
 
+module dbg_stiches() { if (debug_stitches) #children(); else children(); }
+module point() { if (show_points) children(); }
+
+// origin at x=l_boot, y=b_clamp.y/2, z=-b_clamp.z/2
 module clamp() {
   module mask_cutout() {
-    translate(v=[b_clamp.x, b_clamp.y / 2, b_clamp.z])
+    translate(v=[b_clamp.x / 2, 0, b_clamp.z / 2])
       chamfer_edge_mask(
         l=b_clamp.y,
         chamfer=b_clamp.z / 2,
         orient=FRONT,
       );
 
-    for (dy = [0, b_clamp.y])
-      translate(v=[b_clamp.x, dy, b_clamp.z / 2])
-        rotate(a=[0, -45, 0])
-          chamfer_edge_mask(
-            l=b_clamp.z * 2,
-            chamfer=chamfer_clamp,
-          );
+    if (show_chamfers) {
+      for (dy = [-b_clamp.y / 2, b_clamp.y / 2])
+        translate(v=[b_clamp.x / 2, dy, 0])
+          rotate(a=[0, -45, 0])
+            chamfer_edge_mask(
+              l=b_clamp.z * 2,
+              chamfer=chamfer_clamp,
+            );
 
-    // chamfer the 45 degree edges to the same width as the 90 degree edges
-    w = chamfer_clamp * sqrt(2);
-    d = w / 2 * tan(22.5);
+      // chamfer the 45 degree edges to the same width as the 90 degree edges
+      w = chamfer_clamp * sqrt(2);
+      d = w / 2 * tan(22.5);
 
-    translate(v=[b_clamp.x - b_clamp.z / 2, b_clamp.y / 2, b_clamp.z])
-      rotate(a=[0, 22.5, 0])
-        translate(v=[0, 0, b_clamp.z / 2 - d])
-          cuboid(size=b_clamp);
+      translate(v=[b_clamp.x / 2 - b_clamp.z / 2, 0, b_clamp.z / 2])
+        rotate(a=[0, 22.5, 0])
+          translate(v=[0, 0, b_clamp.z / 2 - d])
+            cuboid(size=b_clamp);
 
-    translate(v=[b_clamp.x, b_clamp.y / 2, b_clamp.z / 2])
-      rotate(a=[0, 90 - 22.5, 0])
-        translate(v=[0, 0, b_clamp.z / 2 - d])
-          cuboid(size=b_clamp);
+      translate(v=[b_clamp.x / 2, 0, 0])
+        rotate(a=[0, 90 - 22.5, 0])
+          translate(v=[0, 0, b_clamp.z / 2 - d])
+            cuboid(size=b_clamp);
+    }
   }
 
   module mask_holes() {
     for (i = [0:1:len(d_holes) - 1])
-      translate(v=[dx_holes[i], b_clamp.y / 2, 0])
-        cyl(d=d_holes[i], h=b_clamp.z, center=false);
+      translate(v=[-b_clamp.x / 2 + dx_holes[i], 0, 0])
+        cyl(d=d_holes[i], h=b_clamp.z, center=true);
   }
 
-  difference() {
-    cuboid(
-      size=[b_clamp.x, b_clamp.y, b_clamp.z],
-      chamfer=chamfer_clamp,
-      anchor=LEFT + FRONT + BOT,
-    );
+  translate(v=[-b_clamp.x / 2 + l_boot, 0, b_clamp.z / 2])
+    difference() {
+      cuboid(
+        size=[b_clamp.x, b_clamp.y, b_clamp.z],
+        chamfer=show_chamfers ? chamfer_clamp : 0,
+      );
 
-    mask_cutout();
+      mask_cutout();
 
-    mask_holes();
-  }
+      mask_holes();
+    }
 }
 
 module mask_stitches() {
@@ -255,24 +265,24 @@ module leather() {
   }
 
   cp_bottom = [overhang_leather, overhang_leather, 0];
-  point_marker(cp_bottom, r=0.1, h=50, t="cp_bottom", a_rot=90, v_rot=[1, 0, 0]);
+  point() point_marker(cp_bottom, r=0.1, h=50, t="cp_bottom", a_rot=90, v_rot=[1, 0, 0]);
 
   cp_front = cp_bottom + [b_bottom.x, 0, 0];
-  point_marker(cp_front, r=0.1, h=50, t="cp_front", a_rot=90, v_rot=[1, 0, 0]);
+  point() point_marker(cp_front, r=0.1, h=50, t="cp_front", a_rot=90, v_rot=[1, 0, 0]);
 
   cp_chamfer = cp_front + [b_front.x, 0, 0];
-  point_marker(cp_chamfer, r=0.1, h=50, t="cp_chamfer", a_rot=90, v_rot=[1, 0, 0]);
+  point() point_marker(cp_chamfer, r=0.1, h=50, t="cp_chamfer", a_rot=90, v_rot=[1, 0, 0]);
 
   cp_top = cp_chamfer + [b_chamfer.x, 0, 0];
-  point_marker(cp_top, r=0.1, h=50, t="cp_top", a_rot=90, v_rot=[1, 0, 0]);
+  point() point_marker(cp_top, r=0.1, h=50, t="cp_top", a_rot=90, v_rot=[1, 0, 0]);
 
   cp_side = cp_bottom + [0, b_bottom.y / 2, 0];
-  point_marker(cp_side, r=0.1, h=50, t="cp_side", a_rot=-90, v_rot=[0, 1, 0]);
+  point() point_marker(cp_side, r=0.1, h=50, t="cp_side", a_rot=-90, v_rot=[0, 1, 0]);
+  point() point_marker(-cp_side, r=0.1, h=50, t="cp_side", a_rot=-90, v_rot=[0, 1, 0]);
 
   module m_bottom(dy) {
-    translate(v=[b_bottom.x - overhang_leather, dy, 0])
-      translate(v=[-b_clamp.x, -b_clamp.y / 2, 0])
-        clamp();
+    color(c="blue", alpha=0.5)
+      clamp();
   }
 
   module m_front(dy) {
@@ -299,27 +309,23 @@ module leather() {
         m_bottom(dy=0);
   }
 
-  clamp();
-
   m_bottom(dy=0);
 
-  m_front(dy=-20);
-
-  m_chamfer(dy=-10);
-
-  m_top(dy=-30);
-
-  m_side(1);
-
-  m_side(-1);
+  // m_front(dy=-20);
+  //
+  // m_chamfer(dy=-10);
+  //
+  // m_top(dy=-30);
+  //
+  // m_side(1);
+  //
+  // m_side(-1);
 }
 
 render() {
-  if (show_clamp) {
+  if (show_clamp)
     color(c="darkgreen")
-      translate(v=[-b_clamp.x + l_boot, -b_clamp.y / 2, 0])
-        clamp();
-  }
+      clamp();
 
   leather();
 }
