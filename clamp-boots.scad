@@ -6,7 +6,6 @@ fold = false;
 show_chamfers = true;
 show_clamp = false;
 show_sides = false;
-show_points = false;
 
 debug_stitches = false;
 
@@ -27,7 +26,6 @@ dx_holes = [18, 70];
 $fn = 120;
 
 module dbg_stiches() { if (debug_stitches) #children(); else children(); }
-module point() { if (show_points) children(); }
 
 // origin at x=l_boot, y=b_clamp.y/2, z=-b_clamp.z/2
 module clamp() {
@@ -85,6 +83,7 @@ module clamp() {
 
 module mask_stitches() {
   dbg_stiches() {
+    clamp();
     for (
       x = [0:5:l_boot],
       y = [-b_clamp.y / 2, b_clamp.y / 2]
@@ -163,244 +162,159 @@ module leather() {
     );
   }
 
-  module piece_trap(size, anchor, ang, anchor_trap) {
-    intersection() {
-      translate(v=[0, 0, -t_leather])
-        linear_extrude(h=t_leather)
-          trapezoid(
-            h=size.y,
-            w1=size.x,
-            ang=ang,
-            anchor=anchor_trap,
-          );
-      piece(size, anchor);
-    }
-  }
+  module fold_unfold(a) {
+    x =
+      a.y > 0 ? -1
+      : a.y < 0 ? 1
+      : 0;
+    y =
+      a.x > 0 ? 1
+      : a.x < 0 ? -1
+      : 0;
 
-  module fold_unfold(a, cp) {
-    unfold(a, cp)
-      fold(a, cp)
-        children();
-  }
+    rot(a=fold ? [0, 0, 0] : -a, cp=fold ? [0, 0, 0] : [x * overhang_leather, y * overhang_leather, 0])
+      translate(v=fold ? [0, 0, 0] : [x * overhang_leather * 2, y * overhang_leather * 2, 0])
 
-  module fold(a, cp) {
-    rot(a=a, cp=cp)
-      translate(v=cp)
-        children();
-  }
-
-  module unfold(a, cp) {
-    rot(a=fold ? [0, 0, 0] : -a, cp=cp)
-      children();
-  }
-
-  module bottom() {
-    color(c=brown_pair(1)[0])
-      piece(b_bottom, LEFT + TOP);
-
-    front(par=b_bottom);
-
-    side(par=b_bottom, left=true);
-
-    side(par=b_bottom, left=false);
-  }
-
-  module front(par) {
-    a = [0, -90, 0];
-    cp = [par.x, 0, 0];
-
-    fold_unfold(a, cp) {
-      color(c=brown_pair(1)[1])
-        piece(b_front, LEFT + TOP);
-
-      chamfer(par=b_front);
-    }
-  }
-
-  module chamfer(par) {
-    a = [0, -45, 0];
-    cp = [par.x, 0, 0];
-
-    fold_unfold(a, cp) {
-      color(c=brown_pair(2)[0])
-        piece(b_chamfer, LEFT + TOP);
-
-      top(par=b_chamfer);
-    }
-  }
-
-  module top(par) {
-    a = [0, -45, 0];
-    cp = [par.x, 0, 0];
-
-    fold_unfold(a, cp)
-      color(c=brown_pair(2)[1])
-        piece(b_top, LEFT + TOP);
-  }
-
-  module side(par, left) {
-    a = [left ? 90 : -90, 0, 0];
-    cp = [0, left ? par.y / 2 : -par.y / 2, 0];
-
-    if (show_sides)
-      fold_unfold(a, cp)
-        mirror(v=left ? [0, 0, 0] : [0, 1, 0])
-          color(c=brown_pair(3)[left ? 0 : 1])
-            piece_trap(b_side, LEFT + TOP + FRONT, ang=[90, a_tab], anchor_trap=LEFT + BOTTOM);
-  }
-
-  module side_right(par) {
-    a = [-90, 0, 0];
-    cp = [0, -par.y / 2, 0];
-
-    if (show_sides)
-      fold_unfold(a, cp)
-        color(c=brown_pair(3)[1])
-          piece(b_side, LEFT + TOP + BACK);
-  }
-
-  difference() {
-    // bottom();
-    // mask_stitches();
-  }
-
-  cp_bottom = [overhang_leather, overhang_leather, 0];
-  point() point_marker(cp_bottom, r=0.1, h=50, t="cp_bottom", a_rot=90, v_rot=[1, 0, 0]);
-
-  cp_front = cp_bottom + [b_bottom.x, 0, 0];
-  point() point_marker(cp_front, r=0.1, h=50, t="cp_front", a_rot=90, v_rot=[1, 0, 0]);
-
-  cp_chamfer = cp_front + [b_front.x, 0, 0];
-  point() point_marker(cp_chamfer, r=0.1, h=50, t="cp_chamfer", a_rot=90, v_rot=[1, 0, 0]);
-
-  cp_top = cp_chamfer + [b_chamfer.x, 0, 0];
-  point() point_marker(cp_top, r=0.1, h=50, t="cp_top", a_rot=90, v_rot=[1, 0, 0]);
-
-  cp_side = cp_bottom + [0, b_bottom.y / 2, 0];
-  point() point_marker(cp_side, r=0.1, h=50, t="cp_side", a_rot=-90, v_rot=[0, 1, 0]);
-  point() point_marker(-cp_side, r=0.1, h=50, t="cp_side", a_rot=-90, v_rot=[0, 1, 0]);
-
-  module m_bottom(dy) {
-    color(c="blue", alpha=0.5)
-      mask_stitches();
-    // clamp();
-  }
-
-  module m_front(dy) {
-    rot(a=[0, 90, 0], cp=cp_front)
-      translate(v=[overhang_leather * 2, 0, 0])
-        m_bottom(dy=dy);
-  }
-
-  module m_chamfer(dy) {
-    rot(a=[0, 45, 0], cp=cp_chamfer)
-      translate(v=[overhang_leather * 2, 0, 0])
-        m_front(dy=dy);
-  }
-
-  module m_top(dy) {
-    rot(a=[0, 45, 0], cp=cp_top)
-      translate(v=[overhang_leather * 2, 0, 0])
-        m_chamfer(dy=dy);
-  }
-
-  module m_side(dir) {
-    rot(a=[dir * -90, 0, 0], cp=dir * cp_side)
-      translate(v=[0, dir * overhang_leather * 2, 0])
-        m_bottom(dy=0);
-  }
-
-  // m_bottom(dy=0);
-
-  // m_front(dy=-20);
-  //
-  // m_chamfer(dy=-10);
-  //
-  // m_top(dy=-30);
-  //
-  // m_side(1);
-  //
-  // m_side(-1);
-
-  module fu(a) {
-    rot(a=fold ? [0, 0, 0] : -a, cp=fold ? [0, 0, 0] : [overhang_leather, 0, 0])
-      translate(v=fold ? [0, 0, 0] : [overhang_leather * 2, 0, 0])
-
-        translate(v=[-overhang_leather * 2, 0, 0])
-          rot(a=a, cp=[overhang_leather, 0, 0])
+        translate(v=[x * -overhang_leather * 2, y * -overhang_leather * 2, 0])
+          rot(a=a, cp=[x * overhang_leather, y * overhang_leather, 0])
 
             children();
   }
 
-  module p_bottom() {
+  // piece folds
+
+  module tr_piece_bottom() {
+    children();
+  }
+
+  module tr_piece_front() {
+    translate(v=[b_bottom.x, 0, 0])
+      fold_unfold(a=[0, -90, 0])
+        children();
+  }
+
+  module tr_piece_side(dir) {
+    translate(v=[0, dir * b_bottom.y / 2, 0])
+      fold_unfold(a=[dir * 90, 0, 0])
+        children();
+  }
+
+  module tr_piece_chamfer() {
+    translate(v=[b_front.x, 0, 0])
+      fold_unfold(a=[0, -45, 0])
+        children();
+  }
+
+  module tr_piece_top() {
+    translate(v=[b_chamfer.x, 0, 0])
+      fold_unfold(a=[0, -45, 0])
+        children();
+  }
+
+  // stitch mask folds
+
+  module tr_mask_bottom() {
+    children();
+  }
+
+  module tr_mask_front() {
+    rotate(a=[0, 90, 0])
+      translate(v=[-l_boot, 0, 0])
+        children();
+  }
+
+  module tr_mask_side(dir) {
+    rotate(a=[-dir * 90, 0, 0])
+      translate(v=[0, -dir * b_clamp.y / 2, 0])
+        children();
+  }
+
+  module tr_mask_chamfer() {
+    rotate(a=[0, 45, 0])
+      translate(v=[-b_front.x + 2 * overhang_leather, 0, 0])
+        tr_mask_front()
+          children();
+  }
+
+  module tr_mask_top() {
+    rotate(a=[0, 45, 0])
+      translate(v=[-b_chamfer.x + 2 * overhang_leather, 0, 0])
+        tr_mask_chamfer()
+          children();
+  }
+
+  // pieces
+
+  module piece_bottom() {
     difference() {
       color(c=brown_pair(1)[0])
         piece(b_bottom);
-      m_bottom();
+      tr_mask_bottom()
+        mask_stitches();
     }
   }
 
-  module p_front() {
-    translate(v=[-b_bottom.x, 0, 0])
-      difference() {
-        translate(v=[b_bottom.x, 0, 0])
-          color(c=brown_pair(1)[1])
-            piece(b_front);
-        m_front();
-      }
+  module piece_front() {
+    difference() {
+      color(c=brown_pair(1)[1])
+        piece(b_front);
+      translate(v=[overhang_leather, 0, 0])
+        tr_mask_front()
+          mask_stitches();
+    }
   }
 
-  module tr_front() {
-    translate(v=[b_bottom.x, 0, 0])
-      fu(a=[0, -90, 0])
-        children();
+  module piece_chamfer() {
+    difference() {
+      color(c=brown_pair(0)[0])
+        piece(b_chamfer);
+      translate(v=[overhang_leather, 0, 0])
+        tr_mask_chamfer()
+          mask_stitches();
+    }
   }
 
-  module p_chamfer() {
-    translate(v=[-b_bottom.x - b_front.x, 0, 0])
-      difference() {
-        translate(v=[b_bottom.x + b_front.x, 0, 0])
-          color(c=brown_pair(0)[0])
-            piece(b_chamfer);
-        m_chamfer();
-      }
+  module piece_top() {
+    difference() {
+      color(c=brown_pair(2)[1])
+        piece(b_top);
+      translate(v=[overhang_leather, 0, 0])
+        tr_mask_top()
+          mask_stitches();
+    }
   }
 
-  module tr_chamfer() {
-    translate(v=[b_front.x, 0, 0])
-      fu(a=[0, -45, 0])
-        children();
+  module piece_side(dir) {
+    difference() {
+      color(c=brown_pair(3)[max(dir, 0)])
+        piece(b_side, LEFT + TOP + (dir == 1 ? FRONT : BACK));
+
+      translate(v=[0, dir * overhang_leather, 0])
+        tr_mask_side(dir)
+          mask_stitches();
+    }
   }
 
-  module p_top() {
-    translate(v=[-b_bottom.x - b_front.x - b_chamfer.x, 0, 0])
-      difference() {
-        translate(v=[b_bottom.x + b_front.x + b_chamfer.x, 0, 0])
-          color(c=brown_pair(2)[1])
-            piece(b_top);
-        m_top();
-      }
-  }
+  tr_piece_bottom()
+    piece_bottom();
 
-  module tr_top() {
-    translate(v=[b_chamfer.x, 0, 0])
-      fu(a=[0, -45, 0])
-        children();
-  }
+  tr_piece_front()
+    piece_front();
 
-  p_bottom();
+  tr_piece_front()
+    tr_piece_chamfer()
+      piece_chamfer();
 
-  tr_front()
-    p_front();
+  tr_piece_front()
+    tr_piece_chamfer()
+      tr_piece_top()
+        piece_top();
 
-  tr_front()
-    tr_chamfer()
-      p_chamfer();
+  tr_piece_side(dir=1)
+    piece_side(dir=1);
 
-  tr_front()
-    tr_chamfer()
-      tr_top()
-        p_top();
+  tr_piece_side(dir=-1)
+    piece_side(dir=-1);
 }
 
 render() {
