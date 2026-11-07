@@ -9,6 +9,7 @@ show_sides = true;
 
 debug_stitches = false;
 debug_clamp = false;
+debug_corner_holes = false;
 
 chamfer_clamp = 0.8; // [0.05:0.05:5]
 
@@ -16,21 +17,37 @@ t_leather = 0.8; // [0.05:0.05:5]
 overhang_leather = 0.4; // [0:0.05:5]
 
 l_boot = 65; // [1:1:100]
-w_tab = 5; // [1:0.1:20]
+w_tab = 4.5; // [1:0.1:20]
 gap_tab = 1; // [0.05:0.05:5]
-d_corner_tab = 2;
+d_corner_holes = 2;
 
 b_clamp = [150, 35, 20];
-d_holes = [8, 8];
-dx_holes = [18, 70];
+d_clamp_holes = [8, 8];
+x_clamp_holes = [18, 70];
 
 da_tab = 0; // [0:0.5:70]
 a_tab_front = 80; // [0:0.5:90]
-a_tab_top = 45; // [0:0.5:90]
+a_tab_top = 75; // [0:0.5:90]
+
+l1_awl = 3.5;
+l2_awl = 1.95;
+stitch_inset = 2.5; // [0.00:0.05:5]
+stitch_spacing = 4.3; // [0.05:0.05:5]
+t_template = 1.6; // TODO scale z
+scale_awl = 1.156; // TODO value is from 2.5, scale to t_template
+
+function poly_awl(l1, l2) =
+  [
+    [0, l1 / 2],
+    [-l2 / 2, 0],
+    [0, -l1 / 2],
+    [l2 / 2, 0],
+  ];
 
 $fn = 120;
 
 module dbg_stitches() { if (debug_stitches) #children(); else children(); }
+module dbg_corner_holes() { if (debug_corner_holes) #children(); else children(); }
 
 b_bottom = [
   l_boot + overhang_leather,
@@ -112,9 +129,9 @@ module clamp() {
   }
 
   module mask_holes() {
-    for (i = [0:1:len(d_holes) - 1])
-      translate(v=[-b_clamp.x / 2 + dx_holes[i], 0, 0])
-        cyl(d=d_holes[i], h=b_clamp.z, center=true);
+    for (i = [0:1:len(d_clamp_holes) - 1])
+      translate(v=[-b_clamp.x / 2 + x_clamp_holes[i], 0, 0])
+        cyl(d=d_clamp_holes[i], h=b_clamp.z, center=true);
   }
 
   translate(v=[-b_clamp.x / 2 + l_boot, 0, b_clamp.z / 2])
@@ -130,37 +147,65 @@ module clamp() {
     }
 }
 
+module mask_awl(s = scale_awl, l1 = l1_awl, l2 = l2_awl, t) {
+  extrude_from_to(
+    [0, 0, -t / 2 - 0.00001],
+    [0, 0, t / 2 + 0.00001],
+    scale=s,
+  )
+    polygon(poly_awl(l1, l2));
+}
+
 // origin at x=l_boot, y=b_clamp.y/2, z=-b_clamp.z/2
 module mask_stitches() {
   if (debug_clamp)
     #clamp();
 
+  module mask_stitch(dir, a = -45) {
+    translate(v=[0, dir * t_leather / 2, 0])
+      rotate(a=[0, a, 0])
+        rotate(a=[-dir * 90, 0, 0])
+          mask_awl(t=t_leather);
+  }
+
   dbg_stitches() {
-    for (
-      x = [0:5:l_boot],
-      y = [-b_clamp.y / 2, b_clamp.y / 2]
-    ) {
-      translate(v=[x, y, b_clamp.z * 3 / 4])
-        rotate(a=[90, 0, 0])
-          cylinder(h=t_leather * 5, r=0.5, center=true);
-    }
+    x_back = stitch_inset;
 
-    for (
-      y = [-b_clamp.y / 2:5:b_clamp.y / 2],
-      z = [b_clamp.z * 1 / 4, b_clamp.z * 2 / 4, b_clamp.z * 3 / 5]
-    ) {
-      translate(v=[l_boot, y, z])
-        rotate(a=[0, 90, 0])
-          cylinder(h=t_leather * 5, r=0.5, center=true);
-    }
+    x_top = l_boot - b_clamp.z / 2 - stitch_inset * cos(67.5);
+    z_top = b_clamp.z - stitch_inset * sin(67.7);
 
-    for (
-      x = [0:5:l_boot],
-      y = [b_clamp.y * -1 / 3, b_clamp.y * 1 / 3]
-    ) {
-      translate(v=[x, y, b_clamp.z])
-        rotate(a=[0, 0, 90])
-          cylinder(h=t_leather * 5, r=0.5, center=true);
+    x_chamfer = l_boot - stitch_inset * cos(22.5);
+    z_chamfer = b_clamp.z / 2 - stitch_inset * sin(22.5);
+
+    x_front = x_chamfer;
+    z_front = stitch_inset;
+
+    spacing_top = (x_top - x_back) / round((x_top - x_back) / stitch_spacing);
+
+    spacing_front = (z_chamfer - z_front) / round((z_chamfer - z_front) / stitch_spacing);
+
+    len_chamfer = sqrt((x_front - x_top) ^ 2 + (z_top - z_chamfer) ^ 2);
+    stitches_chamfer = round(len_chamfer / stitch_spacing);
+    spacing_chamfer = len_chamfer / stitches_chamfer;
+    dxz_chamfer = spacing_chamfer / sqrt(2);
+
+    for (dir = [-1, 1]) {
+      translate(v=[0, dir * b_clamp.y / 2, 0]) {
+        for (x = [x_back:spacing_top:x_top]) {
+          translate(v=[x, 0, z_top])
+            mask_stitch(dir, a=-45);
+        }
+
+        for (i = [1:1:stitches_chamfer]) {
+          translate(v=[x_top + i * dxz_chamfer, 0, z_top - i * dxz_chamfer])
+            mask_stitch(dir, a=0);
+        }
+
+        for (z = [z_front:spacing_front:z_chamfer - spacing_front]) {
+          translate(v=[x_front, 0, z])
+            mask_stitch(dir, a=45);
+        }
+      }
     }
   }
 }
@@ -175,7 +220,7 @@ module mask_corner_holes() {
     y = [-b_clamp.y / 2 - overhang_leather, b_clamp.y / 2 + overhang_leather],
   ) {
     translate(v=[x, y, 0])
-      cylinder(d=d_corner_tab, h=b_clamp.z, center=true);
+      cylinder(d=d_corner_holes, h=b_clamp.z, center=true);
   }
 }
 
@@ -468,6 +513,6 @@ render() {
   difference() {
     leather();
     if (!fold)
-      mask_corner_holes();
+      dbg_corner_holes() mask_corner_holes();
   }
 }
