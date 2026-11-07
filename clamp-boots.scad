@@ -29,7 +29,7 @@ overhang_leather = 0.4; // [0:0.05:5]
 l_boot = 65; // [1:1:100]
 w_tab = 4.5; // [1:0.1:20]
 gap_tab = 1; // [0.05:0.05:5]
-d_corner_holes = 2;// [0.05:0.05:5]
+d_corner_holes = 2; // [0.05:0.05:5]
 
 da_tab = 0; // [0:0.5:70]
 a_tab_front = 80; // [0:0.5:90]
@@ -517,10 +517,11 @@ render() {
     color(c="darkgreen")
       clamp();
 
-  scale([1, 1, scale_template && !fold ? t_template / t_leather : 1])
-    difference() {
-      leather();
-      if (!fold)
-        dbg_corner_holes() mask_corner_holes();
-    }
+  mirror(v=[0, 0, scale_template && !fold ? 1 : 0])
+    scale([1, 1, scale_template && !fold ? t_template / t_leather : 1])
+      difference() {
+        leather();
+        if (!fold)
+          dbg_corner_holes() mask_corner_holes();
+      }
 }
