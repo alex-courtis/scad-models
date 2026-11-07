@@ -3,7 +3,7 @@ include <lib/colours.scad>
 include <lib/geom.scad>
 
 fold = false;
-show_chamfers = true;
+show_chamfers = false;
 show_clamp = false;
 show_sides = true;
 
@@ -17,14 +17,14 @@ overhang_leather = 0.4; // [0:0.05:5]
 
 l_boot = 65; // [1:1:100]
 w_tab = 5; // [1:0.1:20]
-gap_tab = 0.4; // [0.05:0.05:5]
+gap_tab = 1; // [0.05:0.05:5]
 d_corner_tab = 2;
 
 b_clamp = [150, 35, 20];
 d_holes = [8, 8];
 dx_holes = [18, 70];
 
-da_tab = 5; // [0:0.5:70]
+da_tab = 0; // [0:0.5:70]
 a_tab_front = 80; // [0:0.5:90]
 a_tab_top = 45; // [0:0.5:90]
 
@@ -71,7 +71,7 @@ b_top_tab = [
 ];
 ang_top_tab = [135 / 2 - da_tab, a_tab_top];
 b_side = [
-  b_bottom.x,
+  l_boot,
   b_clamp.z + overhang_leather * 2,
   b_bottom.z,
 ];
@@ -162,6 +162,20 @@ module mask_stitches() {
         rotate(a=[0, 0, 90])
           cylinder(h=t_leather * 5, r=0.5, center=true);
     }
+  }
+}
+
+module mask_corner_holes() {
+  for (
+    x = [
+      b_bottom.x,
+      b_bottom.x + b_front.x,
+      b_bottom.x + b_front.x + b_chamfer.x,
+    ],
+    y = [-b_clamp.y / 2 - overhang_leather, b_clamp.y / 2 + overhang_leather],
+  ) {
+    translate(v=[x, y, 0])
+      cylinder(d=d_corner_tab, h=b_clamp.z, center=true);
   }
 }
 
@@ -451,6 +465,9 @@ render() {
     color(c="darkgreen")
       clamp();
 
-  leather();
-  // trapezoid(w1=b_front_tab.x, h=w_tab + overhang_leather, ang=[80,60], anchor=LEFT + BOTTOM);
+  difference() {
+    leather();
+    if (!fold)
+      mask_corner_holes();
+  }
 }
