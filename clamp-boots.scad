@@ -17,12 +17,16 @@ overhang_leather = 0.4; // [0:0.05:5]
 
 l_boot = 65; // [1:1:100]
 w_tab = 5; // [1:0.1:20]
-a_tab = 60; // [0:1:90]
 gap_tab = 0.4; // [0.05:0.05:5]
+d_corner_tab = 2;
 
 b_clamp = [150, 35, 20];
 d_holes = [8, 8];
 dx_holes = [18, 70];
+
+da_tab = 5; // [0:0.5:70]
+a_tab_front = 80; // [0:0.5:90]
+a_tab_top = 45; // [0:0.5:90]
 
 $fn = 120;
 
@@ -39,30 +43,33 @@ b_front = [
   b_bottom.z,
 ];
 b_front_tab = [
-  b_front.x,
+  b_front.x - gap_tab * 2,
   w_tab + overhang_leather,
   b_bottom.z,
 ];
+ang_front_tab = [a_tab_front, 135 / 2 - da_tab];
 b_chamfer = [
   (b_clamp.z) / sqrt(2) + overhang_leather * 2,
   b_bottom.y,
   b_bottom.z,
 ];
 b_chamfer_tab = [
-  b_chamfer.x,
+  b_chamfer.x - gap_tab * 2,
   w_tab + overhang_leather,
   b_bottom.z,
 ];
+ang_chamfer_tab = [135 / 2 - da_tab, 135 / 2 - da_tab];
 b_top = [
   b_bottom.x - b_clamp.z / 2,
   b_bottom.y,
   b_bottom.z,
 ];
 b_top_tab = [
-  b_top.x,
+  b_top.x - gap_tab,
   w_tab + overhang_leather,
   b_bottom.z,
 ];
+ang_top_tab = [135 / 2 - da_tab, a_tab_top];
 b_side = [
   b_bottom.x,
   b_clamp.z + overhang_leather * 2,
@@ -317,10 +324,10 @@ module leather() {
     tr_front()
       tr_front_tab(dir)
         difference() {
-          translate(v=[b_front_tab.x / 2, dir * b_front_tab.y / 2, -t_leather])
+          translate(v=[gap_tab, 0, -t_leather])
             linear_extrude(h=t_leather)
               mirror(v=[0, -min(dir, 0), 0])
-                trapezoid(w1=b_front_tab.x, h=w_tab + overhang_leather, ang=a_tab);
+                trapezoid(w1=b_front_tab.x, h=w_tab + overhang_leather, ang=ang_front_tab, anchor=LEFT + BOTTOM);
 
           translate(v=[overhang_leather, dir * overhang_leather, 0])
             tr_mask_front_tab(dir)
@@ -344,10 +351,10 @@ module leather() {
       tr_chamfer()
         tr_chamfer_tab(dir)
           difference() {
-            translate(v=[b_chamfer_tab.x / 2, dir * b_chamfer_tab.y / 2, -t_leather])
+            translate(v=[gap_tab, 0, -t_leather])
               linear_extrude(h=t_leather)
                 mirror(v=[0, -min(dir, 0), 0])
-                  trapezoid(w1=b_chamfer_tab.x, h=w_tab + overhang_leather, ang=a_tab);
+                  trapezoid(w1=b_chamfer_tab.x, h=w_tab + overhang_leather, ang=ang_chamfer_tab, anchor=LEFT + BOTTOM);
 
             translate(v=[overhang_leather, dir * overhang_leather, 0])
               tr_mask_chamfer_tab(dir)
@@ -373,10 +380,10 @@ module leather() {
         tr_top()
           tr_top_tab(dir)
             difference() {
-              translate(v=[b_top_tab.x / 2, dir * b_top_tab.y / 2, -t_leather])
+              translate(v=[gap_tab, 0, -t_leather])
                 linear_extrude(h=t_leather)
                   mirror(v=[0, -min(dir, 0), 0])
-                    trapezoid(w1=b_top_tab.x, h=w_tab + overhang_leather, ang=a_tab);
+                    trapezoid(w1=b_top_tab.x, h=w_tab + overhang_leather, ang=ang_top_tab, anchor=LEFT + BOTTOM);
 
               translate(v=[overhang_leather, dir * overhang_leather, 0])
                 tr_mask_top_tab(dir)
@@ -445,4 +452,5 @@ render() {
       clamp();
 
   leather();
+  // trapezoid(w1=b_front_tab.x, h=w_tab + overhang_leather, ang=[80,60], anchor=LEFT + BOTTOM);
 }
