@@ -2,39 +2,46 @@ include <BOSL2/std.scad>
 include <lib/colours.scad>
 include <lib/geom.scad>
 
+/* [Show] */
 fold = false;
 show_chamfers = false;
 show_clamp = false;
 show_sides = true;
 
+scale_template = true;
+
+/* [Debug] */
 debug_stitches = false;
 debug_clamp = false;
 debug_corner_holes = false;
 
+/* [Clamp] */
 chamfer_clamp = 0.8; // [0.05:0.05:5]
 
+b_clamp = [150, 35, 20];
+d_clamp_holes = [8, 8];
+x_clamp_holes = [18, 70];
+
+/* [Leather] */
 t_leather = 0.8; // [0.05:0.05:5]
 overhang_leather = 0.4; // [0:0.05:5]
 
 l_boot = 65; // [1:1:100]
 w_tab = 4.5; // [1:0.1:20]
 gap_tab = 1; // [0.05:0.05:5]
-d_corner_holes = 2;
-
-b_clamp = [150, 35, 20];
-d_clamp_holes = [8, 8];
-x_clamp_holes = [18, 70];
+d_corner_holes = 2;// [0.05:0.05:5]
 
 da_tab = 0; // [0:0.5:70]
 a_tab_front = 80; // [0:0.5:90]
 a_tab_top = 75; // [0:0.5:90]
 
-l1_awl = 3.5;
-l2_awl = 1.95;
+/* Stitches */
+l1_awl = 3.5; // [0.00:0.05:5]
+l2_awl = 1.95; // [0.00:0.05:5]
 stitch_inset = 2.5; // [0.00:0.05:5]
 stitch_spacing = 4.3; // [0.05:0.05:5]
-t_template = 1.6; // TODO scale z
-scale_awl = 1.156; // TODO value is from 2.5, scale to t_template
+t_template = 1.6; // [0.05:0.05:5]
+scale_awl = 1.3; // [0.05:0.05:5]
 
 function poly_awl(l1, l2) =
   [
@@ -510,9 +517,10 @@ render() {
     color(c="darkgreen")
       clamp();
 
-  difference() {
-    leather();
-    if (!fold)
-      dbg_corner_holes() mask_corner_holes();
-  }
+  scale([1, 1, scale_template && !fold ? t_template / t_leather : 1])
+    difference() {
+      leather();
+      if (!fold)
+        dbg_corner_holes() mask_corner_holes();
+    }
 }
