@@ -4,23 +4,24 @@ include <lib/geom.scad>
 
 /* [Show] */
 fold = false;
-show_chamfers = false;
+show_clamp_jig = true;
+show_leather = true;
+show_leather_sides = true;
 show_clamp = false;
-show_sides = true;
-
-scale_template = true;
 
 /* [Debug] */
 debug_stitches = false;
-debug_clamp = false;
 debug_corner_holes = false;
 
 /* [Clamp] */
-chamfer_clamp = 0.8; // [0.05:0.05:5]
+chamfer_clamp = 1.0; // [0.05:0.05:5]
 
 b_clamp = [150, 35, 20];
 d_clamp_holes = [8, 8];
 x_clamp_holes = [18, 70];
+
+d_clamp_jig_stitch = 2;
+w_clamp_jig_side = 4;
 
 /* [Leather] */
 t_leather = 0.8; // [0.05:0.05:5]
@@ -110,47 +111,70 @@ module clamp() {
         orient=FRONT,
       );
 
-    if (show_chamfers) {
-      for (dy = [-b_clamp.y / 2, b_clamp.y / 2])
-        translate(v=[b_clamp.x / 2, dy, 0])
-          rotate(a=[0, -45, 0])
-            chamfer_edge_mask(
-              l=b_clamp.z * 2,
-              chamfer=chamfer_clamp,
-            );
+    for (dy = [-b_clamp.y / 2, b_clamp.y / 2])
+      translate(v=[b_clamp.x / 2, dy, 0])
+        rotate(a=[0, -45, 0])
+          chamfer_edge_mask(
+            l=b_clamp.z * 2,
+            chamfer=chamfer_clamp,
+          );
 
-      // chamfer the 45 degree edges to the same width as the 90 degree edges
-      w = chamfer_clamp * sqrt(2);
-      d = w / 2 * tan(22.5);
+    // chamfer the 45 degree edges to the same width as the 90 degree edges
+    w = chamfer_clamp * sqrt(2);
+    d = w / 2 * tan(22.5);
 
-      translate(v=[b_clamp.x / 2 - b_clamp.z / 2, 0, b_clamp.z / 2])
-        rotate(a=[0, 22.5, 0])
-          translate(v=[0, 0, b_clamp.z / 2 - d])
-            cuboid(size=b_clamp);
+    translate(v=[b_clamp.x / 2 - b_clamp.z / 2, 0, b_clamp.z / 2])
+      rotate(a=[0, 22.5, 0])
+        translate(v=[0, 0, b_clamp.z / 2 - d])
+          cuboid(size=b_clamp);
 
-      translate(v=[b_clamp.x / 2, 0, 0])
-        rotate(a=[0, 90 - 22.5, 0])
-          translate(v=[0, 0, b_clamp.z / 2 - d])
-            cuboid(size=b_clamp);
-    }
+    translate(v=[b_clamp.x / 2, 0, 0])
+      rotate(a=[0, 90 - 22.5, 0])
+        translate(v=[0, 0, b_clamp.z / 2 - d])
+          cuboid(size=b_clamp);
   }
 
-  module mask_holes() {
+  module mask_clamp_holes() {
     for (i = [0:1:len(d_clamp_holes) - 1])
       translate(v=[-b_clamp.x / 2 + x_clamp_holes[i], 0, 0])
         cyl(d=d_clamp_holes[i], h=b_clamp.z, center=true);
   }
 
-  translate(v=[-b_clamp.x / 2 + l_boot, 0, b_clamp.z / 2])
-    difference() {
-      cuboid(
-        size=[b_clamp.x, b_clamp.y, b_clamp.z],
-        chamfer=show_chamfers ? chamfer_clamp : 0,
-      );
+  difference() {
+    translate(v=[-b_clamp.x / 2 + l_boot, 0, b_clamp.z / 2])
+      difference() {
+        cuboid(
+          size=[b_clamp.x, b_clamp.y, b_clamp.z],
+          chamfer=chamfer_clamp,
+        );
 
-      mask_chamfer();
+        mask_chamfer();
 
-      mask_holes();
+        mask_clamp_holes();
+      }
+
+    mask_stitches(awl=false);
+  }
+}
+
+module clamp_jig() {
+  module side() {
+    translate(v=[0, b_clamp.y, 0]) {
+      translate(v=[0, -b_clamp.y / 2 + w_clamp_jig_side / 2, 0])
+        back_half(s=b_clamp.x, y=b_clamp.y / 2 - w_clamp_jig_side / 2)
+          clamp();
+      translate(v=[0, b_clamp.y / 2 - w_clamp_jig_side / 2, 0])
+        front_half(s=b_clamp.x, y=-b_clamp.y / 2 + w_clamp_jig_side / 2)
+          clamp();
+    }
+  }
+
+  translate(v=[-l_boot * 1.2, b_clamp.y * 1.2, 0])
+    right_half(s=b_clamp.x, x=-stitch_spacing * 2) {
+      color(c="purple")
+        clamp();
+      color(c="yellow")
+        side();
     }
 }
 
@@ -164,15 +188,18 @@ module mask_awl(s = scale_awl, l1 = l1_awl, l2 = l2_awl, t) {
 }
 
 // origin at x=l_boot, y=b_clamp.y/2, z=-b_clamp.z/2
-module mask_stitches() {
-  if (debug_clamp)
-    #clamp();
-
+module mask_stitches(awl = true) {
   module mask_stitch(dir, a = -45) {
-    translate(v=[0, dir * t_leather / 2, 0])
-      rotate(a=[0, a, 0])
-        rotate(a=[-dir * 90, 0, 0])
-          mask_awl(t=t_leather);
+    if (awl) {
+      translate(v=[0, dir * t_leather / 2, 0])
+        rotate(a=[0, a, 0])
+          rotate(a=[-dir * 90, 0, 0])
+            mask_awl(t=t_leather);
+    } else {
+      translate(v=[0, -dir * b_clamp.y / 4, 0])
+        rotate(a=[90, 0, 0])
+          cylinder(d=d_clamp_jig_stitch, h=b_clamp.y / 2, center=true);
+    }
   }
 
   dbg_stitches() {
@@ -218,31 +245,22 @@ module mask_stitches() {
 }
 
 module mask_corner_holes() {
-  for (
-    x = [
-      b_bottom.x,
-      b_bottom.x + b_front.x,
-      b_bottom.x + b_front.x + b_chamfer.x,
-    ],
-    y = [-b_clamp.y / 2 - overhang_leather, b_clamp.y / 2 + overhang_leather],
-  ) {
-    translate(v=[x, y, 0])
-      cylinder(d=d_corner_holes, h=b_clamp.z, center=true);
+  dbg_corner_holes() {
+    for (
+      x = [
+        b_bottom.x,
+        b_bottom.x + b_front.x,
+        b_bottom.x + b_front.x + b_chamfer.x,
+      ],
+      y = [-b_clamp.y / 2 - overhang_leather, b_clamp.y / 2 + overhang_leather],
+    ) {
+      translate(v=[x, y, 0])
+        cylinder(d=d_corner_holes, h=b_clamp.z, center=true);
+    }
   }
 }
 
 module leather() {
-
-  module piece(size, anchor = LEFT + TOP) {
-    cuboid(
-      size=size,
-      anchor=anchor,
-      chamfer=show_chamfers ? min(overhang_leather, t_leather) : 0,
-      edges=[
-        TOP,
-      ],
-    );
-  }
 
   // fold/unfold a piece
   module fold_unfold(a) {
@@ -370,7 +388,7 @@ module leather() {
   module bottom() {
     tr_bottom()
       difference() {
-        piece(b_bottom);
+        cuboid(size=b_bottom, anchor=LEFT + TOP);
         tr_mask_bottom()
           mask_stitches();
       }
@@ -379,7 +397,7 @@ module leather() {
   module front() {
     tr_front()
       difference() {
-        piece(b_front);
+        cuboid(size=b_front, anchor=LEFT + TOP);
         translate(v=[overhang_leather, 0, 0])
           tr_mask_front()
             mask_stitches();
@@ -405,7 +423,7 @@ module leather() {
     tr_front()
       tr_chamfer()
         difference() {
-          piece(b_chamfer);
+          cuboid(size=b_chamfer, anchor=LEFT + TOP);
           translate(v=[overhang_leather, 0, 0])
             tr_mask_chamfer()
               mask_stitches();
@@ -433,7 +451,7 @@ module leather() {
       tr_chamfer()
         tr_top()
           difference() {
-            piece(b_top);
+            cuboid(size=b_top, anchor=LEFT + TOP);
             translate(v=[overhang_leather, 0, 0])
               tr_mask_top()
                 mask_stitches();
@@ -460,7 +478,7 @@ module leather() {
   module side(dir) {
     tr_side(dir=dir)
       difference() {
-        piece(b_side, LEFT + TOP + (dir == 1 ? FRONT : BACK));
+        cuboid(size=b_side, anchor=LEFT + TOP + (dir == 1 ? FRONT : BACK));
 
         translate(v=[b_side.x - b_clamp.z / 2 + overhang_leather * 2 / sqrt(2), dir * b_clamp.z, 0])
           rotate(a=[0, 0, dir * 45])
@@ -503,7 +521,7 @@ module leather() {
   color(c=brown_pair(7)[1])
     top_tab(dir=-1);
 
-  if (show_sides) {
+  if (show_leather_sides) {
     color(c=brown_pair(3)[0])
       side(dir=1);
 
@@ -514,14 +532,17 @@ module leather() {
 
 render() {
   if (show_clamp)
-    color(c="darkgreen")
+    color(c="green")
       clamp();
 
-  mirror(v=[0, 0, scale_template && !fold ? 1 : 0])
-    scale([1, 1, scale_template && !fold ? t_template / t_leather : 1])
-      difference() {
-        leather();
-        if (!fold)
-          dbg_corner_holes() mask_corner_holes();
-      }
+  if (show_clamp_jig)
+    clamp_jig();
+
+  if (show_leather) {
+    difference() {
+      leather();
+      if (!fold)
+        mask_corner_holes();
+    }
+  }
 }
