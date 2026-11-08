@@ -38,6 +38,7 @@ a_tab_front = 80; // [0:0.5:90]
 a_tab_top = 75; // [0:0.5:90]
 
 /* Stitches */
+a_stitch = 30; // [0:1:90]
 l1_awl = 3.5; // [0.00:0.05:5]
 l2_awl = 1.95; // [0.00:0.05:5]
 stitch_inset = 2.5; // [0.00:0.05:5]
@@ -180,15 +181,15 @@ module mask_awl(s = scale_awl, l1 = l1_awl, l2 = l2_awl, t) {
 }
 
 // origin at x=l_boot, y=b_clamp.y/2, z=-b_clamp.z/2
-module mask_stitches(awl = true) {
-  module mask_stitch(dir, a = -45) {
+module mask_stitches(awl = true, dir = -1, a = a_stitch) {
+  module mask_stitch(side, a) {
     if (awl) {
-      translate(v=[0, dir * t_leather / 2, 0])
+      translate(v=[0, side * t_leather / 2, 0])
         rotate(a=[0, a, 0])
-          rotate(a=[-dir * 90, 0, 0])
+          rotate(a=[-side * 90, 0, 0])
             mask_awl(t=t_leather);
     } else {
-      translate(v=[0, -dir * b_clamp.y / 4, 0])
+      translate(v=[0, -side * b_clamp.y / 4, 0])
         rotate(a=[90, 0, 0])
           cylinder(d=d_clamp_jig_stitch, h=b_clamp.y / 2, center=true);
     }
@@ -215,21 +216,21 @@ module mask_stitches(awl = true) {
     spacing_chamfer = len_chamfer / stitches_chamfer;
     dxz_chamfer = spacing_chamfer / sqrt(2);
 
-    for (dir = [-1, 1]) {
-      translate(v=[0, dir * b_clamp.y / 2, 0]) {
+    for (side = [-1, 1]) {
+      translate(v=[0, side * b_clamp.y / 2, 0]) {
         for (x = [x_back:spacing_top:x_top]) {
           translate(v=[x, 0, z_top])
-            mask_stitch(dir, a=-45);
+            mask_stitch(side, a=dir * -a);
         }
 
         for (i = [1:1:stitches_chamfer]) {
           translate(v=[x_top + i * dxz_chamfer, 0, z_top - i * dxz_chamfer])
-            mask_stitch(dir, a=0);
+            mask_stitch(side, a=dir * -a + 45);
         }
 
         for (z = [z_front:spacing_front:z_chamfer - spacing_front]) {
           translate(v=[x_front, 0, z])
-            mask_stitch(dir, a=45);
+            mask_stitch(side, a=dir * -a + 90);
         }
       }
     }
@@ -286,9 +287,9 @@ module leather() {
         children();
   }
 
-  module tr_front_tab(dir) {
-    translate(v=[0, dir * b_bottom.y / 2, 0])
-      fold_unfold(a=[dir * 90, 0, 0])
+  module tr_front_tab(side) {
+    translate(v=[0, side * b_bottom.y / 2, 0])
+      fold_unfold(a=[side * 90, 0, 0])
         children();
   }
 
@@ -298,9 +299,9 @@ module leather() {
         children();
   }
 
-  module tr_chamfer_tab(dir) {
-    translate(v=[0, dir * b_bottom.y / 2, 0])
-      fold_unfold(a=[dir * 90, 0, 0])
+  module tr_chamfer_tab(side) {
+    translate(v=[0, side * b_bottom.y / 2, 0])
+      fold_unfold(a=[side * 90, 0, 0])
         children();
   }
 
@@ -310,15 +311,15 @@ module leather() {
         children();
   }
 
-  module tr_top_tab(dir) {
-    translate(v=[0, dir * b_bottom.y / 2, 0])
-      fold_unfold(a=[dir * 90, 0, 0])
+  module tr_top_tab(side) {
+    translate(v=[0, side * b_bottom.y / 2, 0])
+      fold_unfold(a=[side * 90, 0, 0])
         children();
   }
 
-  module tr_side(dir) {
-    translate(v=[0, dir * b_bottom.y / 2, 0])
-      fold_unfold(a=[dir * 90, 0, 0])
+  module tr_side(side) {
+    translate(v=[0, side * b_bottom.y / 2, 0])
+      fold_unfold(a=[side * 90, 0, 0])
         children();
   }
 
@@ -334,9 +335,9 @@ module leather() {
         children();
   }
 
-  module tr_mask_front_tab(dir) {
-    rotate(a=[-dir * 90, 0, 0])
-      translate(v=[0, -dir * b_clamp.y / 2, 0])
+  module tr_mask_front_tab(side) {
+    rotate(a=[-side * 90, 0, 0])
+      translate(v=[0, -side * b_clamp.y / 2, 0])
         tr_mask_front()
           children();
   }
@@ -348,9 +349,9 @@ module leather() {
           children();
   }
 
-  module tr_mask_chamfer_tab(dir) {
-    rotate(a=[-dir * 90, 0, 0])
-      translate(v=[0, -dir * b_clamp.y / 2, 0])
+  module tr_mask_chamfer_tab(side) {
+    rotate(a=[-side * 90, 0, 0])
+      translate(v=[0, -side * b_clamp.y / 2, 0])
         tr_mask_chamfer()
           children();
   }
@@ -362,16 +363,16 @@ module leather() {
           children();
   }
 
-  module tr_mask_top_tab(dir) {
-    rotate(a=[-dir * 90, 0, 0])
-      translate(v=[0, -dir * b_clamp.y / 2, 0])
+  module tr_mask_top_tab(side) {
+    rotate(a=[-side * 90, 0, 0])
+      translate(v=[0, -side * b_clamp.y / 2, 0])
         tr_mask_top()
           children();
   }
 
-  module tr_mask_side(dir) {
-    rotate(a=[-dir * 90, 0, 0])
-      translate(v=[0, -dir * b_clamp.y / 2, 0])
+  module tr_mask_side(side) {
+    rotate(a=[-side * 90, 0, 0])
+      translate(v=[0, -side * b_clamp.y / 2, 0])
         children();
   }
 
@@ -396,17 +397,17 @@ module leather() {
       }
   }
 
-  module front_tab(dir) {
+  module front_tab(side) {
     tr_front()
-      tr_front_tab(dir)
+      tr_front_tab(side)
         difference() {
           translate(v=[gap_tab, 0, -t_leather])
             linear_extrude(h=t_leather)
-              mirror(v=[0, -min(dir, 0), 0])
+              mirror(v=[0, -min(side, 0), 0])
                 trapezoid(w1=b_front_tab.x, h=w_tab + overhang_leather, ang=ang_front_tab, anchor=LEFT + BOTTOM);
 
-          translate(v=[overhang_leather, dir * overhang_leather, 0])
-            tr_mask_front_tab(dir)
+          translate(v=[overhang_leather, side * overhang_leather, 0])
+            tr_mask_front_tab(side)
               mask_stitches();
         }
   }
@@ -422,18 +423,18 @@ module leather() {
         }
   }
 
-  module chamfer_tab(dir) {
+  module chamfer_tab(side) {
     tr_front()
       tr_chamfer()
-        tr_chamfer_tab(dir)
+        tr_chamfer_tab(side)
           difference() {
             translate(v=[gap_tab, 0, -t_leather])
               linear_extrude(h=t_leather)
-                mirror(v=[0, -min(dir, 0), 0])
+                mirror(v=[0, -min(side, 0), 0])
                   trapezoid(w1=b_chamfer_tab.x, h=w_tab + overhang_leather, ang=ang_chamfer_tab, anchor=LEFT + BOTTOM);
 
-            translate(v=[overhang_leather, dir * overhang_leather, 0])
-              tr_mask_chamfer_tab(dir)
+            translate(v=[overhang_leather, side * overhang_leather, 0])
+              tr_mask_chamfer_tab(side)
                 mask_stitches();
           }
   }
@@ -450,36 +451,36 @@ module leather() {
           }
   }
 
-  module top_tab(dir) {
+  module top_tab(side) {
     tr_front()
       tr_chamfer()
         tr_top()
-          tr_top_tab(dir)
+          tr_top_tab(side)
             difference() {
               translate(v=[gap_tab, 0, -t_leather])
                 linear_extrude(h=t_leather)
-                  mirror(v=[0, -min(dir, 0), 0])
+                  mirror(v=[0, -min(side, 0), 0])
                     trapezoid(w1=b_top_tab.x, h=w_tab + overhang_leather, ang=ang_top_tab, anchor=LEFT + BOTTOM);
 
-              translate(v=[overhang_leather, dir * overhang_leather, 0])
-                tr_mask_top_tab(dir)
+              translate(v=[overhang_leather, side * overhang_leather, 0])
+                tr_mask_top_tab(side)
                   mask_stitches();
             }
   }
 
-  module side(dir) {
-    tr_side(dir=dir)
+  module side(side) {
+    tr_side(side=side)
       difference() {
-        cuboid(size=b_side, anchor=LEFT + TOP + (dir == 1 ? FRONT : BACK));
+        cuboid(size=b_side, anchor=LEFT + TOP + (side == 1 ? FRONT : BACK));
 
-        translate(v=[b_side.x - b_clamp.z / 2 + overhang_leather * 2 / sqrt(2), dir * b_clamp.z, 0])
-          rotate(a=[0, 0, dir * 45])
+        translate(v=[b_side.x - b_clamp.z / 2 + overhang_leather * 2 / sqrt(2), side * b_clamp.z, 0])
+          rotate(a=[0, 0, side * 45])
             translate(v=[l_boot / 2, 0, 0])
               cuboid(size=l_boot);
 
-        translate(v=[0, dir * overhang_leather, 0])
-          tr_mask_side(dir)
-            mask_stitches();
+        translate(v=[0, side * overhang_leather, 0])
+          tr_mask_side(side)
+            mask_stitches(a=-a_stitch);
       }
   }
 
@@ -490,35 +491,35 @@ module leather() {
     front();
 
   color(c=brown_pair(5)[0])
-    front_tab(dir=-1);
+    front_tab(side=-1);
 
   color(c=brown_pair(5)[1])
-    front_tab(dir=1);
+    front_tab(side=1);
 
   color(c=brown_pair(0)[0])
     chamfer();
 
   color(c=brown_pair(6)[0])
-    chamfer_tab(dir=1);
+    chamfer_tab(side=1);
 
   color(c=brown_pair(6)[1])
-    chamfer_tab(dir=-1);
+    chamfer_tab(side=-1);
 
   color(c=brown_pair(2)[1])
     top();
 
   color(c=brown_pair(7)[0])
-    top_tab(dir=1);
+    top_tab(side=1);
 
   color(c=brown_pair(7)[1])
-    top_tab(dir=-1);
+    top_tab(side=-1);
 
   if (show_leather_sides) {
     color(c=brown_pair(3)[0])
-      side(dir=1);
+      side(side=1);
 
     color(c=brown_pair(3)[1])
-      side(dir=-1);
+      side(side=-1);
   }
 }
 
