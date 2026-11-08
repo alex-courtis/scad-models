@@ -17,11 +17,12 @@ debug_corner_holes = false;
 chamfer_clamp = 1.0; // [0.05:0.05:5]
 
 b_clamp = [150, 35, 20];
-d_clamp_holes = [8, 8];
-x_clamp_holes = [18, 70];
+d_clamp_bolt_holes = [8, 8];
+x_clamp_bolt_holes = [18, 70];
 
 d_clamp_jig_stitch = 2;
 w_clamp_jig_side = 4;
+l_clamp_jig = 75;
 
 /* [Leather] */
 t_leather = 0.8; // [0.05:0.05:5]
@@ -102,7 +103,7 @@ b_side = [
 ];
 
 // origin at x=l_boot, y=b_clamp.y/2, z=-b_clamp.z/2
-module clamp() {
+module clamp(b_clamp = b_clamp, bolt_holes = false) {
   module mask_chamfer() {
     translate(v=[b_clamp.x / 2, 0, b_clamp.z / 2])
       chamfer_edge_mask(
@@ -134,10 +135,10 @@ module clamp() {
           cuboid(size=b_clamp);
   }
 
-  module mask_clamp_holes() {
-    for (i = [0:1:len(d_clamp_holes) - 1])
-      translate(v=[-b_clamp.x / 2 + x_clamp_holes[i], 0, 0])
-        cyl(d=d_clamp_holes[i], h=b_clamp.z, center=true);
+  module mask_clamp_bolt_holes() {
+    for (i = [0:1:len(d_clamp_bolt_holes) - 1])
+      translate(v=[-b_clamp.x / 2 + x_clamp_bolt_holes[i], 0, 0])
+        cyl(d=d_clamp_bolt_holes[i], h=b_clamp.z, center=true);
   }
 
   difference() {
@@ -150,7 +151,8 @@ module clamp() {
 
         mask_chamfer();
 
-        mask_clamp_holes();
+        if (bolt_holes)
+          mask_clamp_bolt_holes();
       }
 
     mask_stitches(awl=false);
@@ -158,24 +160,14 @@ module clamp() {
 }
 
 module clamp_jig() {
-  module side() {
-    translate(v=[0, b_clamp.y, 0]) {
-      translate(v=[0, -b_clamp.y / 2 + w_clamp_jig_side / 2, 0])
-        back_half(s=b_clamp.x, y=b_clamp.y / 2 - w_clamp_jig_side / 2)
-          clamp();
-      translate(v=[0, b_clamp.y / 2 - w_clamp_jig_side / 2, 0])
-        front_half(s=b_clamp.x, y=-b_clamp.y / 2 + w_clamp_jig_side / 2)
-          clamp();
-    }
-  }
+  translate(v=[0, b_clamp.y * 2, 0]) {
+    color(c="purple")
+      clamp(b_clamp=[l_clamp_jig, b_clamp.y, b_clamp.z]);
 
-  translate(v=[-l_boot * 1.2, b_clamp.y * 1.2, 0])
-    right_half(s=b_clamp.x, x=-stitch_spacing * 2) {
-      color(c="purple")
-        clamp();
+    translate(v=[0, b_clamp.y, 0])
       color(c="yellow")
-        side();
-    }
+        clamp(b_clamp=[l_clamp_jig, w_clamp_jig_side, b_clamp.z]);
+  }
 }
 
 module mask_awl(s = scale_awl, l1 = l1_awl, l2 = l2_awl, t) {
@@ -533,7 +525,7 @@ module leather() {
 render() {
   if (show_clamp)
     color(c="green")
-      clamp();
+      clamp(bolt_holes=true);
 
   if (show_clamp_jig)
     clamp_jig();
