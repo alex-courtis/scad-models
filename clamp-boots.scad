@@ -27,7 +27,7 @@ l_clamp_jig = 75;
 
 /* [Leather] */
 t_leather = 0.8; // [0.05:0.05:5]
-overhang_leather = 0.4; // [0:0.05:5]
+overhang_leather = 0.1; // [0:0.05:5]
 
 l_boot = 65; // [1:1:100]
 w_tab = 4.5; // [1:0.1:20]
@@ -105,50 +105,50 @@ b_side = [
 ];
 
 // origin at x=l_boot, y=b_clamp.y/2, z=-b_clamp.z/2
-module clamp(b_clamp = b_clamp, bolt_holes = false) {
+module clamp(b, bolt_holes, chamfer) {
   module mask_chamfer() {
-    translate(v=[b_clamp.x / 2, 0, b_clamp.z / 2])
+    translate(v=[b.x / 2, 0, b.z / 2])
       chamfer_edge_mask(
-        l=b_clamp.y,
-        chamfer=b_clamp.z / 2,
+        l=b.y,
+        chamfer=b.z / 2,
         orient=FRONT,
       );
 
-    for (dy = [-b_clamp.y / 2, b_clamp.y / 2])
-      translate(v=[b_clamp.x / 2, dy, 0])
+    for (dy = [-b.y / 2, b.y / 2])
+      translate(v=[b.x / 2, dy, 0])
         rotate(a=[0, -45, 0])
           chamfer_edge_mask(
-            l=b_clamp.z * 2,
-            chamfer=chamfer_clamp,
+            l=b.z * 2,
+            chamfer=chamfer,
           );
 
     // chamfer the 45 degree edges to the same width as the 90 degree edges
-    w = chamfer_clamp * sqrt(2);
+    w = chamfer * sqrt(2);
     d = w / 2 * tan(22.5);
 
-    translate(v=[b_clamp.x / 2 - b_clamp.z / 2, 0, b_clamp.z / 2])
+    translate(v=[b.x / 2 - b.z / 2, 0, b.z / 2])
       rotate(a=[0, 22.5, 0])
-        translate(v=[0, 0, b_clamp.z / 2 - d])
-          cuboid(size=b_clamp);
+        translate(v=[0, 0, b.z / 2 - d])
+          cuboid(size=b);
 
-    translate(v=[b_clamp.x / 2, 0, 0])
+    translate(v=[b.x / 2, 0, 0])
       rotate(a=[0, 90 - 22.5, 0])
-        translate(v=[0, 0, b_clamp.z / 2 - d])
-          cuboid(size=b_clamp);
+        translate(v=[0, 0, b.z / 2 - d])
+          cuboid(size=b);
   }
 
   module mask_clamp_bolt_holes() {
     for (i = [0:1:len(d_clamp_bolt_holes) - 1])
-      translate(v=[-b_clamp.x / 2 + x_clamp_bolt_holes[i], 0, 0])
-        cyl(d=d_clamp_bolt_holes[i], h=b_clamp.z, center=true);
+      translate(v=[-b.x / 2 + x_clamp_bolt_holes[i], 0, 0])
+        cyl(d=d_clamp_bolt_holes[i], h=b.z, center=true);
   }
 
   difference() {
-    translate(v=[-b_clamp.x / 2 + l_boot, 0, b_clamp.z / 2])
+    translate(v=[-b.x / 2 + l_boot, 0, b.z / 2])
       difference() {
         cuboid(
-          size=[b_clamp.x, b_clamp.y, b_clamp.z],
-          chamfer=chamfer_clamp,
+          size=[b.x, b.y, b.z],
+          chamfer=chamfer,
         );
 
         mask_chamfer();
@@ -164,11 +164,11 @@ module clamp(b_clamp = b_clamp, bolt_holes = false) {
 module clamp_jig() {
   translate(v=[0, b_clamp.y * 2, 0]) {
     color(c="purple")
-      clamp(b_clamp=[l_clamp_jig, b_clamp.y, b_clamp.z]);
+      clamp(b=[l_clamp_jig, b_clamp.y, b_clamp.z], chamfer=0, bolt_holes=false);
 
     translate(v=[0, b_clamp.y, 0])
       color(c="yellow")
-        clamp(b_clamp=[l_clamp_jig, w_clamp_jig_side, b_clamp.z]);
+        clamp(b=[l_clamp_jig, w_clamp_jig_side, b_clamp.z], chamfer=0, bolt_holes=false);
   }
 }
 
