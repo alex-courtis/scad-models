@@ -8,6 +8,7 @@ show_clamp_jig = true;
 show_leather = true;
 show_leather_sides = true;
 show_clamp = false;
+scale_template = true;
 
 /* [Debug] */
 debug_stitches = false;
@@ -39,8 +40,8 @@ a_tab_top = 75; // [0:0.5:90]
 
 /* Stitches */
 a_stitch = 30; // [0:1:90]
-l1_awl = 3.5; // [0.00:0.05:5]
-l2_awl = 1.95; // [0.00:0.05:5]
+l1_awl = 3; // [0.00:0.05:5]
+l2_awl = 1.5; // [0.00:0.05:5]
 stitch_inset = 2.5; // [0.00:0.05:5]
 stitch_spacing = 4.3; // [0.05:0.05:5]
 t_template = 1.6; // [0.05:0.05:5]
@@ -531,11 +532,12 @@ render() {
   if (show_clamp_jig)
     clamp_jig();
 
-  if (show_leather) {
-    difference() {
-      leather();
-      if (!fold)
-        mask_corner_holes();
-    }
-  }
+  if (show_leather)
+    mirror(v=[0, 0, scale_template && !fold ? 1 : 0])
+      scale([1, 1, scale_template && !fold ? t_template / t_leather : 1])
+        difference() {
+          leather();
+          if (!fold)
+            mask_corner_holes();
+        }
 }
