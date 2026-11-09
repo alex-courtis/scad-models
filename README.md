@@ -4,9 +4,9 @@
 
 Jigs to mould and bend Acrylic/PETG tubing, 3D printed in ABS. Fully parameterised with overall shape and form defined by data.
 
-| Source | Rendered | Finished Product |
-| - | - | - |
-| [.scad](https://github.com/alex-courtis/hard-tube-bending-jigs/blob/master/bends.scad)<br>[parameters](https://github.com/alex-courtis/hard-tube-bending-jigs/blob/master/bends.json) | <img src="https://github.com/user-attachments/assets/582f872c-d17b-4cce-b6bc-21cdf33d97d3" /> | <img src="https://github.com/user-attachments/assets/7037761e-3751-4d6e-96e2-92821c591a4f" /> |
+| Source | Rendered | Product | Sample Usage |
+| - | - | - | - |
+| [.scad](https://github.com/alex-courtis/hard-tube-bending-jigs/blob/master/bends.scad)<br>[.json](https://github.com/alex-courtis/hard-tube-bending-jigs/blob/master/bends.json) | <img src="https://github.com/user-attachments/assets/582f872c-d17b-4cce-b6bc-21cdf33d97d3" /> | <img src="https://github.com/user-attachments/assets/7037761e-3751-4d6e-96e2-92821c591a4f" /> | <img width="400" src="https://github.com/user-attachments/assets/663f55bb-f1e1-4322-adee-f58b320a8ac2" /> |
 
 ## Butler Stool
 
@@ -22,8 +22,7 @@ Infinitely variable guides for leatherworkers to punch stitch holes in leather u
 
 | Source | Rendered | Finished Tools |
 | - | - | - |
-| source: [.scad](https://github.com/alex-courtis/scad-models/blob/master/leather-guides.scad)<br>script: [.sh](https://github.com/alex-courtis/scad-models/blob/master/leather-guides-export.sh) | <img src="https://github.com/user-attachments/assets/eecc1948-aef5-4db2-a0ee-7f35ae06bd86" /> | <img width="2860" height="1820" alt="guides" src="https://github.com/user-attachments/assets/388df34e-9487-4fd5-b15a-eba60f2f6cd7" />
- |
+| [.scad](https://github.com/alex-courtis/scad-models/blob/master/leather-guides.scad)<br>[.sh](https://github.com/alex-courtis/scad-models/blob/master/leather-guides-export.sh) | <img src="https://github.com/user-attachments/assets/eecc1948-aef5-4db2-a0ee-7f35ae06bd86" /> | <img src="https://github.com/user-attachments/assets/388df34e-9487-4fd5-b15a-eba60f2f6cd7" /> |
 
 ## Leather Classes Case
 
@@ -31,12 +30,13 @@ Hard glasses cases using 3D printed carbon fibre, leather, steel and magnets. Fu
 
 | Source | Rendered | Finished Product |
 | - | - | - |
-| source: [.scad](https://github.com/alex-courtis/scad-models/blob/master/glasses-case-v2.scad) <br> script: [.sh](https://github.com/alex-courtis/scad-models/blob/master/glasses-case-v2.sh) | <img src="https://github.com/user-attachments/assets/8d43904c-bbf8-4dde-86fc-e0a8bb8bbbe1" /> |  <img src="https://github.com/user-attachments/assets/4350d8e9-9d0f-4b43-a90d-818dab7aecbb" /> |
+| [.scad](https://github.com/alex-courtis/scad-models/blob/master/glasses-case-v2.scad)<br>[.sh](https://github.com/alex-courtis/scad-models/blob/master/glasses-case-v2.sh) | <img src="https://github.com/user-attachments/assets/8d43904c-bbf8-4dde-86fc-e0a8bb8bbbe1" /> |  <img src="https://github.com/user-attachments/assets/4350d8e9-9d0f-4b43-a90d-818dab7aecbb" /> |
 
 ## Woodworking Joint Library
 
-SCAD modules to build a model with common woodworking joints. Used for Butler Stool above.
+OpenSCAD modules to build a model with common woodworking joints. Used for Butler Stool above.
 
 | Source | Rendered |
 | - | - |
-| library [.scad](https://github.com/alex-courtis/scad-models/blob/master/lib/joints.scad)<br>demo [.scad](https://github.com/alex-courtis/scad-models/blob/master/lib/joints-test.scad) | <img src="https://github.com/user-attachments/assets/f3b8e628-3198-404f-aaf3-eee1eedde9b4" /> |
+| library: [.scad](https://github.com/alex-courtis/scad-models/blob/master/lib/joints.scad)<br>demo: [.scad](https://github.com/alex-courtis/scad-models/blob/master/lib/joints-test.scad) | <img src="https://github.com/user-attachments/assets/f3b8e628-3198-404f-aaf3-eee1eedde9b4" /> |
+
