@@ -30,21 +30,21 @@ t_leather = 0.8; // [0.05:0.05:5]
 overhang_leather = 0.1; // [0:0.05:5]
 
 l_boot = 65; // [1:1:100]
-w_tab = 4.5; // [1:0.1:20]
-gap_tab = 1; // [0.05:0.05:5]
+w_tab = 6.0; // [1:0.1:20]
+gap_tab = 0.75; // [0.05:0.05:5]
 d_corner_holes = 2; // [0.05:0.05:5]
 
 da_tab = 0; // [0:0.5:70]
-a_tab_front = 80; // [0:0.5:90]
+a_tab_front = 85; // [0:0.5:90]
 a_tab_top = 75; // [0:0.5:90]
 
 /* Stitches */
 a_stitch = 30; // [0:1:90]
 l1_awl = 3; // [0.00:0.05:5]
 l2_awl = 1.5; // [0.00:0.05:5]
-stitch_inset = 2.5; // [0.00:0.05:5]
+stitch_inset = 3.0; // [0.00:0.05:5]
 stitch_spacing = 4.3; // [0.05:0.05:5]
-t_template = 1.6; // [0.05:0.05:5]
+t_template = 2.0; // [0.05:0.05:5]
 scale_awl = 1.3; // [0.05:0.05:5]
 
 function poly_awl(l1, l2) =
@@ -157,7 +157,7 @@ module clamp(b, bolt_holes, chamfer) {
           mask_clamp_bolt_holes();
       }
 
-    mask_stitches(awl=false);
+    mask_stitches(awl=false, outer = true);
   }
 }
 
@@ -182,7 +182,7 @@ module mask_awl(s = scale_awl, l1 = l1_awl, l2 = l2_awl, t) {
 }
 
 // origin at x=l_boot, y=b_clamp.y/2, z=-b_clamp.z/2
-module mask_stitches(awl = true, dir = -1, a = a_stitch) {
+module mask_stitches(awl = true, dir = -1, a = a_stitch, outer = false) {
   module mask_stitch(side, a) {
     if (awl) {
       translate(v=[0, side * t_leather / 2, 0])
@@ -206,7 +206,7 @@ module mask_stitches(awl = true, dir = -1, a = a_stitch) {
     z_chamfer = b_clamp.z / 2 - stitch_inset * sin(22.5);
 
     x_front = x_chamfer;
-    z_front = stitch_inset;
+    z_front = stitch_spacing/2;
 
     spacing_top = (x_top - x_back) / round((x_top - x_back) / stitch_spacing);
 
@@ -219,12 +219,12 @@ module mask_stitches(awl = true, dir = -1, a = a_stitch) {
 
     for (side = [-1, 1]) {
       translate(v=[0, side * b_clamp.y / 2, 0]) {
-        for (x = [x_back:spacing_top:x_top]) {
+        for (x = [x_back:spacing_top:x_top - (outer ? 0 : spacing_top)]) {
           translate(v=[x, 0, z_top])
             mask_stitch(side, a=dir * -a);
         }
 
-        for (i = [1:1:stitches_chamfer]) {
+        for (i = [1:1:stitches_chamfer - (outer ? 0 : 1)]) {
           translate(v=[x_top + i * dxz_chamfer, 0, z_top - i * dxz_chamfer])
             mask_stitch(side, a=dir * -a + 45);
         }
@@ -481,7 +481,7 @@ module leather() {
 
         translate(v=[0, side * overhang_leather, 0])
           tr_mask_side(side)
-            mask_stitches(a=-a_stitch);
+            mask_stitches(a=-a_stitch, outer=true);
       }
   }
 
