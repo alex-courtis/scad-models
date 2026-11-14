@@ -16,6 +16,7 @@ debug_corner_holes = false;
 
 /* [Clamp] */
 chamfer_clamp = 1.0; // [0.05:0.05:5]
+chamfer_jig = 1.2; // [0.05:0.05:5]
 
 b_clamp = [150, 35, 20];
 d_clamp_bolt_holes = [8, 8];
@@ -114,13 +115,14 @@ module clamp(b, bolt_holes, chamfer) {
         orient=FRONT,
       );
 
-    for (dy = [-b.y / 2, b.y / 2])
-      translate(v=[b.x / 2, dy, 0])
-        rotate(a=[0, -45, 0])
-          chamfer_edge_mask(
-            l=b.z * 2,
-            chamfer=chamfer,
-          );
+    if (chamfer)
+      for (dy = [-b.y / 2, b.y / 2])
+        translate(v=[b.x / 2, dy, 0])
+          rotate(a=[0, -45, 0])
+            chamfer_edge_mask(
+              l=b.z * 2,
+              chamfer=chamfer,
+            );
 
     // chamfer the 45 degree edges to the same width as the 90 degree edges
     w = chamfer * sqrt(2);
@@ -157,14 +159,14 @@ module clamp(b, bolt_holes, chamfer) {
           mask_clamp_bolt_holes();
       }
 
-    mask_stitches(awl=false, outer = true);
+    mask_stitches(awl=false, outer=true);
   }
 }
 
 module clamp_jig() {
   translate(v=[0, b_clamp.y * 2, 0]) {
     color(c="purple")
-      clamp(b=[l_clamp_jig, b_clamp.y, b_clamp.z], chamfer=0, bolt_holes=false);
+      clamp(b=[l_clamp_jig, b_clamp.y, b_clamp.z], chamfer=chamfer_jig, bolt_holes=false);
 
     translate(v=[0, b_clamp.y, 0])
       color(c="yellow")
@@ -206,7 +208,7 @@ module mask_stitches(awl = true, dir = -1, a = a_stitch, outer = false) {
     z_chamfer = b_clamp.z / 2 - stitch_inset * sin(22.5);
 
     x_front = x_chamfer;
-    z_front = stitch_spacing/2;
+    z_front = stitch_spacing / 2;
 
     spacing_top = (x_top - x_back) / round((x_top - x_back) / stitch_spacing);
 
@@ -527,7 +529,7 @@ module leather() {
 render() {
   if (show_clamp)
     color(c="green")
-      clamp(bolt_holes=true);
+      clamp(b=b_clamp, chamfer=chamfer_clamp, bolt_holes=true);
 
   if (show_clamp_jig)
     clamp_jig();
