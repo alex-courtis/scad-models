@@ -27,7 +27,7 @@ l_clamp_jig = 75;
 
 /* [Leather] */
 t_leather = 0.8; // [0.05:0.05:5]
-overhang_leather = 0.1; // [0:0.05:5]
+overhang_leather = 0.2; // [0:0.05:5]
 
 l_boot = 65; // [1:1:100]
 w_tab = 6.0; // [1:0.1:20]
