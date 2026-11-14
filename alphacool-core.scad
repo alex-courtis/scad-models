@@ -42,7 +42,7 @@ t_wall_stem = 2.4;
 
 /* bracket */
 
-bracket = [body.x + dxy_front * 2, 13.5 + 2 + 3 + 0.5, 29];
+bracket = [body.x + dxy_front * 2, 13.5 + 2 + 3 + 0.5 - 3.5, 29];
 dy_nut_bolt = 8 + 2 + 0.5; // from top of bracket
 dz_nut = 11; // from front of bracket
 
