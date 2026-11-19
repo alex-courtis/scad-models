@@ -55,20 +55,6 @@ r_edge_debug = 0.5; // [0:0.1:5]
 // large dowels
 d_dowel_debug = 2; // [0:0.1:5]
 
-/* [Default Dimensions] */
-
-// -x
-l1 = 25; // [1:1:500]
-
-// +x
-l2 = 25; // [1:1:500]
-
-// y
-w = 20; // [1:1:500]
-
-// z
-t = 10; // [1:1:500]
-
 /* [Halving - 0.4 Nozzle Cheek Facing Up] */
 g_shoulder_halving = 0.004; // [0:0.001:2]
 g_cheek_halving = 0.12; // [0:0.001:2]
@@ -257,11 +243,11 @@ module joint_build(
 
 // print with cheek facing up
 module halving(
-  l = w,
-  l1 = l1,
-  l2 = l2,
-  w = w,
-  t = t,
+  l,
+  l1,
+  l2,
+  w,
+  t,
   a = 0,
   a1 = undef, // overrides a
   a2 = undef, // overrides a
@@ -367,13 +353,13 @@ G-------K                          M----------------------------------------P   
 // print with vertical cheeks
 // set l2 for a tee bridle
 module tenon(
-  l = w, // of the mortise
-  l1 = l1,
+  l, // of the mortise
+  l1,
   l2 = 0,
-  w = w,
+  w,
   w1 = 0,
   w2 = 0,
-  t = t,
+  t,
   a = 0,
   l_tenon = undef, // length of the tenon, < l for blind, > l for exposed, ignored when l2 > 0
   ratio = 1 / 3, // of the tenon, centred
@@ -503,11 +489,11 @@ module tenon(
 // print with vertical slot
 // remove l1 or l2 for a corner bridle
 module mortise(
-  l = w, // of the tenon
-  l1 = l1,
-  l2 = l2,
-  w = w,
-  t = t,
+  l, // of the tenon
+  l1,
+  l2,
+  w,
+  t,
   a = 0,
   l_tenon = undef, // length of the tenon, set to less than w for blind
   ratio = 1 / 3, // of the slot, centred
@@ -625,12 +611,12 @@ blind: ends at JK otherwise CD
 g_shoulder AB, half JK when blind 
 */
 module dove_tail(
-  l = w, // of the socket
-  l1 = l1,
-  w = w,
+  l, // of the socket
+  l1,
+  w,
   w1 = 0,
   w2 = 0,
-  t = t,
+  t,
   a = 0, // SBA
   a_tail = a_tail, // BIC
   l_tail = undef, // length of the tail, < l for blind, ignored when > l
@@ -760,11 +746,11 @@ A-------------R---------S-------------T---------U-------------F     -
 */
 
 module dove_socket(
-  l = w,
-  l1 = l1,
-  l2 = l2,
-  w = w,
-  t = t,
+  l,
+  l1,
+  l2,
+  w,
+  t,
   a = 0,
   a_tail = a_tail,
   l_tail = undef, // length of the tail, < w for blind, ignored when > w

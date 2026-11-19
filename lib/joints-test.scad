@@ -109,45 +109,45 @@ module test_h() {
   dx = 45 + test_dx;
 
   test_joint(m=0, dx=dx) {
-    halving(inner=true, a=-a_halving);
+    halving(l=w, l1=l1, l2=l2, w=w, t=t, inner=true, a=-a_halving);
 
     rotate(a=90 + a_halving)
-      halving(a=a_halving);
+      halving(l=w, l1=l1, l2=l2, w=w, t=t, a=a_halving);
   }
 
   test_joint(m=1, dx=dx) {
-    halving(inner=true, a=a);
+    halving(l=w, l1=l1, l2=l2, w=w, t=t, inner=true, a=a);
 
     rotate(a=90 - a)
-      halving(a=-a);
+      halving(l=w, l1=l1, l2=l2, w=w, t=t, a=-a);
   }
 
   test_joint(m=2, dx=dx) {
-    halving(inner=true, a=-a_halving, l2=0);
+    halving(l=w, l1=l1, l2=0, w=w, t=t, inner=true, a=-a_halving);
 
     rotate(a=90 + a_halving)
-      halving(a=a_halving, l1=0);
+      halving(l=w, l1=0, l2=l2, w=w, t=t, a=a_halving);
   }
 
   test_joint(m=3, dx=dx) {
-    halving(inner=true, a=a, l1=0);
+    halving(l=w, l1=0, l2=l2, w=w, t=t, inner=true, a=a);
 
     rotate(a=90 - a)
-      halving(a=-a, l2=0);
+      halving(l=w, l1=l1, l2=0, w=w, t=t, a=-a);
   }
 
   test_joint(m=4, dx=dx) {
-    halving(a=-a_halving, inner=true, l=w - 5, w=w + 5);
+    halving(l=w - 5, l1=l1, l2=l2, w=w + 5, t=t, a=-a_halving, inner=true);
 
     rotate(a=90 + a_halving)
-      halving(a=a_halving, l=w + 5, w=w - 5);
+      halving(l=w + 5, l1=l1, l2=l2, w=w - 5, t=t, a=a_halving);
   }
 
   test_joint(m=5, dx=dx) {
-    halving(inner=true, a=a, l=w - 5, w=w + 5);
+    halving(l=w - 5, l1=l1, l2=l2, w=w + 5, t=t, inner=true, a=a);
 
     rotate(a=90 - a)
-      halving(a=-a, l=w + 5, w=w - 5);
+      halving(l=w + 5, l1=l1, l2=l2, w=w - 5, t=t, a=-a);
   }
 
   test_joint(m=6, dx=dx) {
@@ -155,11 +155,11 @@ module test_h() {
     dz_lower = ( -t + t_lower) / 2;
     rat_lower = t / 2 / t_lower;
 
-    halving(inner=true, a=a, l=w - 5, w=w + 5);
+    halving(l=w - 5, l1=l1, l2=l2, w=w + 5, t=t, inner=true, a=a);
 
     rotate(a=90 - a)
       translate(v=[0, 0, dz_lower])
-        halving(a=-a, l=w + 5, w=w - 5, t=t_lower, ratio=rat_lower);
+        halving(l=w + 5, l1=l1, l2=l2, w=w - 5, t=t_lower, ratio=rat_lower, a=-a);
   }
 }
 
@@ -181,58 +181,58 @@ module test_d() {
 
   test_joint(m=0, dx=dx) {
     rotate(a=90 + a_dt)
-      dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
+      dove_tail(t=t, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
-    dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
+    dove_socket(t=t, a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
   }
 
   test_joint(m=1, dx=dx) {
     rotate(a=90 + a)
-      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
+      dove_tail(t=t, a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail);
 
-    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
+    dove_socket(t=t, a=a, a_tail=a_tail, l=l_socket, w=w_socket, l1=l1_socket, l2=l2_socket);
   }
 
   test_joint(m=2, dx=dx) {
     rotate(a=90 + a_dt)
-      dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
+      dove_tail(t=t, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
-    dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
+    dove_socket(t=t, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
   }
 
   test_joint(m=3, dx=dx) {
     rotate(a=90 + a)
-      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
+      dove_tail(t=t, a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail);
 
-    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
+    dove_socket(t=t, a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, l1=l1_socket, l2=l2_socket);
   }
 
   test_joint(m=4, dx=dx) {
     rotate(a=90 + a_dt)
-      dove_tail(a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
+      dove_tail(t=t, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
 
-    dove_socket(a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, l1=l1_socket, l2=l2_socket);
+    dove_socket(t=t, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, d_dowel=0, l1=l1_socket, l2=l2_socket);
   }
 
   test_joint(m=5, dx=dx) {
     rotate(a=90 + a)
-      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
+      dove_tail(t=t, a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0);
 
-    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
+    dove_socket(t=t, a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
   }
 
   test_joint(m=6, dx=dx) {
     rotate(a=90 + a)
-      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, w1=2, w2=-2);
+      dove_tail(t=t, a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, w1=2, w2=-2);
 
-    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
+    dove_socket(t=t, a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
   }
 
   test_joint(m=7, dx=dx) {
     rotate(a=90 + a)
-      dove_tail(a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, w1=-2, w2=2);
+      dove_tail(t=t, a=a, a_tail=a_tail, l=w_socket, w=l_socket, l1=l1_tail, l_tail=l_tail, ratio=0, d_dowel=0, w1=-2, w2=2);
 
-    dove_socket(a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
+    dove_socket(t=t, a=a, a_tail=a_tail, l=l_socket, w=w_socket, l_tail=l_tail, ratio=0, l1=l1_socket, l2=l2_socket, d_dowel=0);
   }
 }
 
